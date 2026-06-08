@@ -29,7 +29,7 @@ import { useLocation } from "wouter";
 
 type LabelPair = { en: string; ar: string };
 
-type VideoItem = { title: LabelPair; duration: string; gradient: string };
+type VideoItem = { title: LabelPair; duration: string; image: string };
 type AssessmentOption = { label: LabelPair; correct?: boolean };
 
 type ChatStep =
@@ -120,7 +120,7 @@ const SCRIPT: ChatStep[] = [
           ar: "الذكاء الاصطناعي لتحليلات حملات الصحة العامة",
         },
         duration: "6:12",
-        gradient: "from-primary to-secondary",
+        image: "brand/video-analytics.png",
       },
       {
         title: {
@@ -128,7 +128,7 @@ const SCRIPT: ChatStep[] = [
           ar: "كتابة أوامر فعّالة لموجزات الحملات",
         },
         duration: "4:48",
-        gradient: "from-secondary to-accent",
+        image: "brand/video-prompts.png",
       },
       {
         title: {
@@ -136,7 +136,7 @@ const SCRIPT: ChatStep[] = [
           ar: "قياس النتائج، وليس مجرد الوصول",
         },
         duration: "5:30",
-        gradient: "from-accent to-primary",
+        image: "brand/video-outcomes.png",
       },
     ],
   },
@@ -359,14 +359,18 @@ function AgentChatDemo() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {step.items.map((v) => (
                       <div key={v.title.en} className="group cursor-pointer">
-                        <div
-                          className={`relative aspect-video rounded-lg overflow-hidden bg-gradient-to-br ${v.gradient} flex items-center justify-center`}
-                        >
-                          <div className="absolute inset-0 bg-black/10" />
+                        <div className="relative aspect-video rounded-lg overflow-hidden flex items-center justify-center bg-muted">
+                          <img
+                            src={`${import.meta.env.BASE_URL}${v.image}`}
+                            alt={language === "ar" ? v.title.ar : v.title.en}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                           <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform z-10">
                             <Play className="w-5 h-5 text-primary ms-0.5" fill="currentColor" />
                           </div>
-                          <span className="absolute bottom-1.5 end-1.5 text-[10px] font-medium text-white bg-black/60 px-1.5 py-0.5 rounded">
+                          <span className="absolute bottom-1.5 end-1.5 text-[10px] font-medium text-white bg-black/60 px-1.5 py-0.5 rounded z-10">
                             {v.duration}
                           </span>
                         </div>

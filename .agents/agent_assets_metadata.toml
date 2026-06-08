@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "PmUWQdLJ6wiNf-nFLAa5q"
+uri = "file://artifacts/fahr-platform/public/brand/video-analytics.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "1eDaXrfCPZfC5jbt3CZtZ"
+uri = "file://artifacts/fahr-platform/public/brand/video-prompts.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "6DEVD5dfsXz1LgktbONDv"
+uri = "file://artifacts/fahr-platform/public/brand/video-outcomes.png"
+type = "image"
+title = "generated_image"
