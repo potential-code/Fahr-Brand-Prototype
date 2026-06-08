@@ -1,6 +1,6 @@
-# [Project name]
+# FAHR Federal Agentic AI Learning & Skilling Platform
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A clickable, bilingual (English/Arabic, RTL-ready) front-end prototype for a UAE Government FAHR-branded Agentic AI workforce-capability platform, with three role experiences (Learner, Ministry Admin, FAHR Admin) and realistic mock data. Mockup only — no backend.
 
 ## Run & Operate
 
@@ -30,7 +30,10 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Front-end-only clickable prototype in `artifacts/fahr-platform` (React + Vite, wouter routing, recharts charts).
+- Three role experiences: Learner (Aisha Al Mansoori journey — AI Capability Agent, capability profile, development mission, multi-interface agent, Agentic AI Lab Digital Twin + Outcome Project, evaluation, recognition), Ministry Admin (Ministry of Health dashboard + project portfolio), FAHR Admin (federal executive dashboard + governance/audit).
+- Bilingual EN/AR with RTL: `src/lib/LanguageContext.tsx` sets `document.documentElement.dir` and `lang`; header toggle switches labels. All data is hardcoded mock data.
+- FAHR logo lives at `artifacts/fahr-platform/public/brand/fahr-logo.png`, referenced via `${import.meta.env.BASE_URL}brand/fahr-logo.png`.
 
 ## User preferences
 

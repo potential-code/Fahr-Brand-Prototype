@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "FAHR AI Learning Platform"
+version = "1.0.0"
+id = "artifacts/fahr-platform"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23288
+
+[services.development]
+run = "pnpm --filter @workspace/fahr-platform run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/fahr-platform", "run", "build" ]
+publicDir = "artifacts/fahr-platform/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23288"
+BASE_PATH = "/"
