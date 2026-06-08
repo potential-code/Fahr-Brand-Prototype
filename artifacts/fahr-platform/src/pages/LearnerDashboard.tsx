@@ -20,15 +20,35 @@ import {
   BookOpen,
   FlaskConical,
   TrendingUp,
+  Play,
+  ClipboardCheck,
+  Lightbulb,
+  Building2,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
 type LabelPair = { en: string; ar: string };
 
+type VideoItem = { title: LabelPair; duration: string; gradient: string };
+type AssessmentOption = { label: LabelPair; correct?: boolean };
+
 type ChatStep =
   | { kind: "agent"; en: string; ar: string }
   | { kind: "user"; en: string; ar: string }
   | { kind: "gap"; strengths: LabelPair[]; gaps: LabelPair[] }
+  | { kind: "videos"; items: VideoItem[] }
+  | {
+      kind: "assessment";
+      question: LabelPair;
+      options: AssessmentOption[];
+    }
+  | {
+      kind: "example";
+      org: LabelPair;
+      title: LabelPair;
+      context: LabelPair;
+      impact: LabelPair;
+    }
   | {
       kind: "block";
       tag: LabelPair;
@@ -85,6 +105,81 @@ const SCRIPT: ChatStep[] = [
       { en: "Prompt Engineering", ar: "هندسة الأوامر" },
       { en: "Outcome Measurement", ar: "قياس النتائج" },
     ],
+  },
+  {
+    kind: "agent",
+    en: "Let's start building your learning pathway. Watch these three short videos, chosen for a public health communications role.",
+    ar: "لنبدأ ببناء مسار تعلمك. شاهدي هذه الفيديوهات القصيرة الثلاثة، المختارة لدور الاتصال في الصحة العامة.",
+  },
+  {
+    kind: "videos",
+    items: [
+      {
+        title: {
+          en: "AI for Public Health Campaign Analytics",
+          ar: "الذكاء الاصطناعي لتحليلات حملات الصحة العامة",
+        },
+        duration: "6:12",
+        gradient: "from-primary to-secondary",
+      },
+      {
+        title: {
+          en: "Writing Effective Prompts for Campaign Briefs",
+          ar: "كتابة أوامر فعّالة لموجزات الحملات",
+        },
+        duration: "4:48",
+        gradient: "from-secondary to-accent",
+      },
+      {
+        title: {
+          en: "Measuring Outcomes, Not Just Reach",
+          ar: "قياس النتائج، وليس مجرد الوصول",
+        },
+        duration: "5:30",
+        gradient: "from-accent to-primary",
+      },
+    ],
+  },
+  {
+    kind: "agent",
+    en: "Now a quick assessment to check what you took from the videos.",
+    ar: "والآن تقييم سريع للتحقق مما استفدتِه من الفيديوهات.",
+  },
+  {
+    kind: "assessment",
+    question: {
+      en: "Which metric best shows a public health campaign changed behaviour?",
+      ar: "أي مقياس يُظهر بشكل أفضل أن حملة الصحة العامة غيّرت السلوك؟",
+    },
+    options: [
+      { label: { en: "Total impressions", ar: "إجمالي مرات الظهور" } },
+      {
+        label: { en: "Increase in screening appointments booked", ar: "زيادة في مواعيد الفحص المحجوزة" },
+        correct: true,
+      },
+      { label: { en: "Number of posts published", ar: "عدد المنشورات المنشورة" } },
+    ],
+  },
+  {
+    kind: "agent",
+    en: "Well done. Here is a real-world example showing how this works in practice.",
+    ar: "أحسنتِ. إليكِ مثالاً واقعياً يوضح كيف يعمل هذا عملياً.",
+  },
+  {
+    kind: "example",
+    org: { en: "Ministry of Health and Prevention", ar: "وزارة الصحة ووقاية المجتمع" },
+    title: {
+      en: "AI-optimised seasonal influenza awareness campaign",
+      ar: "حملة توعية بالإنفلونزا الموسمية محسّنة بالذكاء الاصطناعي",
+    },
+    context: {
+      en: "The team used AI to segment audiences and analyse channel performance daily, reallocating spend toward the messages driving real action.",
+      ar: "استخدم الفريق الذكاء الاصطناعي لتقسيم الجمهور وتحليل أداء القنوات يومياً، وإعادة توجيه الإنفاق نحو الرسائل التي تحقق إجراءً فعلياً.",
+    },
+    impact: {
+      en: "+38% screening appointments | 40% faster campaign turnaround",
+      ar: "+38% مواعيد فحص | تنفيذ الحملة أسرع بنسبة 40%",
+    },
   },
   {
     kind: "agent",
@@ -246,6 +341,106 @@ function AgentChatDemo() {
                         ))}
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          if (step.kind === "videos") {
+            return (
+              <div key={i} className="flex justify-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Bot className="w-5 h-5 text-primary" />
+                </div>
+                <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-4 max-w-[90%] w-full shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                    {language === "ar" ? "فيديوهات موصى بها" : "Recommended Videos"}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {step.items.map((v) => (
+                      <div key={v.title.en} className="group cursor-pointer">
+                        <div
+                          className={`relative aspect-video rounded-lg overflow-hidden bg-gradient-to-br ${v.gradient} flex items-center justify-center`}
+                        >
+                          <div className="absolute inset-0 bg-black/10" />
+                          <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform z-10">
+                            <Play className="w-5 h-5 text-primary ms-0.5" fill="currentColor" />
+                          </div>
+                          <span className="absolute bottom-1.5 end-1.5 text-[10px] font-medium text-white bg-black/60 px-1.5 py-0.5 rounded">
+                            {v.duration}
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium mt-2 leading-snug line-clamp-2">
+                          {language === "ar" ? v.title.ar : v.title.en}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          if (step.kind === "assessment") {
+            return (
+              <div key={i} className="flex justify-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Bot className="w-5 h-5 text-primary" />
+                </div>
+                <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-4 max-w-[90%] w-full shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
+                    <ClipboardCheck className="w-4 h-4 text-primary" />
+                    {language === "ar" ? "تقييم سريع" : "Quick Assessment"}
+                  </p>
+                  <p className="text-sm font-medium mb-3">{language === "ar" ? step.question.ar : step.question.en}</p>
+                  <div className="space-y-2">
+                    {step.options.map((o) => (
+                      <div
+                        key={o.label.en}
+                        className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg border ${
+                          o.correct
+                            ? "border-green-300 bg-green-50 text-green-800 font-medium"
+                            : "border-border bg-background text-muted-foreground"
+                        }`}
+                      >
+                        <span
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                            o.correct ? "border-green-500 bg-green-500" : "border-muted-foreground/40"
+                          }`}
+                        >
+                          {o.correct && <CheckCircle2 className="w-3 h-3 text-white" />}
+                        </span>
+                        {language === "ar" ? o.label.ar : o.label.en}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          if (step.kind === "example") {
+            return (
+              <div key={i} className="flex justify-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Bot className="w-5 h-5 text-primary" />
+                </div>
+                <div className="rounded-2xl rounded-tl-sm p-4 max-w-[90%] w-full border border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lightbulb className="w-4 h-4 text-accent" />
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {language === "ar" ? "مثال واقعي" : "Real-World Example"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <Building2 className="w-3.5 h-3.5" />
+                    {language === "ar" ? step.org.ar : step.org.en}
+                  </div>
+                  <p className="text-sm font-semibold mb-2">{language === "ar" ? step.title.ar : step.title.en}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                    {language === "ar" ? step.context.ar : step.context.en}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs font-medium text-primary bg-white/70 border border-primary/10 rounded-lg px-3 py-2">
+                    <TrendingUp className="w-4 h-4 shrink-0" />
+                    {language === "ar" ? step.impact.ar : step.impact.en}
                   </div>
                 </div>
               </div>
