@@ -26,6 +26,12 @@ import {
   Building2,
   Phone,
   Video,
+  UserCheck,
+  GraduationCap,
+  Award,
+  ChevronRight,
+  ChevronLeft,
+  type LucideIcon,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -578,6 +584,106 @@ function AvatarPane({ language }: { language: "en" | "ar" }) {
   );
 }
 
+type JourneyStage = { icon: LucideIcon; title: LabelPair; desc: LabelPair };
+
+const JOURNEY: JourneyStage[] = [
+  {
+    icon: UserCheck,
+    title: { en: "Onboarding & Profiling", ar: "التهيئة وبناء الملف" },
+    desc: {
+      en: "AI understands your role, context, and goals.",
+      ar: "يفهم الذكاء الاصطناعي دورك وسياقك وأهدافك.",
+    },
+  },
+  {
+    icon: GraduationCap,
+    title: { en: "Personalized Learning & Development Mission", ar: "تعلّم مخصّص ومهمة تطوير" },
+    desc: {
+      en: "AI creates a mission that adapts as you make progress.",
+      ar: "ينشئ الذكاء الاصطناعي مهمة تتكيّف مع تقدّمك.",
+    },
+  },
+  {
+    icon: FlaskConical,
+    title: { en: "Experiential Learning & Outcome Projects", ar: "تعلّم تطبيقي ومشاريع بنتائج" },
+    desc: {
+      en: "Learn by doing. Build, experiment and solve real work challenges.",
+      ar: "تعلّم بالممارسة. ابنِ وجرّب وحُلّ تحديات عمل حقيقية.",
+    },
+  },
+  {
+    icon: Bot,
+    title: { en: "Build & Train Digital Twin", ar: "بناء وتدريب التوأم الرقمي" },
+    desc: {
+      en: "Personal AI assistant that understands your work and supports you.",
+      ar: "مساعد ذكي شخصي يفهم عملك ويدعمك.",
+    },
+  },
+  {
+    icon: ClipboardCheck,
+    title: { en: "Assess & Validate", ar: "التقييم والتحقق" },
+    desc: {
+      en: "AI + Human evaluation of capabilities and outcomes.",
+      ar: "تقييم بالذكاء الاصطناعي والعنصر البشري للقدرات والنتائج.",
+    },
+  },
+  {
+    icon: Award,
+    title: { en: "Recognition & Impact", ar: "التقدير والأثر" },
+    desc: {
+      en: "Outcome-based recognition and measurable impact.",
+      ar: "تقدير قائم على النتائج وأثر قابل للقياس.",
+    },
+  },
+];
+
+function JourneyTimeline({ language }: { language: "en" | "ar" }) {
+  const isAr = language === "ar";
+  const Arrow = isAr ? ChevronLeft : ChevronRight;
+  return (
+    <Card className="border-primary/20 overflow-hidden">
+      <CardContent className="p-6">
+        <div className="mb-5">
+          <h2 className="text-lg font-bold text-primary leading-tight">
+            {isAr ? "رحلتك التعليمية" : "Your Learning Journey"}
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            {isAr
+              ? "ست مراحل مدعومة بالذكاء الاصطناعي من التهيئة إلى الأثر القابل للقياس"
+              : "Six AI-powered stages from onboarding to measurable impact"}
+          </p>
+        </div>
+        <div className="flex items-stretch gap-1 overflow-x-auto pb-2">
+          {JOURNEY.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <div key={i} className="flex items-stretch flex-1 min-w-[140px]">
+                <div className="flex flex-col items-center text-center flex-1 px-1">
+                  <div className="relative mb-3">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md">
+                      <Icon className="w-7 h-7 text-white" />
+                    </div>
+                    <span className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-white border border-primary text-primary text-[10px] font-bold flex items-center justify-center shadow-sm">
+                      {i + 1}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold leading-snug mb-1">{isAr ? s.title.ar : s.title.en}</p>
+                  <p className="text-xs text-muted-foreground leading-snug">{isAr ? s.desc.ar : s.desc.en}</p>
+                </div>
+                {i < JOURNEY.length - 1 && (
+                  <div className="flex items-start pt-5 shrink-0">
+                    <Arrow className="w-5 h-5 text-primary/40" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function LearnerDashboard() {
   const { language, t } = useLanguage();
   const [, setLocation] = useLocation();
@@ -585,6 +691,9 @@ export default function LearnerDashboard() {
   return (
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Learning Journey */}
+        <JourneyTimeline language={language} />
+
         {/* AI Capability Agent Demo */}
         <Card className="border-primary/20 overflow-hidden">
           <CardContent className="p-6">
