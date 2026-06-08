@@ -24,6 +24,8 @@ import {
   ClipboardCheck,
   Lightbulb,
   Building2,
+  Phone,
+  Video,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -516,21 +518,33 @@ function AgentChatDemo() {
 function VoicePane({ language }: { language: "en" | "ar" }) {
   return (
     <Card className="h-full flex flex-col items-center justify-center p-8 bg-gradient-to-b from-background to-muted/30 min-h-[460px]">
-      <div className="w-32 h-32 rounded-full bg-primary/5 flex items-center justify-center relative mb-8">
-        <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping"></div>
-        <div className="absolute inset-4 rounded-full border border-primary/40 animate-ping" style={{ animationDelay: "200ms" }}></div>
-        <Mic className="w-12 h-12 text-primary" />
+      <div className="relative w-36 h-36 mb-8">
+        <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping" />
+        <div
+          className="absolute -inset-2 rounded-full border border-primary/30 animate-ping"
+          style={{ animationDelay: "200ms" }}
+        />
+        <img
+          src={`${import.meta.env.BASE_URL}brand/aisha-avatar.png`}
+          alt={language === "ar" ? "وكيل القدرات الذكي" : "AI Capability Agent"}
+          className="relative w-36 h-36 rounded-full object-cover border-4 border-white shadow-lg"
+        />
+        <span className="absolute bottom-1 end-1 w-5 h-5 rounded-full bg-green-500 border-2 border-white" />
       </div>
-      <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-6">
-        {language === "ar" ? "وضع الصوت نشط – محاكاة" : "Voice mode active – simulated"}
+      <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-4">
+        {language === "ar" ? "وضع الصوت – محاكاة" : "Voice mode – simulated"}
       </p>
-      <div className="text-center max-w-lg">
+      <div className="text-center max-w-lg mb-8">
         <p className="text-xl font-medium leading-relaxed">
           {language === "ar"
             ? "«عائشة، أقوى مجالاتك هو استراتيجية المحتوى. دعينا نسد فجوة التحليلات ونبني مولّد موجز الحملات معاً.»"
             : "\"Aisha, your strongest area is content strategy. Let's close your analytics gap and build a Campaign Brief Generator together.\""}
         </p>
       </div>
+      <Button size="lg" className="rounded-full bg-green-600 hover:bg-green-700 text-white gap-2 px-8">
+        <Phone className="w-5 h-5" />
+        {language === "ar" ? "ابدأ المكالمة" : "Start call"}
+      </Button>
     </Card>
   );
 }
@@ -539,19 +553,27 @@ function AvatarPane({ language }: { language: "en" | "ar" }) {
   return (
     <Card className="h-full flex flex-col items-center justify-center p-8 overflow-hidden relative bg-slate-900 border-none min-h-[460px]">
       <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-slate-900 to-slate-900"></div>
-      <div className="w-64 h-64 relative z-10 mb-8">
+      <div className="w-56 h-56 relative z-10 mb-8">
         <div className="absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-[40%] animate-[spin_10s_linear_infinite] opacity-50 blur-xl"></div>
-        <div className="absolute inset-2 bg-gradient-to-tr from-white/20 to-transparent rounded-[30%] backdrop-blur-sm border border-white/30 flex items-center justify-center">
-          <Bot className="w-24 h-24 text-white drop-shadow-lg" />
+        <div className="absolute inset-2 rounded-[30%] overflow-hidden border border-white/30 shadow-2xl">
+          <img
+            src={`${import.meta.env.BASE_URL}brand/aisha-avatar.png`}
+            alt={language === "ar" ? "وكيل القدرات الذكي" : "AI Capability Agent"}
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
-      <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl max-w-md text-center text-white">
+      <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl max-w-md text-center text-white mb-6">
         <p className="text-lg">
           {language === "ar"
             ? "«سأرشدك خطوة بخطوة من تحديد فجواتك إلى تحقيق أثر تطبيقي قابل للقياس.»"
             : "\"I will guide you step by step from identifying your gaps to delivering applied, measurable impact.\""}
         </p>
       </div>
+      <Button size="lg" className="relative z-10 rounded-full gap-2 px-8">
+        <Video className="w-5 h-5" />
+        {language === "ar" ? "ابدأ الجلسة" : "Start session"}
+      </Button>
     </Card>
   );
 }
