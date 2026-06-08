@@ -463,8 +463,8 @@ function AgentChatDemo() {
                 <Bot className="w-5 h-5 text-primary" />
               </div>
               <div className={`rounded-2xl rounded-tl-sm p-3 max-w-[90%] w-full border ${statusStyles} flex items-center gap-3`}>
-                <div className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5 text-primary" />
+                <div className="w-9 h-9 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
+                  <Icon className="w-5 h-5 text-red-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
