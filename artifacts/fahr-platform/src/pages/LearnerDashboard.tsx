@@ -563,13 +563,6 @@ export default function LearnerDashboard() {
   return (
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* Quote */}
-        <div className="bg-muted p-4 rounded-xl text-center italic text-muted-foreground">
-          {language === "ar"
-            ? "«الذكاء الاصطناعي ليس طبقة ميزات، بل هو نظام التشغيل لرحلة التعلم.»"
-            : "\"AI is not a feature layer. It is the operating system of the learning journey.\""}
-        </div>
-
         {/* AI Capability Agent Demo */}
         <Card className="border-primary/20 overflow-hidden">
           <CardContent className="p-6">
