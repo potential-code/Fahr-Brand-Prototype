@@ -8,5 +8,12 @@ description: Durable conventions and gotchas for the FAHR platform mockup
 - **Why:** user explicitly chose these scopes during Task planning.
 - Gotchas: fahr.gov.ae blocks scraping/screenshots (branding capture fails — use the existing theme in src/index.css). The FAHR logo PNG has a white background — never use `brightness-0 invert` on it (renders a white box); place it on a white chip instead. Radix/shadcn `<Select required>` creates unfulfillable native validation — avoid `required` on Selects.
 
+## Learner journey contract (decided with the user, keep consistent)
+- The baseline assessment is the single diagnostic entry point. Onboarding is pure profile setup and must never regain an inline quiz.
+- Assessment result -> recommended courses -> those same courses feed the Personalised Development Mission. Never create a second, parallel course list.
+- The dashboard AI chat stays a conversational concierge; the assessment owns the diagnostic. Do not duplicate scoring in the chat.
+- **Why:** the user chose a single spine so the demo reads as one continuous story rather than competing features.
+- Reference screenshots the user supplies are for visual design only — all content stays FAHR/federal AI-competency themed.
+
 ## Rebrand palette (official FAHR, applied)
 Theme tokens now: cream bg (40 33% 98%), camel-gold primary deepened to 37 33% 42% for white-text contrast (51% lightness failed review), bronze accent (35 38% 44%) with WHITE accent-foreground — never use `text-accent-foreground` on light surfaces (invisible); use `text-accent` instead. Greens/reds kept only for genuine success/danger semantics. Sidebar is a separated `bg-sidebar` panel card; top bar is logo-only.

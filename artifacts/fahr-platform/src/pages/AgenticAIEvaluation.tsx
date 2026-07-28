@@ -1,12 +1,15 @@
 import React from "react";
+import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Bot, CheckCircle2, ShieldCheck, Award, UserCheck, ArrowUpRight } from "lucide-react";
 import { CAPABILITY_LEVELS } from "@/lib/constants";
 
 export default function AgenticAIEvaluation() {
+  const [, setLocation] = useLocation();
   const scores = [
     { label: "Practical Application", value: 92 },
     { label: "Innovation", value: 85 },
@@ -118,6 +121,21 @@ export default function AgenticAIEvaluation() {
             </div>
           </div>
         </div>
+
+        {/* Hand-off to recognition */}
+        <Card className="border-card-border">
+          <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Your credential is ready</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                This evaluation has issued a verifiable credential and added your impact to the federal register.
+              </p>
+            </div>
+            <Button onClick={() => setLocation("/learner/recognition")} data-testid="button-view-recognition">
+              View Recognition and Impact <ArrowUpRight className="w-4 h-4 ml-2" />
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

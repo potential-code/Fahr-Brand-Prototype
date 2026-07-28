@@ -1,235 +1,329 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { useLocation } from "wouter";
-import { useLanguage } from "@/lib/LanguageContext";
-import { AGENTS, CAPABILITY_LEVELS } from "@/lib/constants";
-import { Bot, ChevronRight, CheckCircle2, User, Sparkles, Building2, Briefcase, Activity } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Bot,
+  ChevronRight,
+  ChevronLeft,
+  CheckCircle2,
+  User,
+  Sparkles,
+  Building2,
+  Briefcase,
+  Target,
+  ShieldCheck,
+  Check,
+} from "lucide-react";
 
-type Step = 0 | 1 | 2 | 3 | 4;
+const SENIORITY = ["0-2 years", "3-5 years", "6-10 years", "10+ years"];
+
+const OBJECTIVES = [
+  "Save time on repetitive work",
+  "Improve the quality of my written outputs",
+  "Make better use of my service data",
+  "Automate a recurring process",
+  "Support my team's AI adoption",
+  "Meet a mandated capability target",
+];
+
+type Step = 0 | 1 | 2 | 3;
+
+const TOTAL_STEPS = 3;
 
 export default function LearnerOnboarding() {
-  const { language } = useLanguage();
   const [, setLocation] = useLocation();
   const [step, setStep] = useState<Step>(0);
-  const [analyzing, setAnalyzing] = useState(false);
 
-  // Form states
+  const [name, setName] = useState("Aisha Al Mansoori");
+  const [entity, setEntity] = useState("Ministry of Health and Prevention");
+  const [department, setDepartment] = useState("Communications and Public Awareness");
   const [role, setRole] = useState("Marketing Specialist");
-  const [department, setDepartment] = useState("Communications");
-  const [experience, setExperience] = useState("3-5 years");
+  const [seniority, setSeniority] = useState("3-5 years");
+  const [objectives, setObjectives] = useState<string[]>([
+    "Save time on repetitive work",
+    "Improve the quality of my written outputs",
+  ]);
+  const [consent, setConsent] = useState(false);
 
-  // Assessment states
-  const [q1, setQ1] = useState<string>("");
-  const [q2, setQ2] = useState<string>("");
+  const toggleObjective = (o: string) =>
+    setObjectives((prev) => (prev.includes(o) ? prev.filter((x) => x !== o) : [...prev, o]));
 
-  const handleNext = () => {
-    if (step === 2) {
-      setStep(3);
-      setAnalyzing(true);
-      setTimeout(() => {
-        setAnalyzing(false);
-        setStep(4);
-      }, 3000);
-    } else if (step < 4) {
-      setStep((s) => (s + 1) as Step);
-    }
-  };
-
-  const isStep2Valid = q1 !== "" && q2 !== "";
+  const step1Valid = name.trim() && entity.trim() && department.trim() && role.trim();
+  const step2Valid = objectives.length > 0 && consent;
 
   return (
     <Layout role="learner">
-      <div className="max-w-2xl mx-auto w-full py-8">
-        
-        {step > 0 && step < 4 && (
+      <div className="max-w-2xl mx-auto w-full py-4">
+        {step > 0 && step < TOTAL_STEPS && (
           <div className="mb-8">
-            <Progress value={(step / 3) * 100} className="h-2 mb-2" />
-            <p className="text-xs text-muted-foreground text-right">Step {step} of 3</p>
-          </div>
-        )}
-
-        {/* Step 0: Welcome */}
-        {step === 0 && (
-          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 text-center py-12">
-            <div className="w-24 h-24 rounded-full bg-primary/10 border-4 border-primary/20 flex items-center justify-center mx-auto mb-6">
-              <Sparkles className="w-12 h-12 text-primary" />
-            </div>
-            <h1 className="text-4xl font-bold tracking-tight text-primary">Welcome, Aisha</h1>
-            <p className="text-xl text-muted-foreground max-w-lg mx-auto leading-relaxed">
-              Your Agentic AI development pathway starts here. We'll capture your role context and assess your current AI capabilities to generate a personalized mission.
+            <Progress value={(step / (TOTAL_STEPS - 1)) * 100} className="h-2 mb-2" />
+            <p className="text-xs text-muted-foreground text-right">
+              Step {step} of {TOTAL_STEPS - 1}
             </p>
-            <div className="pt-8">
-              <Button size="lg" className="rounded-full px-8 text-lg h-14 shadow-lg hover-elevate" onClick={handleNext}>
-                Begin Profiling <ChevronRight className="ml-2 w-5 h-5" />
-              </Button>
-            </div>
           </div>
         )}
 
-        {/* Step 1: Role Profiling */}
-        {step === 1 && (
-          <Card className="animate-in slide-in-from-right-8 duration-300">
-            <CardContent className="p-8 space-y-6">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Bot className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">Role Context</h2>
-                  <p className="text-sm text-muted-foreground">
-                    I need to understand your daily work to recommend relevant AI workflows.
-                  </p>
-                </div>
+        <AnimatePresence mode="wait">
+          {/* Step 0 — Welcome */}
+          {step === 0 && (
+            <motion.div
+              key="s0"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center py-10 space-y-6"
+            >
+              <div className="w-24 h-24 rounded-full bg-primary/10 border-4 border-primary/20 flex items-center justify-center mx-auto">
+                <Sparkles className="w-12 h-12 text-primary" />
               </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Briefcase className="w-4 h-4 text-muted-foreground"/> Job Title</Label>
-                  <Input value={role} onChange={(e) => setRole(e.target.value)} className="bg-background text-foreground" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Building2 className="w-4 h-4 text-muted-foreground"/> Department / Function</Label>
-                  <Input value={department} onChange={(e) => setDepartment(e.target.value)} className="bg-background" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><User className="w-4 h-4 text-muted-foreground"/> Experience Level</Label>
-                  <RadioGroup value={experience} onValueChange={setExperience} className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="flex items-center space-x-2 border p-3 rounded-lg bg-card cursor-pointer hover:border-primary/50">
-                      <RadioGroupItem value="0-2 years" id="r1" />
-                      <Label htmlFor="r1" className="cursor-pointer">0-2 years</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 border p-3 rounded-lg bg-card cursor-pointer hover:border-primary/50">
-                      <RadioGroupItem value="3-5 years" id="r2" />
-                      <Label htmlFor="r2" className="cursor-pointer">3-5 years</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 border p-3 rounded-lg bg-card cursor-pointer hover:border-primary/50">
-                      <RadioGroupItem value="6-10 years" id="r3" />
-                      <Label htmlFor="r3" className="cursor-pointer">6-10 years</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 border p-3 rounded-lg bg-card cursor-pointer hover:border-primary/50">
-                      <RadioGroupItem value="10+ years" id="r4" />
-                      <Label htmlFor="r4" className="cursor-pointer">10+ years</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-
-              <div className="pt-6 flex justify-end">
-                <Button onClick={handleNext} className="gap-2">Continue <ChevronRight className="w-4 h-4" /></Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 2: Baseline Assessment */}
-        {step === 2 && (
-          <Card className="animate-in slide-in-from-right-8 duration-300">
-            <CardContent className="p-8 space-y-8">
-              <div className="flex items-start gap-4 mb-2">
-                <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
-                  <Activity className="w-6 h-6 text-secondary" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">Diagnostic Assessment</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Let's establish your baseline capability level.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <p className="font-medium text-base">1. How frequently do you use generative AI (like ChatGPT or Copilot) in your daily work?</p>
-                  <RadioGroup value={q1} onValueChange={setQ1} className="space-y-2">
-                    {["Rarely or never", "Occasionally for simple tasks (like drafting emails)", "Daily for complex workflows", "I build and train my own AI assistants"].map((opt, i) => (
-                      <div key={i} className="flex items-center space-x-3 border p-3 rounded-lg bg-card hover:bg-muted/50 cursor-pointer transition-colors">
-                        <RadioGroupItem value={opt} id={`q1-${i}`} />
-                        <Label htmlFor={`q1-${i}`} className="cursor-pointer flex-1 font-normal">{opt}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="font-medium text-base">2. When an AI generates a report based on Ministry data, what is the required governance step?</p>
-                  <RadioGroup value={q2} onValueChange={setQ2} className="space-y-2">
-                    {[
-                      "Copy and paste it directly to stakeholders", 
-                      "Human-in-the-loop review for accuracy and tone before sharing", 
-                      "Run it through a plagiarism checker", 
-                      "Store it in an external public database"
-                    ].map((opt, i) => (
-                      <div key={i} className="flex items-center space-x-3 border p-3 rounded-lg bg-card hover:bg-muted/50 cursor-pointer transition-colors">
-                        <RadioGroupItem value={opt} id={`q2-${i}`} />
-                        <Label htmlFor={`q2-${i}`} className="cursor-pointer flex-1 font-normal">{opt}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-              </div>
-
-              <div className="pt-6 flex justify-end">
-                <Button onClick={handleNext} disabled={!isStep2Valid} className="gap-2 bg-secondary hover:bg-secondary/90 text-white">
-                  Submit & Analyze <ChevronRight className="w-4 h-4" />
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+                Welcome, {name.split(" ")[0]}
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                Let us capture your role context first. It takes two minutes and it is what allows the AI Skills
+                Advisor to make its recommendations specific to your work — not generic AI training.
+              </p>
+              <div className="pt-4">
+                <Button
+                  size="lg"
+                  className="rounded-full px-8 h-14 text-base"
+                  onClick={() => setStep(1)}
+                  data-testid="button-begin-profile"
+                >
+                  Set up my profile <ChevronRight className="ml-2 w-5 h-5" />
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </motion.div>
+          )}
 
-        {/* Step 3: Analyzing State */}
-        {step === 3 && (
-          <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-300">
-            <div className="relative w-24 h-24 mb-8">
-              <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-              <Bot className="absolute inset-0 m-auto w-10 h-10 text-primary animate-pulse" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Analyzing Profile & Assessment</h2>
-            <p className="text-muted-foreground text-center max-w-md animate-pulse">
-              The {AGENTS.advisor} is mapping your responses to the FAHR capability framework...
-            </p>
-          </div>
-        )}
+          {/* Step 1 — Role context */}
+          {step === 1 && (
+            <motion.div key="s1" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}>
+              <Card>
+                <CardContent className="p-6 md:p-8 space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Bot className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-foreground">Your role context</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Your entity and role determine which AI workflows are relevant to you.
+                      </p>
+                    </div>
+                  </div>
 
-        {/* Step 4: Results & Pathway Reveal */}
-        {step === 4 && (
-          <div className="space-y-6 animate-in slide-in-from-bottom-8 duration-700">
-            <Card className="border-green-500/20 bg-green-50/30 overflow-hidden relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
-              <CardContent className="p-8 text-center">
-                <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
-                  <CheckCircle2 className="w-10 h-10 text-green-600" />
-                </div>
-                <h2 className="text-3xl font-bold mb-2">Profiling Complete</h2>
-                <p className="text-muted-foreground mb-6">Your baseline capability has been established.</p>
-                
-                <div className="bg-white rounded-xl p-6 border shadow-sm max-w-md mx-auto mb-6 text-left">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Current Level</p>
-                  <h3 className="text-2xl font-bold text-primary mb-2">{CAPABILITY_LEVELS[1].label}</h3>
-                  <p className="text-sm text-muted-foreground">{CAPABILITY_LEVELS[1].description}</p>
-                </div>
-                
-                <p className="text-sm bg-primary/5 text-primary p-4 rounded-lg inline-block font-medium">
-                  The {AGENTS.advisor} has generated your personalized pathway targeting the <strong>{CAPABILITY_LEVELS[2].label}</strong> level.
-                </p>
-              </CardContent>
-            </Card>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground" /> Full name
+                      </Label>
+                      <Input value={name} onChange={(e) => setName(e.target.value)} data-testid="input-name" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-muted-foreground" /> Federal entity
+                      </Label>
+                      <Input value={entity} onChange={(e) => setEntity(e.target.value)} data-testid="input-entity" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-muted-foreground" /> Department or function
+                      </Label>
+                      <Input
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        data-testid="input-department"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-muted-foreground" /> Job role
+                      </Label>
+                      <Input value={role} onChange={(e) => setRole(e.target.value)} data-testid="input-role" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground" /> Seniority
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        {SENIORITY.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setSeniority(s)}
+                            data-testid={`seniority-${s}`}
+                            className={`rounded-lg border px-4 py-3 text-sm text-left transition-colors ${
+                              seniority === s
+                                ? "border-primary bg-primary/5 font-medium text-foreground"
+                                : "border-card-border bg-card text-muted-foreground hover:border-primary/40"
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
-            <div className="flex justify-center pt-4">
-              <Button size="lg" className="rounded-full px-10 h-14 shadow-md text-lg" onClick={() => setLocation("/learner/mission")}>
-                View Development Mission <ChevronRight className="ml-2 w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        )}
+                  <div className="pt-2 flex justify-between">
+                    <Button variant="ghost" onClick={() => setStep(0)}>
+                      <ChevronLeft className="w-4 h-4 mr-2" /> Back
+                    </Button>
+                    <Button onClick={() => setStep(2)} disabled={!step1Valid} data-testid="button-continue-1">
+                      Continue <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
+          {/* Step 2 — Objectives + consent */}
+          {step === 2 && (
+            <motion.div key="s2" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}>
+              <Card>
+                <CardContent className="p-6 md:p-8 space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Target className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-foreground">What do you want AI to do for you?</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Choose as many as apply. Your mission will be weighted towards these outcomes.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {OBJECTIVES.map((o) => {
+                      const selected = objectives.includes(o);
+                      return (
+                        <button
+                          key={o}
+                          type="button"
+                          onClick={() => toggleObjective(o)}
+                          data-testid={`objective-${o}`}
+                          className={`rounded-lg border p-4 text-left text-sm flex items-start gap-3 transition-colors ${
+                            selected
+                              ? "border-primary bg-primary/5 text-foreground font-medium"
+                              : "border-card-border bg-card text-muted-foreground hover:border-primary/40"
+                          }`}
+                        >
+                          <span
+                            className={`mt-0.5 h-4 w-4 shrink-0 rounded border-2 flex items-center justify-center ${
+                              selected ? "border-primary bg-primary" : "border-border"
+                            }`}
+                          >
+                            {selected && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                          </span>
+                          {o}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="rounded-xl border border-card-border bg-muted/40 p-5">
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        id="consent"
+                        checked={consent}
+                        onCheckedChange={(v) => setConsent(v === true)}
+                        className="mt-0.5"
+                        data-testid="checkbox-consent"
+                      />
+                      <Label htmlFor="consent" className="text-sm font-normal leading-relaxed cursor-pointer">
+                        I consent to FAHR processing my assessment responses and learning activity to generate my
+                        capability profile. My results are visible to me and my line manager, and are reported to my
+                        entity only in aggregate.
+                      </Label>
+                    </div>
+                    <p className="mt-3 pl-7 text-xs text-muted-foreground inline-flex items-center gap-1.5">
+                      <ShieldCheck className="h-3.5 w-3.5" /> Handled under federal data protection policy
+                    </p>
+                  </div>
+
+                  <div className="pt-2 flex justify-between">
+                    <Button variant="ghost" onClick={() => setStep(1)}>
+                      <ChevronLeft className="w-4 h-4 mr-2" /> Back
+                    </Button>
+                    <Button onClick={() => setStep(3)} disabled={!step2Valid} data-testid="button-continue-2">
+                      Save profile <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Step 3 — Profile saved, hand off to the baseline assessment */}
+          {step === 3 && (
+            <motion.div key="s3" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              <Card className="overflow-hidden">
+                <CardContent className="p-6 md:p-8 text-center">
+                  <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-10 h-10 text-primary" />
+                  </div>
+                  <h2 className="mt-5 text-2xl md:text-3xl font-bold text-foreground">Profile saved</h2>
+                  <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+                    Next: an eight-question baseline assessment. That is what turns this profile into a scored
+                    capability level and a personalised course pathway.
+                  </p>
+
+                  <div className="mt-7 rounded-xl border border-card-border bg-muted/40 p-5 text-left max-w-md mx-auto space-y-3">
+                    <div className="flex justify-between gap-4">
+                      <span className="text-xs text-muted-foreground">Name</span>
+                      <span className="text-sm font-medium text-foreground text-right">{name}</span>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="text-xs text-muted-foreground">Entity</span>
+                      <span className="text-sm font-medium text-foreground text-right">{entity}</span>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="text-xs text-muted-foreground">Role</span>
+                      <span className="text-sm font-medium text-foreground text-right">
+                        {role} · {seniority}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-border">
+                      <p className="text-xs text-muted-foreground mb-2">Objectives</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {objectives.map((o) => (
+                          <Badge key={o} variant="secondary" className="rounded-full font-normal">
+                            {o}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex flex-col sm:flex-row justify-center gap-3">
+                <Button variant="outline" size="lg" className="rounded-full px-8" onClick={() => setLocation("/learner")}>
+                  Go to Dashboard
+                </Button>
+                <Button
+                  size="lg"
+                  className="rounded-full px-8"
+                  onClick={() => setLocation("/learner/assessment")}
+                  data-testid="button-start-assessment"
+                >
+                  Start baseline assessment <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </Layout>
   );

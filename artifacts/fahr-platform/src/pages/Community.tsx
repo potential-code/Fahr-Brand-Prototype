@@ -8,7 +8,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Calendar, Trophy, Megaphone, ThumbsUp, Send, Users, ArrowUpRight, Award, ChevronRight } from "lucide-react";
+import { MessageSquare, Calendar, Trophy, Megaphone, ThumbsUp, Send, Users, ArrowUpRight, Award, ChevronRight, BarChart3, CheckCircle2 } from "lucide-react";
+
+const POLL_QUESTION = "Which AI capability would help you most in the next quarter?";
+
+const POLL_OPTIONS = [
+  { id: "prompting", label: "Prompt engineering for official writing", votes: 3120 },
+  { id: "analytics", label: "AI-assisted analysis of service data", votes: 2480 },
+  { id: "agentic", label: "Building an agent for a recurring process", votes: 1960 },
+  { id: "governance", label: "Applying governance and data ethics", votes: 1240 },
+];
 
 // Mock Data
 const MOCK_LEADERBOARD_ENTITY = [
@@ -42,6 +51,9 @@ export default function Community() {
   const { toast } = useToast();
   const [activeThread, setActiveThread] = useState<typeof MOCK_DISCUSSIONS[0] | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [pollVote, setPollVote] = useState<string | null>(null);
+
+  const totalVotes = POLL_OPTIONS.reduce((n, o) => n + o.votes, 0) + (pollVote ? 1 : 0);
 
   const handlePostReply = () => {
     if (!replyText.trim()) return;
@@ -130,6 +142,66 @@ export default function Community() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Community poll */}
+            <Card className="border-border shadow-sm">
+              <CardHeader className="pb-3 border-b bg-muted/20">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  Community Poll
+                </CardTitle>
+                <CardDescription>{POLL_QUESTION}</CardDescription>
+              </CardHeader>
+              <CardContent className="p-5">
+                <div className="space-y-3">
+                  {POLL_OPTIONS.map((opt) => {
+                    const votes = opt.votes + (pollVote === opt.id ? 1 : 0);
+                    const share = Math.round((votes / totalVotes) * 100);
+                    const chosen = pollVote === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        disabled={pollVote !== null}
+                        onClick={() => {
+                          setPollVote(opt.id);
+                          toast({
+                            title: "Vote recorded",
+                            description: "Results are shared with the FAHR programme team in aggregate.",
+                          });
+                        }}
+                        data-testid={`poll-option-${opt.id}`}
+                        className={`relative w-full overflow-hidden rounded-lg border px-4 py-3 text-left transition-colors ${
+                          chosen ? "border-primary" : "border-border"
+                        } ${pollVote === null ? "hover:border-primary/50 hover:bg-muted/40" : "cursor-default"}`}
+                      >
+                        {pollVote !== null && (
+                          <span
+                            className="absolute inset-y-0 left-0 bg-primary/10"
+                            style={{ width: `${share}%` }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        <span className="relative flex items-center justify-between gap-4">
+                          <span className="flex items-center gap-2.5 text-sm font-medium">
+                            {chosen && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
+                            {opt.label}
+                          </span>
+                          {pollVote !== null && (
+                            <span className="text-sm font-bold text-primary tabular-nums shrink-0">{share}%</span>
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  {pollVote !== null
+                    ? `${totalVotes.toLocaleString()} federal employees have voted. Closes 12 August 2026.`
+                    : "Select an option to see how your peers across the federal government responded."}
+                </p>
+              </CardContent>
+            </Card>
 
             {/* Discussions */}
             <Card className="border-border shadow-sm">

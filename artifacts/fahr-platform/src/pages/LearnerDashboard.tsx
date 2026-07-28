@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/Layout";
+import { BaselineAssessmentCard } from "@/components/BaselineAssessmentCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -708,7 +709,7 @@ export default function LearnerDashboard() {
               </p>
               <div className="flex gap-4">
                 <Button 
-                  onClick={() => setLocation("/learner/onboarding")}
+                  onClick={() => setLocation("/learner/assessment")}
                   className="bg-white text-primary hover:bg-white/90 font-semibold"
                 >
                   {language === "ar" ? "ابدأ التقييم" : "Start Baseline Assessment"}
@@ -729,6 +730,9 @@ export default function LearnerDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Baseline assessment entry point / results summary */}
+        <BaselineAssessmentCard />
 
         {/* Learning Journey */}
         <JourneyTimeline language={language} />

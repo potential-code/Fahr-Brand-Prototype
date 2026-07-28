@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/lib/LanguageContext";
+import { LearnerProgressProvider } from "@/lib/LearnerProgressContext";
 import NotFound from "@/pages/not-found";
 
 import Welcome from "@/pages/Welcome";
@@ -13,6 +14,9 @@ import Community from "@/pages/Community";
 import ManagerDashboard from "@/pages/ManagerDashboard";
 import MinistryCohorts from "@/pages/MinistryCohorts";
 import LearnerDashboard from "@/pages/LearnerDashboard";
+import BaselineAssessment from "@/pages/BaselineAssessment";
+import AssessmentReport from "@/pages/AssessmentReport";
+import CoursePlayer from "@/pages/CoursePlayer";
 import DynamicCapabilityProfile from "@/pages/DynamicCapabilityProfile";
 import PersonalisedDevelopmentMission from "@/pages/PersonalisedDevelopmentMission";
 import MultiInterfaceAgentExperience from "@/pages/MultiInterfaceAgentExperience";
@@ -41,6 +45,9 @@ function Router() {
       {/* Learner Routes */}
       <Route path="/learner" component={LearnerDashboard} />
       <Route path="/learner/onboarding" component={LearnerOnboarding} />
+      <Route path="/learner/assessment" component={BaselineAssessment} />
+      <Route path="/learner/assessment/report" component={AssessmentReport} />
+      <Route path="/learner/course/:courseId" component={CoursePlayer} />
       <Route path="/learner/community" component={Community} />
       <Route path="/learner/profile" component={DynamicCapabilityProfile} />
       <Route path="/learner/mission" component={PersonalisedDevelopmentMission} />
@@ -75,9 +82,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LanguageProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
+          <LearnerProgressProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+          </LearnerProgressProvider>
         </LanguageProvider>
         <Toaster />
       </TooltipProvider>

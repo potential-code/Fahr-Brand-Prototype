@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -166,6 +167,7 @@ const GUARDRAILS: LabelPair[] = [
 export default function AgenticAILabTwin() {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const isAr = language === "ar";
   
   // States
@@ -451,6 +453,33 @@ export default function AgenticAILabTwin() {
             <Shield className="me-2 w-4 h-4" /> {isAr ? "إعدادات الحوكمة" : "View governance settings"}
           </Button>
         </div>
+
+        {/* Hand-off to the Outcome Project — the next stage of the journey */}
+        {done && (
+          <Card className="border-primary/30 bg-primary/5 mt-6">
+            <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {isAr ? "توأمك جاهز — الخطوة التالية" : "Your twin is live — what comes next"}
+                </p>
+                <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
+                  {isAr
+                    ? "استخدم توأمك الرقمي لتنفيذ مشروع نتائج حقيقي في إدارتك."
+                    : "Put your twin to work on a real Outcome Project in your department. That is what gets evaluated and recognised."}
+                </p>
+              </div>
+              <Button
+                size="lg"
+                className="shrink-0"
+                onClick={() => setLocation("/learner/lab/project")}
+                data-testid="button-continue-project"
+              >
+                {isAr ? "ابدأ مشروع النتائج" : "Start your Outcome Project"}
+                <ArrowRight className="ms-2 w-4 h-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Twin profile — revealed on completion */}
         <Card

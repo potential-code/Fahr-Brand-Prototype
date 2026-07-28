@@ -1,11 +1,33 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/lib/LanguageContext";
-import { LayoutDashboard, User, Target, Bot, FlaskConical, Award, ShieldCheck, Globe, Briefcase, Menu, LogOut, Landmark } from "lucide-react";
+import { LayoutDashboard, User, Target, Bot, FlaskConical, Award, ShieldCheck, Globe, Briefcase, Menu, LogOut, Landmark, ClipboardCheck, Rocket, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AIConcierge } from "@/components/AIConcierge";
-import { Users } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Users, Bell } from "lucide-react";
+
+const NOTIFICATIONS = [
+  {
+    title: "Your baseline assessment is ready",
+    body: "Eight questions. Your pathway is generated from the result.",
+    time: "Today",
+    href: "/learner/assessment",
+  },
+  {
+    title: "New adaptive module added",
+    body: "Stakeholder Alignment with AI was added to your mission.",
+    time: "Yesterday",
+    href: "/learner/mission",
+  },
+  {
+    title: "Masterclass: Agentic AI in Public Policy",
+    body: "Virtual session on 20 August 2026. Registration is open.",
+    time: "3 days ago",
+    href: "/learner/community",
+  },
+];
 
 type Role = 'learner' | 'manager' | 'ministry' | 'fahr' | 'leadership';
 
@@ -26,10 +48,13 @@ export function Layout({ children, role }: { children: React.ReactNode, role: Ro
       case 'learner':
         return [
           { href: "/learner", label: "Dashboard", icon: LayoutDashboard },
+          { href: "/learner/assessment", label: "Baseline Assessment", icon: ClipboardCheck },
           { href: "/learner/profile", label: t("nav.profile"), icon: User },
           { href: "/learner/mission", label: t("nav.mission"), icon: Target },
           { href: "/learner/agent", label: t("nav.agent"), icon: Bot },
           { href: "/learner/lab/twin", label: t("nav.lab"), icon: FlaskConical },
+          { href: "/learner/lab/project", label: "Outcome Project", icon: Rocket },
+          { href: "/learner/evaluation", label: "Assess & Validate", icon: BadgeCheck },
           { href: "/learner/recognition", label: t("nav.recognition"), icon: Award },
           { href: "/learner/community", label: "Community", icon: Users },
         ];
@@ -61,7 +86,10 @@ export function Layout({ children, role }: { children: React.ReactNode, role: Ro
     <nav className="flex flex-col gap-1">
       {navLinks.map((link) => {
         const Icon = link.icon;
-        const isActive = location === link.href;
+        // Nested routes (e.g. the assessment report) keep their parent item highlighted.
+        const isActive =
+          location === link.href ||
+          (link.href !== "/learner" && location.startsWith(`${link.href}/`));
         return (
           <button
             key={link.href}
@@ -154,6 +182,40 @@ export function Layout({ children, role }: { children: React.ReactNode, role: Ro
               Federal Agentic AI Learning & Skilling Platform
             </div>
 
+            <div className="flex items-center gap-2 min-w-0 ms-auto">
+            {/* Notifications */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative shrink-0" data-testid="button-notifications">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-white" />
+                  <span className="sr-only">Notifications</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-0">
+                <div className="px-4 py-3 border-b border-border">
+                  <p className="text-sm font-semibold">Notifications</p>
+                </div>
+                <div className="divide-y divide-border max-h-80 overflow-y-auto">
+                  {NOTIFICATIONS.map((n) => (
+                    <button
+                      key={n.title}
+                      type="button"
+                      onClick={() => setLocation(n.href)}
+                      className="w-full text-left px-4 py-3 hover:bg-muted transition-colors flex gap-3"
+                    >
+                      <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-foreground leading-snug">{n.title}</span>
+                        <span className="block text-xs text-muted-foreground mt-0.5">{n.body}</span>
+                        <span className="block text-[11px] text-muted-foreground mt-1">{n.time}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
             {/* Demo role switcher */}
             <div className="flex items-center overflow-x-auto bg-muted rounded-full p-1 border border-border">
               <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'learner' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/learner')}>{t('nav.learner')}</Button>
@@ -161,6 +223,7 @@ export function Layout({ children, role }: { children: React.ReactNode, role: Ro
               <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'ministry' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/ministry')}>{t('nav.ministry')}</Button>
               <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'fahr' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/fahr')}>{t('nav.fahr')}</Button>
               <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'leadership' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/leadership')}>Leadership</Button>
+            </div>
             </div>
           </div>
         </header>

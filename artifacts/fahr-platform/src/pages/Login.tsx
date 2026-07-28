@@ -92,7 +92,7 @@ export default function Login() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Government Email</Label>
-                <Input id="email" type="email" placeholder="name@entity.gov.ae" required defaultValue="demo@mohap.gov.ae" />
+                <Input id="email" name="email" type="email" autoComplete="username" placeholder="name@entity.gov.ae" required defaultValue="demo@mohap.gov.ae" />
               </div>
               
               <div className="space-y-2">
@@ -100,7 +100,7 @@ export default function Login() {
                   <Label htmlFor="password">Password</Label>
                   <a href="#" className="text-xs text-primary hover:underline font-medium">Forgot password?</a>
                 </div>
-                <Input id="password" type="password" required defaultValue="password123" />
+                <Input id="password" name="password" type="password" autoComplete="current-password" required defaultValue="password123" />
               </div>
 
               <div className="space-y-2 pt-4 border-t border-border">
@@ -146,6 +146,43 @@ export default function Login() {
               )}
             </Button>
           </form>
+
+          {/* Federal single sign-on options */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">or sign in with</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 justify-center gap-3"
+              onClick={() => setLocation("/learner")}
+              data-testid="button-uae-pass"
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded bg-foreground text-[10px] font-bold text-background">
+                UAE
+              </span>
+              <span className="font-semibold">UAE PASS</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 justify-center gap-3"
+              onClick={() => setLocation("/learner")}
+              data-testid="button-federal-sso"
+            >
+              <Building2 className="h-5 w-5" />
+              <span className="font-semibold">Federal Entity Single Sign-On</span>
+            </Button>
+
+            <p className="text-center text-xs text-muted-foreground">
+              Demo environment — federal identity providers are simulated.
+            </p>
+          </div>
 
           <div className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
