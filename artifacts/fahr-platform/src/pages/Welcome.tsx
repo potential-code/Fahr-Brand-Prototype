@@ -10,9 +10,24 @@ import { ArrowRight, Brain, Target, Shield, Users, BarChart, GraduationCap, Micr
 import { AGENTS, STAKEHOLDERS } from "@/lib/constants";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const AGENT_DESCRIPTIONS: Record<string, string> = {
+  coach: 'Guides personal development and interprets assessment outcomes.',
+  advisor: 'Recommends capability pathways based on federal role.',
+  practice: 'Provides safe, simulated environments for skill application.',
+  content: 'Dynamically generates tailored learning scenarios.',
+  analytics: 'Delivers workforce intelligence to leadership.',
+  concierge: 'Navigates the platform and assists with inquiries.',
+};
+
+const ECOSYSTEM_IMAGES = [
+  'brand/landing/ecosystem-agents.jpg',
+  'brand/landing/ecosystem-2.jpg',
+  'brand/landing/ecosystem-3.jpg',
+];
 
 const AGENT_ICONS: Record<string, React.ElementType> = {
   coach: GraduationCap,
@@ -25,6 +40,14 @@ const AGENT_ICONS: Record<string, React.ElementType> = {
 
 export default function Welcome() {
   const [, setLocation] = useLocation();
+  const [activeAgent, setActiveAgent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveAgent((prev) => (prev + 1) % Object.keys(AGENTS).length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
   const heroRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const agentsRef = useRef<HTMLDivElement>(null);
@@ -202,9 +225,19 @@ export default function Welcome() {
           />
         </div>
         <nav className="hidden lg:flex items-center justify-center gap-8">
-          <button onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">Pathways</button>
-          <button onClick={() => document.getElementById('ecosystem')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">Ecosystem</button>
-          <button onClick={() => document.getElementById('lab')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">AI Lab</button>
+          {[
+            { id: 'pathways', label: 'Pathways' },
+            { id: 'ecosystem', label: 'Ecosystem' },
+            { id: 'lab', label: 'AI Lab' },
+          ].map((link) => (
+            <button
+              key={link.id}
+              onClick={() => document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth' })}
+              className="relative text-sm font-medium text-foreground hover:text-primary transition-colors after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-full after:rounded-full after:bg-primary after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100"
+            >
+              {link.label}
+            </button>
+          ))}
         </nav>
         <div className="flex items-center justify-end gap-4">
           <Button variant="ghost" className="hidden md:inline-flex font-medium text-foreground hover:text-primary hover:bg-primary/5" asChild>
@@ -241,33 +274,20 @@ export default function Welcome() {
             >
               <Shield className="w-4 h-4 mr-2 text-primary" /> UAE Government Executive Platform
             </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.05]">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-5 leading-[1.1]">
               Federal Agentic AI <br />
               <span className="text-primary">Learning & Skilling</span> Platform
             </h1>
-            <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl mb-10">
+            <p className="text-base md:text-lg text-white/80 leading-relaxed max-w-xl mb-8">
               Equipping 80,000 federal employees with the practical capability, confidence, and responsible workflows required for an Agentic AI-enabled government.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mb-14">
-              <Button size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-10 py-6 h-auto shadow-lg shadow-primary/25 hover-elevate" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
-                Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-base px-8 py-5 h-auto shadow-lg shadow-primary/25 hover-elevate" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
+                Start Your Journey <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full text-white border-white/40 hover:bg-white/10 text-lg px-10 py-6 h-auto bg-white/5 backdrop-blur-sm shadow-sm hover-elevate" asChild>
+              <Button size="lg" variant="outline" className="rounded-full text-white border-white/40 hover:bg-white/10 text-base px-8 py-5 h-auto bg-white/5 backdrop-blur-sm shadow-sm hover-elevate" asChild>
                 <Link href="/login">Platform Login</Link>
               </Button>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-10 gap-y-4 border-t border-white/15 pt-6">
-              {[
-                { value: '80,000', label: 'Federal employees targeted' },
-                { value: '41,850', label: 'Active learners' },
-                { value: '64%', label: 'AI readiness index' },
-                { value: 'AED 72M', label: 'Value generated' },
-              ].map((stat) => (
-                <div key={stat.label}>
-                  <div className="text-2xl md:text-3xl font-bold text-white">{stat.value}</div>
-                  <div className="text-xs md:text-sm text-white/60 mt-0.5">{stat.label}</div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -352,42 +372,84 @@ export default function Welcome() {
             </p>
           </div>
 
-          <div className="stagger-fade rounded-3xl overflow-hidden shadow-2xl grid lg:grid-cols-5">
-            {/* Agents editorial list */}
-            <div ref={agentsRef} className="lg:col-span-3 bg-[#2a2825] text-white flex flex-col justify-center">
-              {Object.entries(AGENTS).map(([key, name], i) => {
-                const Icon = AGENT_ICONS[key] || Brain;
-                return (
-                  <div
-                    key={key}
-                    className={`stagger-fade group flex items-center gap-6 px-8 md:px-12 py-6 transition-colors hover:bg-white/5 ${i > 0 ? 'border-t border-white/10' : ''}`}
-                  >
-                    <span className="text-sm font-mono text-primary/80 tracking-widest w-8 shrink-0">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-lg font-bold text-white group-hover:text-primary transition-colors">{name}</h4>
-                      <p className="text-sm text-white/60 leading-relaxed mt-0.5">
-                        {key === 'coach' && 'Guides personal development and interprets assessment outcomes.'}
-                        {key === 'advisor' && 'Recommends capability pathways based on federal role.'}
-                        {key === 'practice' && 'Provides safe, simulated environments for skill application.'}
-                        {key === 'content' && 'Dynamically generates tailored learning scenarios.'}
-                        {key === 'analytics' && 'Delivers workforce intelligence to leadership.'}
-                        {key === 'concierge' && 'Navigates the platform and assists with inquiries.'}
-                      </p>
-                    </div>
-                    <div className="w-10 h-10 rounded-full border border-white/15 flex items-center justify-center shrink-0 text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                  </div>
-                )
-              })}
+          <div ref={agentsRef} className="stagger-fade grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Rotating image showcase */}
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/3]">
+              <AnimatePresence mode="sync">
+                <motion.img
+                  key={activeAgent % ECOSYSTEM_IMAGES.length}
+                  src={`${import.meta.env.BASE_URL}${ECOSYSTEM_IMAGES[activeAgent % ECOSYSTEM_IMAGES.length]}`}
+                  alt="AI agents in action"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  initial={{ opacity: 0, scale: 1.04 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.9, ease: 'easeOut' }}
+                />
+              </AnimatePresence>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent"></div>
+              {/* Active agent chip */}
+              <div className="absolute bottom-6 left-6 right-6">
+                <AnimatePresence mode="wait">
+                  {Object.entries(AGENTS).map(([key, name], i) => {
+                    if (i !== activeAgent) return null;
+                    const Icon = AGENT_ICONS[key] || Brain;
+                    return (
+                      <motion.div
+                        key={key}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.35 }}
+                        className="inline-flex items-center gap-3 bg-white/15 backdrop-blur-md border border-white/25 rounded-full pl-2 pr-5 py-2"
+                      >
+                        <span className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                          <Icon className="w-4.5 h-4.5" />
+                        </span>
+                        <span className="text-white font-semibold text-sm">{name}</span>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
             </div>
 
-            {/* Image side */}
-            <div className="lg:col-span-2 relative min-h-[280px] lg:min-h-0">
-              <img src={`${import.meta.env.BASE_URL}brand/landing/ecosystem-agents.jpg`} alt="Ecosystem Agents" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#2a2825]/60 via-transparent to-transparent"></div>
+            {/* Interactive agent list */}
+            <div className="flex flex-col gap-2">
+              {Object.entries(AGENTS).map(([key, name], i) => {
+                const Icon = AGENT_ICONS[key] || Brain;
+                const isActive = i === activeAgent;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setActiveAgent(i)}
+                    aria-pressed={isActive}
+                    className={`relative text-left rounded-2xl px-6 py-4 transition-all duration-300 border ${
+                      isActive
+                        ? 'bg-background border-primary/40 shadow-md'
+                        : 'bg-transparent border-transparent hover:bg-background/70 hover:border-border'
+                    }`}
+                  >
+                    <span className={`absolute left-0 top-4 bottom-4 w-1 rounded-full transition-all duration-300 ${isActive ? 'bg-primary' : 'bg-transparent'}`}></span>
+                    <span className="flex items-center gap-4">
+                      <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-300 ${isActive ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'}`}>
+                        <Icon className="w-5 h-5" />
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className={`block text-base font-bold transition-colors duration-300 ${isActive ? 'text-foreground' : 'text-foreground/70'}`}>{name}</span>
+                        <span
+                          className={`grid transition-all duration-300 ${isActive ? 'grid-rows-[1fr] opacity-100 mt-0.5' : 'grid-rows-[0fr] opacity-0'}`}
+                        >
+                          <span className="overflow-hidden block text-sm text-muted-foreground leading-relaxed">
+                            {AGENT_DESCRIPTIONS[key]}
+                          </span>
+                        </span>
+                      </span>
+                      <ChevronRight className={`w-4 h-4 shrink-0 transition-all duration-300 ${isActive ? 'text-primary translate-x-0.5' : 'text-muted-foreground/40'}`} />
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
