@@ -171,7 +171,7 @@ export default function MinistryCohorts() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className={`text-sm ${cohort.pathway === 'Unassigned' ? 'text-muted-foreground italic' : ''}`}>
+                        <span className={`text-sm ${cohort.pathway === 'Unassigned' ? 'text-muted-foreground' : ''}`}>
                           {cohort.pathway}
                         </span>
                       </TableCell>

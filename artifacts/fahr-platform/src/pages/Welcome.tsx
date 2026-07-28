@@ -192,15 +192,17 @@ export default function Welcome() {
     <div className="min-h-[100dvh] bg-background flex flex-col font-sans overflow-hidden">
       {/* Header */}
       <header className="absolute top-0 w-full p-6 flex justify-between items-center z-50 transition-all duration-300">
-        <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 md:h-12 object-contain drop-shadow-sm" />
+        <div className="bg-white rounded-md px-2.5 py-1.5 drop-shadow-sm">
+          <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-8 md:h-10 object-contain" />
+        </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" className="text-foreground hover:bg-black/5 hidden md:inline-flex font-medium" asChild>
+          <Button variant="ghost" className="text-white hover:bg-white/10 hidden md:inline-flex font-medium" asChild>
             <Link href="/login">Sign In</Link>
           </Button>
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" asChild>
             <Link href="/signup">Register</Link>
           </Button>
-          <Button variant="outline" size="sm" className="bg-white/50 backdrop-blur-sm text-foreground border-border hover:bg-black/5 shadow-sm" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
+          <Button variant="outline" size="sm" className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20 shadow-sm" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
             <Globe className="h-4 w-4 mr-2" />
             {language === 'en' ? 'العربية' : 'English'}
           </Button>
@@ -213,12 +215,12 @@ export default function Welcome() {
           className="absolute inset-0 w-full h-full"
           style={{ y: heroY }}
         >
-          <div className="absolute inset-0 bg-background/40 mix-blend-overlay z-10"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/40 to-background z-20"></div>
+          <div className="absolute inset-0 bg-black/45 z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-background z-20"></div>
           <img 
             src={`${import.meta.env.BASE_URL}brand/landing/hero-bg.jpg`} 
             alt="AI Hero" 
-            className="w-full h-full object-cover opacity-90"
+            className="w-full h-full object-cover"
           />
         </motion.div>
         
@@ -227,22 +229,22 @@ export default function Welcome() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6 border border-primary/20 backdrop-blur-sm shadow-sm"
+            className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-white/10 text-white font-medium text-sm mb-6 border border-white/25 backdrop-blur-sm shadow-sm"
           >
             <Shield className="w-4 h-4 mr-2" /> UAE Government Executive Platform
           </motion.div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
             Federal Agentic AI <br />
-            <span className="text-primary italic font-serif tracking-normal">Learning & Skilling Platform</span>
+            <span className="text-primary">Learning & Skilling Platform</span>
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mb-10">
+          <p className="text-xl md:text-2xl text-white/80 leading-relaxed max-w-3xl mb-10">
             Equipping 80,000 federal employees with the practical capability, confidence, and responsible workflows required for an Agentic AI-enabled government.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 h-auto shadow-md hover-elevate" onClick={() => document.getElementById('stakeholders')?.scrollIntoView({ behavior: 'smooth' })}>
               Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" className="text-foreground border-border hover:bg-black/5 text-lg px-8 py-6 h-auto bg-white/60 backdrop-blur-sm shadow-sm hover-elevate" asChild>
+            <Button size="lg" variant="outline" className="text-white border-white/40 hover:bg-white/10 text-lg px-8 py-6 h-auto bg-white/5 backdrop-blur-sm shadow-sm hover-elevate" asChild>
               <Link href="/login">Platform Login</Link>
             </Button>
           </div>
@@ -275,15 +277,23 @@ export default function Welcome() {
                 <motion.div 
                   key={stakeholder.id}
                   whileHover={{ y: -10 }}
-                  className="stagger-fade group cursor-pointer relative overflow-hidden rounded-2xl aspect-[3/4] shadow-lg border border-border/50 bg-white"
+                  className="stagger-fade group cursor-pointer relative overflow-hidden rounded-2xl aspect-[3/4] shadow-lg border border-border/50 bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   onClick={() => handleOpenRegistration(stakeholder)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleOpenRegistration(stakeholder);
+                    }
+                  }}
                 >
-                  <div className="absolute inset-0 bg-background/50 group-hover:scale-105 transition-transform duration-700">
-                    <img src={bgImage} alt={stakeholder.title} className="w-full h-full object-cover mix-blend-multiply opacity-80" />
+                  <div className="absolute inset-0 bg-black/20 group-hover:scale-105 transition-transform duration-700">
+                    <img src={bgImage} alt={stakeholder.title} className="w-full h-full object-cover opacity-100" />
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 p-6 w-full flex flex-col items-start text-left z-10">
-                    <h4 className="text-foreground font-bold text-xl mb-2 leading-snug">{stakeholder.title}</h4>
+                    <h4 className="text-white font-bold text-xl mb-2 leading-snug">{stakeholder.title}</h4>
                     <span className="inline-flex items-center text-primary text-sm font-semibold opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                       Access Portal <ChevronRight className="w-4 h-4 ml-1" />
                     </span>

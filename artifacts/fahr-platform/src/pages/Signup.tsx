@@ -40,24 +40,26 @@ export default function Signup() {
             alt="Federal Building" 
             className="w-full h-full object-cover opacity-80"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-white/80 to-white/40"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/30"></div>
         </div>
         <div className="relative z-10 p-12 max-w-lg">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-12 object-contain mb-12 drop-shadow-sm" />
+            <div className="bg-white rounded-md px-3 py-2 drop-shadow-sm inline-block mb-12">
+              <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 object-contain" />
+            </div>
             
-            <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6 border border-primary/20 backdrop-blur-sm shadow-sm">
+            <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-white/10 text-white font-medium text-sm mb-6 border border-white/25 backdrop-blur-sm shadow-sm">
               <Shield className="w-4 h-4 mr-2" /> Secure Federal Enclave
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-6 leading-tight">
-              Begin your Agentic AI <br /><span className="text-primary italic font-serif tracking-normal">Capability Journey</span>
+            <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
+              Begin your Agentic AI <br /><span className="text-primary">Capability Journey</span>
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+            <p className="text-lg text-white/80 leading-relaxed mb-8">
               Join the federal learning ecosystem to develop practical AI skills, test agentic workflows, and track your progress against national competency frameworks.
             </p>
             <div className="space-y-4">
               {["Personalized AI coaching", "Simulated digital twin environments", "Federal certification pathways"].map((item, i) => (
-                <div key={i} className="flex items-center text-foreground font-medium">
+                <div key={i} className="flex items-center text-white font-medium">
                   <CheckCircle2 className="w-5 h-5 text-primary mr-3" />
                   {item}
                 </div>

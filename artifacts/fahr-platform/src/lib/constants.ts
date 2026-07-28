@@ -30,5 +30,5 @@ export const STAKEHOLDERS = [
   { id: "manager", title: "Line Manager", route: "/manager" },
   { id: "entity", title: "Entity Admin", route: "/ministry" },
   { id: "fahr-team", title: "FAHR Programme Team", route: "/fahr" },
-  { id: "leadership", title: "Federal Leadership", route: "/fahr" },
+  { id: "leadership", title: "Federal Leadership", route: "/leadership" },
 ] as const;

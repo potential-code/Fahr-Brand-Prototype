@@ -27,6 +27,8 @@ import MinistryPortfolio from "@/pages/MinistryPortfolio";
 import FAHRDashboard from "@/pages/FAHRDashboard";
 import FAHRGovernance from "@/pages/FAHRGovernance";
 
+import LeadershipDashboard from "@/pages/LeadershipDashboard";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -59,6 +61,9 @@ function Router() {
       {/* FAHR Routes */}
       <Route path="/fahr" component={FAHRDashboard} />
       <Route path="/fahr/governance" component={FAHRGovernance} />
+
+      {/* Federal Leadership Routes */}
+      <Route path="/leadership" component={LeadershipDashboard} />
 
       <Route component={NotFound} />
     </Switch>

@@ -35,16 +35,18 @@ export default function Login() {
             alt="Federal Building" 
             className="w-full h-full object-cover opacity-90"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-white/60 to-white/30"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/30"></div>
         </div>
         <div className="relative z-10 p-12 max-w-lg">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-12 object-contain mb-12 drop-shadow-sm" />
+            <div className="bg-white rounded-md px-3 py-2 drop-shadow-sm inline-block mb-12">
+              <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 object-contain" />
+            </div>
             
-            <h1 className="text-4xl font-bold text-foreground mb-6 leading-tight">
-              Welcome back to your <br /><span className="text-primary italic font-serif tracking-normal">Agentic AI workspace</span>
+            <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
+              Welcome back to your <br /><span className="text-primary">Agentic AI workspace</span>
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p className="text-lg text-white/80 leading-relaxed">
               Continue your development mission, collaborate with your AI agents, and track your capability progress across the federal ecosystem.
             </p>
           </motion.div>

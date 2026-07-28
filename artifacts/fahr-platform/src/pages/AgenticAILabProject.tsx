@@ -165,7 +165,7 @@ export default function AgenticAILabProject() {
           </DialogHeader>
           <div className="p-4 bg-muted rounded-lg text-sm border-l-4 border-secondary space-y-2">
             <p className="font-medium">Original:</p>
-            <p className="text-muted-foreground italic">"Create an AI-assisted workflow that helps generate campaign briefs, audience segments, content angles, Arabic/English messaging, and reporting templates."</p>
+            <p className="text-muted-foreground">"Create an AI-assisted workflow that helps generate campaign briefs, audience segments, content angles, Arabic/English messaging, and reporting templates."</p>
             <p className="font-medium mt-4">Suggested addition:</p>
             <p className="text-foreground font-medium">Include an automated feedback loop for performance metrics tracking to ensure continuous improvement.</p>
           </div>

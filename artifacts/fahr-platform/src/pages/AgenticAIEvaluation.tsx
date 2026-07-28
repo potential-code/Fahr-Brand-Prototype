@@ -91,7 +91,7 @@ export default function AgenticAIEvaluation() {
                        <Badge className="bg-green-50 text-green-700 border-green-200" variant="outline">Approved</Badge>
                      </div>
                      <p className="text-xs text-muted-foreground mb-3">Ministry Innovation Lead</p>
-                     <div className="text-sm bg-muted/30 p-3 rounded-lg border italic">
+                     <div className="text-sm bg-muted/30 p-3 rounded-lg border">
                        "Excellent initiative, Aisha. This directly solves our current bottleneck with brief generation. I have approved this for immediate pilot within the communications team."
                      </div>
                    </div>
