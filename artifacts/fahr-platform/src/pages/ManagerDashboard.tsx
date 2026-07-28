@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,60 +8,142 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
+import { useFederalData } from "@/lib/FederalDataContext";
+import {
+  LEVEL_BY_ID,
+  SUBMISSION_STATE_LABEL,
+  competencyLabel,
+  filterSubmissions,
+  type LearnerStatus,
+  type Person,
+} from "@/lib/federal";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from "recharts";
-import { Users, TrendingUp, AlertCircle, Send, CheckCircle2, BrainCircuit, Target, Activity, Shield, ChevronRight, UserCircle } from "lucide-react";
+import { Users, TrendingUp, AlertCircle, Send, CheckCircle2, BrainCircuit, Target, Activity, Shield, ChevronRight, UserCircle, ClipboardCheck, RotateCcw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
-// Mock Data
-const MOCK_TEAM = [
-  { id: "e1", name: "Aisha Al Mansoori", role: "Policy Analyst", level: "Practitioner", progress: 85, lastActive: "2 hours ago", status: "on-track" },
-  { id: "e2", name: "Khalid Al Hashimi", role: "Operations Specialist", level: "Aware", progress: 20, lastActive: "14 days ago", status: "at-risk" },
-  { id: "e3", name: "Fatima Al Qasimi", role: "Service Designer", level: "Emerging Practitioner", progress: 60, lastActive: "1 day ago", status: "on-track" },
-  { id: "e4", name: "Omar Tariq", role: "Data Engineer", level: "Advanced", progress: 95, lastActive: "5 mins ago", status: "excelling" },
-  { id: "e5", name: "Zayed Al Marri", role: "HR Coordinator", level: "Emerging Practitioner", progress: 45, lastActive: "3 days ago", status: "needs-attention" },
+const LEVEL_FILL = [
+  "hsl(var(--muted-foreground))",
+  "hsl(var(--secondary))",
+  "hsl(var(--primary))",
+  "hsl(var(--accent))",
+  "hsl(var(--chart-4))",
 ];
 
-const CAPABILITY_DISTRIBUTION = [
-  { name: "Aware", count: 1, fill: "hsl(var(--muted-foreground))" },
-  { name: "Emerging", count: 2, fill: "hsl(var(--secondary))" },
-  { name: "Practitioner", count: 1, fill: "hsl(var(--primary))" },
-  { name: "Advanced", count: 1, fill: "hsl(var(--accent))" },
-  { name: "Champion", count: 0, fill: "hsl(var(--chart-4))" },
-];
-
-const AI_INSIGHTS = [
-  { 
-    id: 1, 
-    employeeId: "e2",
-    employeeName: "Khalid Al Hashimi",
-    message: "High risk of disengagement", 
-    context: "Has not logged in for 14 days and is falling behind on the 'Agentic AI Operations' mandatory pathway.", 
-    urgency: "high",
-    actionLabel: "Send Nudge"
-  },
-  { 
-    id: 2, 
-    employeeId: "e4",
-    employeeName: "Omar Tariq",
-    message: "Ready for Mentorship Role", 
-    context: "Consistently scoring 95%+ in lab simulations. Recommend assigning as a peer mentor.", 
-    urgency: "low",
-    actionLabel: "Assign Role"
-  }
-];
+/** Days since a person was last active, from the "N days ago" style the roster uses. */
+function daysSince(lastActive: string): number {
+  const match = lastActive.match(/(\d+)\s+day/);
+  if (match) return Number(match[1]);
+  return 0;
+}
 
 export default function ManagerDashboard() {
   const { toast } = useToast();
-  const [selectedEmployee, setSelectedEmployee] = useState<typeof MOCK_TEAM[0] | null>(null);
+  const {
+    focus,
+    teamOf,
+    submissions,
+    credentials,
+    live,
+    signOff,
+    requestRevision,
+    approvalsFor,
+    getPerson,
+  } = useFederalData();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const handleAction = (action: string, employeeName: string) => {
+  const manager = getPerson(focus.managerId);
+  const team = teamOf(focus.managerId);
+  const selectedEmployee = selectedId ? team.find((p) => p.id === selectedId) ?? null : null;
+
+  const teamIds = useMemo(() => new Set(team.map((p) => p.id)), [team]);
+
+  /** Every workplace project from this team, newest decision first in the queue. */
+  const teamSubmissions = useMemo(
+    () => submissions.filter((s) => teamIds.has(s.personId)),
+    [submissions, teamIds],
+  );
+  const awaitingSignOff = useMemo(
+    () => filterSubmissions(teamSubmissions, { state: "awaiting_manager" }),
+    [teamSubmissions],
+  );
+
+  const avgProgress = team.length
+    ? Math.round(team.reduce((a, p) => a + p.pathwayProgress, 0) / team.length)
+    : 0;
+  const practitionersOrAbove = team.filter((p) => (LEVEL_BY_ID[p.levelId]?.order ?? 0) >= 3).length;
+  const teamCredentials = credentials.filter((c) => teamIds.has(c.personId)).length;
+
+  const capabilityDistribution = CAPABILITY_LEVELS.map((level, index) => ({
+    name: level.label.replace("Emerging Practitioner", "Emerging"),
+    count: team.filter((p) => p.levelId === level.id).length,
+    fill: LEVEL_FILL[index],
+  }));
+
+  /**
+   * Insights read the team's live signals rather than a fixed script: whoever
+   * is furthest behind, and whoever is furthest ahead.
+   */
+  const insights = useMemo(() => {
+    const items: {
+      id: string;
+      person: Person;
+      message: string;
+      context: string;
+      urgency: "high" | "low";
+      actionLabel: string;
+    }[] = [];
+    const atRisk = [...team]
+      .filter((p) => p.status === "at-risk" || p.status === "needs-attention")
+      .sort((a, b) => a.pathwayProgress - b.pathwayProgress)[0];
+    if (atRisk) {
+      const days = daysSince(atRisk.lastActive);
+      items.push({
+        id: `insight-risk-${atRisk.id}`,
+        person: atRisk,
+        message: atRisk.status === "at-risk" ? "High risk of disengagement" : "Falling behind the cohort",
+        context: `${atRisk.pathwayProgress}% of the learning pathway complete, last active ${atRisk.lastActive}. The rest of the team averages ${avgProgress}%.`,
+        urgency: "high",
+        actionLabel: "Send Nudge",
+      });
+    }
+    const excelling = [...team].sort((a, b) => b.pathwayProgress - a.pathwayProgress)[0];
+    if (excelling && excelling.id !== atRisk?.id) {
+      items.push({
+        id: `insight-mentor-${excelling.id}`,
+        person: excelling,
+        message: "Ready for a mentorship role",
+        context: `${LEVEL_BY_ID[excelling.levelId]?.label ?? excelling.levelId} at ${excelling.pathwayProgress}% pathway completion with an assessment score of ${excelling.assessmentScore}. Recommend assigning as a peer mentor.`,
+        urgency: "low",
+        actionLabel: "Assign Role",
+      });
+    }
+    return items;
+  }, [team, avgProgress]);
+
+  const handleAction = (action: string, subject: string) => {
+    toast({ title: `Action: ${action}`, description: `Successfully executed for ${subject}.` });
+  };
+
+  const handleSignOff = (submissionId: string, title: string) => {
+    signOff(submissionId, { by: manager?.name ?? "Line Manager" });
     toast({
-      title: `Action: ${action}`,
-      description: `Successfully executed for ${employeeName}.`,
+      title: "Signed off",
+      description: `"${title}" now sits with the entity admin for endorsement.`,
     });
   };
 
-  const getStatusBadge = (status: string) => {
+  const handleRevision = (submissionId: string, title: string) => {
+    requestRevision(submissionId, {
+      by: manager?.name ?? "Line Manager",
+      note: "Strengthen the measured impact before resubmitting.",
+    });
+    toast({
+      title: "Revision requested",
+      description: `"${title}" has gone back to the learner with your note.`,
+    });
+  };
+
+  const getStatusBadge = (status: LearnerStatus) => {
     switch (status) {
       case 'on-track': return <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">On Track</Badge>;
       case 'excelling': return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Excelling</Badge>;
@@ -96,7 +178,7 @@ export default function ManagerDashboard() {
                 <Users className="w-5 h-5 text-muted-foreground" />
                 <Badge variant="secondary" className="font-normal text-xs">Active Cohort</Badge>
               </div>
-              <p className="text-3xl font-bold text-foreground">5</p>
+              <p className="text-3xl font-bold text-foreground" data-testid="text-team-size">{team.length}</p>
               <p className="text-sm text-muted-foreground mt-1">Direct Reports enrolled</p>
             </CardContent>
           </Card>
@@ -104,9 +186,9 @@ export default function ManagerDashboard() {
             <CardContent className="p-6 flex flex-col justify-center">
               <div className="flex justify-between items-start mb-4">
                 <Activity className="w-5 h-5 text-muted-foreground" />
-                <Badge variant="outline" className="bg-secondary/10 text-secondary border-none font-normal text-xs">+12% vs last month</Badge>
+                <Badge variant="outline" className="bg-secondary/10 text-secondary border-none font-normal text-xs">Team average</Badge>
               </div>
-              <p className="text-3xl font-bold text-foreground">62%</p>
+              <p className="text-3xl font-bold text-foreground" data-testid="text-avg-progress">{avgProgress}%</p>
               <p className="text-sm text-muted-foreground mt-1">Avg. Pathway Completion</p>
             </CardContent>
           </Card>
@@ -115,7 +197,7 @@ export default function ManagerDashboard() {
               <div className="flex justify-between items-start mb-4">
                 <Target className="w-5 h-5 text-muted-foreground" />
               </div>
-              <p className="text-3xl font-bold text-foreground">2</p>
+              <p className="text-3xl font-bold text-foreground">{practitionersOrAbove}</p>
               <p className="text-sm text-muted-foreground mt-1">Practitioners or above</p>
             </CardContent>
           </Card>
@@ -124,7 +206,7 @@ export default function ManagerDashboard() {
               <div className="flex justify-between items-start mb-4">
                 <Shield className="w-5 h-5 text-muted-foreground" />
               </div>
-              <p className="text-3xl font-bold text-foreground">14</p>
+              <p className="text-3xl font-bold text-foreground">{teamCredentials}</p>
               <p className="text-sm text-muted-foreground mt-1">Verified Credentials Earned</p>
             </CardContent>
           </Card>
@@ -147,12 +229,12 @@ export default function ManagerDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="p-4 space-y-3 relative z-10">
-                {AI_INSIGHTS.map(insight => (
+                {insights.map(insight => (
                   <div key={insight.id} className="flex flex-col p-4 bg-background border border-border/50 rounded-lg shadow-sm hover-elevate transition-all">
                      <div className="flex items-start gap-3 mb-3">
                        <AlertCircle className={`w-5 h-5 mt-0.5 shrink-0 ${insight.urgency === 'high' ? 'text-destructive' : 'text-primary'}`} />
                        <div>
-                         <p className="font-semibold text-sm text-foreground">{insight.employeeName}</p>
+                         <p className="font-semibold text-sm text-foreground">{insight.person.name}</p>
                          <p className="font-medium text-xs text-foreground mt-0.5">{insight.message}</p>
                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{insight.context}</p>
                        </div>
@@ -161,7 +243,7 @@ export default function ManagerDashboard() {
                        size="sm" 
                        variant={insight.urgency === 'high' ? 'default' : 'secondary'} 
                        className="w-full gap-2 text-xs h-8"
-                       onClick={() => handleAction(insight.actionLabel, insight.employeeName)}
+                       onClick={() => handleAction(insight.actionLabel, insight.person.name)}
                      >
                         <Send className="w-3 h-3" /> {insight.actionLabel}
                      </Button>
@@ -179,7 +261,7 @@ export default function ManagerDashboard() {
               <CardContent>
                 <div className="h-[250px] w-full mt-4">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={CAPABILITY_DISTRIBUTION} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                    <BarChart data={capabilityDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} dy={10} />
                       <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
@@ -188,7 +270,7 @@ export default function ManagerDashboard() {
                         contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', boxShadow: 'var(--shadow-sm)' }}
                       />
                       <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                        {CAPABILITY_DISTRIBUTION.map((entry, index) => (
+                        {capabilityDistribution.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
                         ))}
                       </Bar>
@@ -200,9 +282,88 @@ export default function ManagerDashboard() {
 
           </div>
 
-          {/* Right Column: Direct Reports Table */}
-          <div className="lg:col-span-2">
-            <Card className="border-border shadow-sm h-full flex flex-col">
+          {/* Right Column: sign-off queue and direct reports */}
+          <div className="lg:col-span-2 space-y-8">
+
+            {/* Workplace projects waiting on this manager */}
+            <Card className="border-border shadow-sm">
+              <CardHeader className="border-b pb-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-xl">Awaiting Your Sign-off</CardTitle>
+                    <CardDescription>Workplace projects your team has submitted for validation</CardDescription>
+                  </div>
+                  <Badge variant={awaitingSignOff.length > 0 ? "default" : "secondary"} data-testid="badge-signoff-count">
+                    {awaitingSignOff.length}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                {awaitingSignOff.length === 0 ? (
+                  <div className="px-6 py-8 space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Nothing is waiting on you. Projects you have already decided on continue through the entity
+                      and federal review chain.
+                    </p>
+                    {teamSubmissions.length > 0 && (
+                      <ul className="space-y-2">
+                        {teamSubmissions.slice(0, 3).map((s) => (
+                          <li key={s.id} className="flex items-center justify-between gap-3 text-sm">
+                            <span className="font-medium text-foreground truncate">{s.title}</span>
+                            <Badge variant="outline" className="shrink-0 font-normal">
+                              {SUBMISSION_STATE_LABEL[s.state]}
+                            </Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {awaitingSignOff.map((s) => {
+                      const owner = getPerson(s.personId);
+                      return (
+                        <li key={s.id} className="px-6 py-4 space-y-3" data-testid={`submission-${s.id}`}>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-foreground">{s.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {owner?.name ?? "Team member"} · submitted {s.submittedOn}
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{s.metrics}</p>
+                            </div>
+                            <Badge variant="outline" className="shrink-0 font-normal">
+                              {s.impact} impact
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              className="gap-2"
+                              onClick={() => handleSignOff(s.id, s.title)}
+                              data-testid={`button-sign-off-${s.id}`}
+                            >
+                              <ClipboardCheck className="w-4 h-4" /> Sign off
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => handleRevision(s.id, s.title)}
+                              data-testid={`button-request-revision-${s.id}`}
+                            >
+                              <RotateCcw className="w-4 h-4" /> Request revision
+                            </Button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-border shadow-sm flex flex-col">
               <CardHeader className="border-b pb-4">
                 <div className="flex justify-between items-center">
                   <div>
@@ -223,26 +384,28 @@ export default function ManagerDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {MOCK_TEAM.map((employee) => (
-                      <TableRow key={employee.id} className="hover:bg-muted/10">
+                    {team.map((employee) => (
+                      <TableRow key={employee.id} className="hover:bg-muted/10" data-testid={`row-team-${employee.id}`}>
                         <TableCell>
                           <div className="font-semibold text-foreground">{employee.name}</div>
                           <div className="text-xs text-muted-foreground">{employee.role}</div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-medium">{employee.level}</span>
+                          <span className="text-sm font-medium">{LEVEL_BY_ID[employee.levelId]?.label ?? employee.levelId}</span>
                         </TableCell>
                         <TableCell>
                           <div className="w-[100px] flex flex-col gap-1.5">
-                            <Progress value={employee.progress} className="h-1.5" />
-                            <span className="text-[10px] text-muted-foreground text-right">{employee.progress}%</span>
+                            <Progress value={employee.pathwayProgress} className="h-1.5" />
+                            <span className="text-[10px] text-muted-foreground text-right" data-testid={`text-progress-${employee.id}`}>
+                              {employee.pathwayProgress}%
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(employee.status)}
                         </TableCell>
                         <TableCell className="text-right">
-                           <Button variant="ghost" size="sm" onClick={() => setSelectedEmployee(employee)}>
+                           <Button variant="ghost" size="sm" onClick={() => setSelectedId(employee.id)} data-testid={`button-view-${employee.id}`}>
                              View <ChevronRight className="w-4 h-4 ml-1" />
                            </Button>
                         </TableCell>
@@ -258,7 +421,7 @@ export default function ManagerDashboard() {
       </div>
 
       {/* Employee Detail Sheet */}
-      <Sheet open={!!selectedEmployee} onOpenChange={(open) => !open && setSelectedEmployee(null)}>
+      <Sheet open={!!selectedEmployee} onOpenChange={(open) => !open && setSelectedId(null)}>
         <SheetContent className="sm:max-w-md overflow-y-auto">
           {selectedEmployee && (
             <>
@@ -272,11 +435,16 @@ export default function ManagerDashboard() {
                     <SheetDescription className="text-base">{selectedEmployee.role}</SheetDescription>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {getStatusBadge(selectedEmployee.status)}
                   <Badge variant="secondary" className="font-normal flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> {selectedEmployee.level}
+                    <CheckCircle2 className="w-3 h-3" /> {LEVEL_BY_ID[selectedEmployee.levelId]?.label ?? selectedEmployee.levelId}
                   </Badge>
+                  {selectedEmployee.live && (
+                    <Badge variant="outline" className="font-normal border-primary/30 text-primary">
+                      Live from her learner journey
+                    </Badge>
+                  )}
                 </div>
               </SheetHeader>
 
@@ -286,13 +454,65 @@ export default function ManagerDashboard() {
                   <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Current Progress</h4>
                   <div className="p-4 bg-muted/20 rounded-lg border border-border">
                     <div className="flex justify-between items-end mb-2">
-                      <span className="font-semibold text-sm">Agentic Workflow Pathway</span>
-                      <span className="font-bold">{selectedEmployee.progress}%</span>
+                      <span className="font-semibold text-sm">Personalised Learning Pathway</span>
+                      <span className="font-bold">{selectedEmployee.pathwayProgress}%</span>
                     </div>
-                    <Progress value={selectedEmployee.progress} className="h-2 mb-2" />
-                    <p className="text-xs text-muted-foreground">Last active: {selectedEmployee.lastActive}</p>
+                    <Progress value={selectedEmployee.pathwayProgress} className="h-2 mb-2" />
+                    <p className="text-xs text-muted-foreground">
+                      Last active: {selectedEmployee.lastActive}
+                      {selectedEmployee.assessmentScore > 0 && ` · Baseline assessment ${selectedEmployee.assessmentScore}%`}
+                    </p>
                   </div>
+                  {selectedEmployee.live && live.courses.length > 0 && (
+                    <div className="space-y-2">
+                      {live.courses.map((course) => (
+                        <div key={course.courseId} className="flex items-center justify-between gap-3 text-sm">
+                          <span className="text-muted-foreground truncate">{course.title}</span>
+                          <span className="font-medium shrink-0">{course.percent}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
+                {/* Projects this person has in the review chain */}
+                {teamSubmissions.filter((s) => s.personId === selectedEmployee.id).length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Workplace Projects</h4>
+                    <div className="space-y-3">
+                      {teamSubmissions
+                        .filter((s) => s.personId === selectedEmployee.id)
+                        .map((s) => {
+                          const decisions = approvalsFor(s.id);
+                          return (
+                            <div key={s.id} className="p-4 border border-border rounded-lg space-y-2">
+                              <div className="flex items-start justify-between gap-3">
+                                <p className="font-medium text-sm">{s.title}</p>
+                                <Badge variant="outline" className="shrink-0 font-normal">
+                                  {SUBMISSION_STATE_LABEL[s.state]}
+                                </Badge>
+                              </div>
+                              {decisions.length > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                  Last decision: {decisions[decisions.length - 1].by} on {decisions[decisions.length - 1].on}
+                                </p>
+                              )}
+                              {s.state === "awaiting_manager" && (
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                  <Button size="sm" className="gap-2" onClick={() => handleSignOff(s.id, s.title)}>
+                                    <ClipboardCheck className="w-4 h-4" /> Sign off
+                                  </Button>
+                                  <Button size="sm" variant="outline" className="gap-2" onClick={() => handleRevision(s.id, s.title)}>
+                                    <RotateCcw className="w-4 h-4" /> Request revision
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Manager Actions</h4>
@@ -315,15 +535,26 @@ export default function ManagerDashboard() {
                   <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Competency Map</h4>
                   <Card className="border-border">
                     <CardContent className="p-4 space-y-4">
-                      {['AI Ethics', 'Prompt Engineering', 'Workflow Automation'].map((skill, i) => (
-                        <div key={skill} className="space-y-1.5">
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium">{skill}</span>
-                            <span className="text-muted-foreground">{[80, 45, 90][i]} / 100</span>
+                      {selectedEmployee.competencyScores ? (
+                        Object.entries(selectedEmployee.competencyScores).map(([competencyId, score]) => (
+                          <div key={competencyId} className="space-y-1.5">
+                            <div className="flex justify-between text-sm">
+                              <span className="font-medium">{competencyLabel(competencyId)}</span>
+                              <span className="text-muted-foreground">{score} / 100</span>
+                            </div>
+                            <Progress value={score} className="h-1.5 opacity-70" />
                           </div>
-                          <Progress value={[80, 45, 90][i]} className="h-1.5 opacity-70" />
-                        </div>
-                      ))}
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No detailed competency breakdown yet — it appears once the baseline assessment is complete.
+                        </p>
+                      )}
+                      {selectedEmployee.gapCompetencyIds && selectedEmployee.gapCompetencyIds.length > 0 && (
+                        <p className="text-xs text-muted-foreground pt-1">
+                          Development priorities: {selectedEmployee.gapCompetencyIds.map(competencyLabel).join(", ")}
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                 </div>

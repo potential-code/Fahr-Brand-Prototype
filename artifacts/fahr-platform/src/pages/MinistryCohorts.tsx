@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,20 +9,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Users, Send, BookOpen, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useFederalData } from "@/lib/FederalDataContext";
+import { cohortsOf } from "@/lib/federal";
 
 export default function MinistryCohorts() {
   const { toast } = useToast();
   const [composerOpen, setComposerOpen] = useState(false);
   const [pathwayOpen, setPathwayOpen] = useState(false);
   const [selectedCohort, setSelectedCohort] = useState<string | null>(null);
+  const { focus } = useFederalData();
 
-  const cohorts = [
-    { id: "C1", name: "Executive Leadership Batch 2", status: "Active", progress: 75, learners: 45, pathway: "Strategic AI Leadership" },
-    { id: "C2", name: "Customer Happiness Agents", status: "Onboarding", progress: 15, learners: 340, pathway: "AI-Enhanced Service Delivery" },
-    { id: "C3", name: "Data Analytics Champions", status: "Active", progress: 55, learners: 120, pathway: "Predictive Analytics Mastery" },
-    { id: "C4", name: "HR Automation Team", status: "Completed", progress: 100, learners: 85, pathway: "Workforce AI Workflows" },
-    { id: "C5", name: "Comms & Marketing Batch 1", status: "Planning", progress: 0, learners: 150, pathway: "Unassigned" },
-  ];
+  const cohorts = useMemo(() => cohortsOf(focus.ministryId), [focus.ministryId]);
+  const enrolledLearners = cohorts.reduce((a, c) => a + c.learners, 0);
+  const pathwaysAssigned = new Set(
+    cohorts.filter((c) => c.pathway !== "Unassigned").map((c) => c.pathway),
+  ).size;
 
   const handleSendAnnouncement = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +109,7 @@ export default function MinistryCohorts() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Cohorts</p>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold" data-testid="text-total-cohorts">{cohorts.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -118,8 +119,8 @@ export default function MinistryCohorts() {
                 <BookOpen className="w-8 h-8 text-secondary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Active Learners</p>
-                <p className="text-2xl font-bold">740</p>
+                <p className="text-sm text-muted-foreground">Learners Enrolled</p>
+                <p className="text-2xl font-bold" data-testid="text-cohort-learners">{enrolledLearners.toLocaleString()}</p>
               </div>
             </CardContent>
           </Card>
@@ -130,7 +131,7 @@ export default function MinistryCohorts() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pathways Assigned</p>
-                <p className="text-2xl font-bold">8</p>
+                <p className="text-2xl font-bold">{pathwaysAssigned}</p>
               </div>
             </CardContent>
           </Card>
@@ -156,7 +157,7 @@ export default function MinistryCohorts() {
                 </TableHeader>
                 <TableBody>
                   {cohorts.map((cohort) => (
-                    <TableRow key={cohort.id}>
+                    <TableRow key={cohort.id} data-testid={`row-cohort-${cohort.id}`}>
                       <TableCell className="font-medium">{cohort.name}</TableCell>
                       <TableCell>
                         <Badge variant={

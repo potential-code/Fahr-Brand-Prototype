@@ -10,21 +10,32 @@ import { Progress } from "@/components/ui/progress";
 import { ShieldCheck, ShieldAlert, FileText, Database, Server, Lock, Settings, Activity, Cpu, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useFederalData } from "@/lib/FederalDataContext";
+import { GOVERNANCE_POLICIES } from "@/lib/federal";
+
+/** Icon per guardrail, keyed on the policy ids in the shared model. */
+const POLICY_ICONS: Record<string, typeof ShieldCheck> = {
+  humanInLoop: ShieldCheck,
+  auditTrail: FileText,
+  preventPII: Lock,
+  dataResidency: Database,
+  restrictPublicModels: Server,
+  explainability: ShieldAlert,
+};
+
+/** Entities whose quotas the federal team monitors most closely. */
+const MONITORED_ENTITY_COUNT = 5;
 
 export default function FAHRGovernance() {
   const { toast } = useToast();
+  const { ministries, auditEvents, adjustQuota, recordAudit } = useFederalData();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Guardrail states
-  const [guardrails, setGuardrails] = useState({
-    humanInLoop: true,
-    auditTrail: true,
-    dataResidency: true,
-    explainability: true,
-    preventPII: true,
-    restrictPublicModels: true
-  });
+
+  // Guardrail states start from the federal policy set in the shared model.
+  const [guardrails, setGuardrails] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(GOVERNANCE_POLICIES.map((p) => [p.id, p.enabled])),
+  );
 
   useEffect(() => {
     // Simulate initial data loading
@@ -34,38 +45,31 @@ export default function FAHRGovernance() {
     return () => clearTimeout(timer);
   }, []);
 
-  const policies = [
-    { id: "humanInLoop", label: "Human-in-the-loop required for high-risk actions", icon: ShieldCheck },
-    { id: "auditTrail", label: "Full immutable audit trail enabled", icon: FileText },
-    { id: "preventPII", label: "Block PII data from LLM prompts", icon: Lock },
-    { id: "dataResidency", label: "Enforce UAE data residency for embeddings", icon: Database },
-    { id: "restrictPublicModels", label: "Restrict access to unauthorized public models", icon: Server },
-    { id: "explainability", label: "Require explainability trace for AI decisions", icon: ShieldAlert },
-  ];
-
-  const auditLogs = [
-    { time: "10 mins ago", user: "Aisha Al Mansoori", agent: "AI Skills Advisor", action: "Recommended Workplace Project", risk: "Low", status: "Approved" },
-    { time: "1 hour ago", user: "Saeed M. (Admin)", agent: "AI Practice Partner", action: "Reviewed Project", risk: "Medium", status: "Pending Human Review" },
-    { time: "2 hours ago", user: "Fatima A. (Admin)", agent: "Analytics Agent", action: "Generated Federal Report", risk: "Low", status: "Approved" },
-    { time: "Yesterday", user: "System", agent: "AI Analytics Assistant", action: "Flagged Data Policy Warning (PII)", risk: "High", status: "Blocked" },
-    { time: "Yesterday", user: "Khalid R.", agent: "Digital Twin", action: "Connected Knowledge Source", risk: "Low", status: "Approved" },
-  ];
-
-  const tokenUsage = [
-    { entity: "Ministry of Health", used: 4.2, quota: 5.0, status: "Warning" },
-    { entity: "Ministry of Education", used: 8.1, quota: 10.0, status: "Normal" },
-    { entity: "Ministry of Economy", used: 2.9, quota: 3.0, status: "Critical" },
-    { entity: "Ministry of HR", used: 1.5, quota: 4.0, status: "Normal" },
-    { entity: "Ministry of Climate Change", used: 2.1, quota: 2.0, status: "Throttled" },
-  ];
-
-  const usageChartData = tokenUsage.map(t => ({
-    name: t.entity.replace("Ministry of ", ""),
-    Used: t.used,
-    Remaining: Math.max(0, t.quota - t.used)
+  const policies = GOVERNANCE_POLICIES.map((policy) => ({
+    ...policy,
+    icon: POLICY_ICONS[policy.id] ?? ShieldCheck,
   }));
 
-  const handleToggle = (id: keyof typeof guardrails) => {
+  const auditLogs = auditEvents;
+
+  /** Quota status derives from utilisation so it can never contradict the bar. */
+  const tokenUsage = [...ministries]
+    .sort((a, b) => b.tokensUsedM / b.tokenQuotaM - a.tokensUsedM / a.tokenQuotaM)
+    .slice(0, MONITORED_ENTITY_COUNT)
+    .map((m) => {
+      const utilisation = m.tokensUsedM / m.tokenQuotaM;
+      const status =
+        utilisation >= 1 ? "Throttled" : utilisation >= 0.95 ? "Critical" : utilisation >= 0.8 ? "Warning" : "Normal";
+      return { id: m.id, entity: m.name, short: m.shortName, used: m.tokensUsedM, quota: m.tokenQuotaM, status };
+    });
+
+  const usageChartData = tokenUsage.map(t => ({
+    name: t.short,
+    Used: t.used,
+    Remaining: Math.max(0, Math.round((t.quota - t.used) * 10) / 10)
+  }));
+
+  const handleToggle = (id: string) => {
     setGuardrails(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
@@ -73,11 +77,31 @@ export default function FAHRGovernance() {
     setIsSaving(true);
     setTimeout(() => {
       setIsSaving(false);
+      const disabled = GOVERNANCE_POLICIES.filter((p) => !guardrails[p.id]).length;
+      recordAudit({
+        actor: "FAHR Governance Officer",
+        agent: "Human decision",
+        action: `Applied federal guardrail policy set (${GOVERNANCE_POLICIES.length - disabled} of ${GOVERNANCE_POLICIES.length} enforced)`,
+        risk: disabled > 0 ? "Medium" : "Low",
+        status: "Applied",
+      });
       toast({
         title: "Governance Policies Updated",
         description: "AI behaviour guardrails have been successfully applied across the federal platform.",
       });
     }, 1000);
+  };
+
+  /** Raising a quota is a real decision: it changes what every role sees. */
+  const handleRaiseQuota = () => {
+    const tightest = tokenUsage[0];
+    if (!tightest) return;
+    const newQuota = Math.round((tightest.quota + 1) * 10) / 10;
+    adjustQuota(tightest.id, newQuota, { by: "FAHR Governance Officer" });
+    toast({
+      title: "Quota Adjusted",
+      description: `${tightest.entity} raised to ${newQuota}M tokens for this period.`,
+    });
   };
 
   const SkeletonRow = () => (
@@ -118,7 +142,7 @@ export default function FAHRGovernance() {
             <CardContent className="pt-6 flex-1">
               <div className="space-y-6">
                 {policies.map((p) => {
-                  const isActive = guardrails[p.id as keyof typeof guardrails];
+                  const isActive = guardrails[p.id];
                   return (
                     <div key={p.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -127,12 +151,14 @@ export default function FAHRGovernance() {
                         </div>
                         <div>
                           <p className="text-sm font-medium">{p.label}</p>
-                          <p className="text-xs text-muted-foreground">{isActive ? 'Enforced system-wide' : 'Currently disabled'}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {isActive ? `${p.scope} scope · reviewed ${p.lastReviewed}` : 'Currently disabled'}
+                          </p>
                         </div>
                       </div>
                       <Switch 
                         checked={isActive} 
-                        onCheckedChange={() => handleToggle(p.id as keyof typeof guardrails)}
+                        onCheckedChange={() => handleToggle(p.id)}
                         className="data-[state=checked]:bg-green-600"
                       />
                     </div>
@@ -167,13 +193,13 @@ export default function FAHRGovernance() {
               </div>
 
               <div className="space-y-4">
-                {tokenUsage.map((entity, i) => {
+                {tokenUsage.map((entity) => {
                   const percentage = Math.min(100, (entity.used / entity.quota) * 100);
                   const isWarning = entity.status === 'Warning';
                   const isCritical = entity.status === 'Critical' || entity.status === 'Throttled';
                   
                   return (
-                    <div key={i} className="space-y-1">
+                    <div key={entity.id} className="space-y-1" data-testid={`quota-${entity.id}`}>
                       <div className="flex justify-between text-sm">
                         <span className="font-medium">{entity.entity}</span>
                         <div className="flex items-center gap-2">
@@ -195,8 +221,8 @@ export default function FAHRGovernance() {
               </div>
 
               <div className="flex justify-end">
-                <Button variant="outline" size="sm" onClick={() => toast({ title: "Quotas Adjusted", description: "Request for additional tokens submitted." })}>
-                  Request Quota Increase
+                <Button variant="outline" size="sm" onClick={handleRaiseQuota} data-testid="button-raise-quota">
+                  Raise Tightest Quota
                 </Button>
               </div>
 
@@ -241,10 +267,10 @@ export default function FAHRGovernance() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {auditLogs.map((log, i) => (
-                      <TableRow key={i}>
+                    {auditLogs.map((log) => (
+                      <TableRow key={log.id} data-testid={`row-audit-${log.id}`}>
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{log.time}</TableCell>
-                        <TableCell className="font-medium">{log.user}</TableCell>
+                        <TableCell className="font-medium">{log.actor}</TableCell>
                         <TableCell>{log.agent}</TableCell>
                         <TableCell>{log.action}</TableCell>
                         <TableCell>

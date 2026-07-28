@@ -1,1 +1,3 @@
 - [FAHR mockup conventions](fahr-mockup-conventions.md) — mockup-only scope, shared agent/ladder constants, logo & Radix Select gotchas, fahr.gov.ae blocks scraping.
+- [FAHR federal data spine](federal-data-spine.md) — author a figure once and derive the rest; live learner state beats demo numbers; cross-role decisions live in the session store.
+- [Sidebar active state and nav motion](sidebar-active-state.md) — deepest-match highlighting, per-surface layout-animation ids, duplicated nav test ids.

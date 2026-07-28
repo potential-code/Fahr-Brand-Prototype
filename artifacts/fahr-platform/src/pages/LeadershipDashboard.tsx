@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,52 +8,93 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { TrendingUp, Users, Award, DollarSign, Shield, Building2, Bot, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
+import { AGENTS } from "@/lib/constants";
+import { useFederalData } from "@/lib/FederalDataContext";
+import {
+  CAPABILITY_BANDS,
+  FEDERAL,
+  NATIONAL_TARGET,
+  ON_TRACK_READINESS,
+  READINESS_TRAJECTORY,
+  competencyLabel,
+  nationalGaps,
+} from "@/lib/federal";
+
+/** Ministries shown in the comparison chart, highest readiness first. */
+const CHART_ENTITY_COUNT = 8;
 
 export default function LeadershipDashboard() {
   const { toast } = useToast();
+  const { ministries, submissions } = useFederalData();
+
+  const champions = CAPABILITY_BANDS.find((b) => b.level.id === "champion")?.count ?? 0;
+  const gaps = useMemo(() => nationalGaps(), []);
+
+  /** Compliance reads the live portfolio rather than a fixed headline. */
+  const compliance = submissions.length
+    ? Math.round((submissions.filter((s) => s.governanceStatus === "Compliant").length / submissions.length) * 100)
+    : 100;
+
+  const latest = READINESS_TRAJECTORY[READINESS_TRAJECTORY.length - 1];
+  const previous = READINESS_TRAJECTORY[READINESS_TRAJECTORY.length - 2];
+  const quarterChange = latest.readiness - previous.readiness;
 
   const strategicKPIs = [
-    { label: "National AI Readiness", value: "64%", change: "+6pts QoQ", trend: "up", icon: TrendingUp },
-    { label: "Workforce Coverage", value: "52%", subtitle: "41,850 of 80,000", icon: Users },
-    { label: "Capability Champions", value: "1,240", subtitle: "Level 5 achievers", icon: Award },
-    { label: "Est. Annual Value", value: "AED 72M", subtitle: "Delivered outcomes", icon: DollarSign },
-    { label: "Ministries On Track", value: "9/14", subtitle: ">=65% readiness", icon: Building2 },
-    { label: "Responsible AI Compliance", value: "97%", subtitle: "Framework adherence", icon: Shield },
+    {
+      label: "National AI Readiness",
+      value: `${FEDERAL.readiness}%`,
+      change: `${quarterChange >= 0 ? "+" : ""}${quarterChange}pts QoQ`,
+      icon: TrendingUp,
+    },
+    {
+      label: "Workforce Coverage",
+      value: `${FEDERAL.coverage}%`,
+      subtitle: `${FEDERAL.activeLearners.toLocaleString()} of ${FEDERAL.employees.toLocaleString()}`,
+      icon: Users,
+    },
+    {
+      label: "Capability Champions",
+      value: champions.toLocaleString(),
+      subtitle: "Level 5 achievers",
+      icon: Award,
+    },
+    {
+      label: "Est. Annual Value",
+      value: `AED ${FEDERAL.valueCreatedAedM}M`,
+      subtitle: "Delivered outcomes",
+      icon: DollarSign,
+    },
+    {
+      label: "Ministries On Track",
+      value: `${FEDERAL.ministriesOnTrack}/${FEDERAL.ministriesTotal}`,
+      subtitle: `>=${ON_TRACK_READINESS}% readiness`,
+      icon: Building2,
+    },
+    {
+      label: "Responsible AI Compliance",
+      value: `${compliance}%`,
+      subtitle: "Framework adherence",
+      icon: Shield,
+    },
   ];
 
-  const readinessTrendData = [
-    { quarter: "Q3 2025", readiness: 41, target: 50 },
-    { quarter: "Q4 2025", readiness: 48, target: 55 },
-    { quarter: "Q1 2026", readiness: 55, target: 60 },
-    { quarter: "Q2 2026", readiness: 59, target: 65 },
-    { quarter: "Q3 2026", readiness: 64, target: 70 },
-  ];
+  const ministryReadinessData = useMemo(
+    () =>
+      [...ministries]
+        .sort((a, b) => b.readiness - a.readiness)
+        .slice(0, CHART_ENTITY_COUNT)
+        .map((m) => ({ ministry: m.shortName, readiness: m.readiness })),
+    [ministries],
+  );
 
-  const ministryReadinessData = [
-    { ministry: "Economy", readiness: 82 },
-    { ministry: "Human Resources", readiness: 75 },
-    { ministry: "Education", readiness: 71 },
-    { ministry: "Health and Prevention", readiness: 68 },
-    { ministry: "Climate Change & Environment", readiness: 66 },
-    { ministry: "Foreign Affairs", readiness: 63 },
-    { ministry: "Interior", readiness: 59 },
-    { ministry: "Justice", readiness: 55 },
-  ];
-
-  const capabilityDistribution = [
-    { level: CAPABILITY_LEVELS[0].label, count: 8420, percentage: 20 },
-    { level: CAPABILITY_LEVELS[1].label, count: 12555, percentage: 30 },
-    { level: CAPABILITY_LEVELS[2].label, count: 14610, percentage: 35 },
-    { level: CAPABILITY_LEVELS[3].label, count: 5025, percentage: 12 },
-    { level: CAPABILITY_LEVELS[4].label, count: 1240, percentage: 3 },
-  ];
-
-  const nationalRisks = [
-    { gap: "AI Workflow Automation", affectedMinistries: 8, trend: "rising" },
-    { gap: "Data Literacy & Analytics", affectedMinistries: 6, trend: "stable" },
-    { gap: "Responsible AI Review", affectedMinistries: 4, trend: "declining" },
-  ];
+  const strongest = [...ministries].sort((a, b) => b.readiness - a.readiness).slice(0, 3);
+  const topGap = gaps[0];
+  const championShare = champions
+    ? Math.round(
+        (strongest.reduce((a, m) => a + m.credentialsIssued, 0) /
+          Math.max(FEDERAL.credentialsIssued, 1)) * 100,
+      )
+    : 0;
 
   return (
     <Layout role="leadership">
@@ -69,7 +110,7 @@ export default function LeadershipDashboard() {
               variant="outline"
               onClick={() => toast({
                 title: "Executive Brief Downloading",
-                description: "Q3 2026 national readiness report prepared."
+                description: `${latest.quarter} national readiness report prepared.`
               })}
             >
               Download Executive Brief
@@ -91,7 +132,7 @@ export default function LeadershipDashboard() {
                   )}
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-foreground">{kpi.value}</p>
+                  <p className="text-3xl font-bold text-foreground" data-testid={`kpi-${i}`}>{kpi.value}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{kpi.label}</p>
                   {kpi.subtitle && (
                     <p className="text-xs text-muted-foreground/70 mt-1">{kpi.subtitle}</p>
@@ -107,12 +148,12 @@ export default function LeadershipDashboard() {
           <CardHeader>
             <CardTitle className="text-xl">National AI Readiness Trajectory</CardTitle>
             <CardDescription>
-              Quarterly progress toward federal AI transformation target (75% by Q2 2027)
+              Quarterly progress toward federal AI transformation target ({NATIONAL_TARGET.readiness}% by {NATIONAL_TARGET.by})
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={readinessTrendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <LineChart data={READINESS_TRAJECTORY} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="quarter" 
@@ -136,10 +177,10 @@ export default function LeadershipDashboard() {
                   }} 
                 />
                 <ReferenceLine 
-                  y={75} 
+                  y={NATIONAL_TARGET.readiness} 
                   stroke="hsl(var(--chart-5))" 
                   strokeDasharray="5 5" 
-                  label={{ value: 'Target 75%', position: 'right', fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: `Target ${NATIONAL_TARGET.readiness}%`, position: 'right', fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                 />
                 <Line 
                   type="monotone" 
@@ -220,20 +261,20 @@ export default function LeadershipDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-2">
-              {capabilityDistribution.map((level, i) => (
-                <div key={i} className="space-y-1.5">
+              {CAPABILITY_BANDS.map((band, i) => (
+                <div key={band.level.id} className="space-y-1.5" data-testid={`band-${band.level.id}`}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-foreground">{level.level}</span>
+                    <span className="font-medium text-foreground">{band.level.label}</span>
                     <div className="flex items-center gap-3">
-                      <span className="text-muted-foreground">{level.count.toLocaleString()}</span>
-                      <span className="font-bold text-primary w-10 text-right">{level.percentage}%</span>
+                      <span className="text-muted-foreground">{band.count.toLocaleString()}</span>
+                      <span className="font-bold text-primary w-10 text-right">{band.percentage}%</span>
                     </div>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full rounded-full transition-all duration-500" 
                       style={{ 
-                        width: `${level.percentage}%`,
+                        width: `${band.percentage}%`,
                         backgroundColor: `hsl(var(--chart-${(i % 5) + 1}))`
                       }}
                     />
@@ -241,7 +282,10 @@ export default function LeadershipDashboard() {
                 </div>
               ))}
               <div className="pt-4 border-t border-border text-xs text-muted-foreground">
-                Total active learners: <span className="font-semibold text-foreground">41,850</span>
+                Total active learners:{" "}
+                <span className="font-semibold text-foreground" data-testid="text-total-learners">
+                  {FEDERAL.activeLearners.toLocaleString()}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -256,16 +300,25 @@ export default function LeadershipDashboard() {
             <div className="space-y-3 text-sm">
               <p className="font-semibold text-primary text-base">{AGENTS.analytics} — National-Level Insights</p>
               <p>
-                <span className="font-semibold text-foreground">Insight 1:</span> Readiness growth is strongest in Economy, Climate, and HR clusters (+12-14pts QoQ). Momentum concentrated in policy-heavy functions.
+                <span className="font-semibold text-foreground">Insight 1:</span> Readiness is strongest in{" "}
+                {strongest.map((m) => m.shortName).join(", ")} ({strongest[0]?.readiness}% at the top), with momentum
+                concentrated in policy-heavy functions.
               </p>
               <p>
-                <span className="font-semibold text-foreground">Insight 2:</span> Capability gap in AI workflow automation affects 8 ministries, particularly legal and judicial entities.
+                <span className="font-semibold text-foreground">Insight 2:</span> The largest capability gap is{" "}
+                {topGap ? competencyLabel(topGap.competency.id) : "—"}, named as the top gap by{" "}
+                {topGap?.ministries ?? 0} of {FEDERAL.ministriesTotal} entities.
               </p>
               <p>
-                <span className="font-semibold text-foreground">Insight 3:</span> Champion-level practitioners (Level 5) distribution is uneven — 60% concentrated in 3 ministries, limiting cross-entity knowledge transfer.
+                <span className="font-semibold text-foreground">Insight 3:</span> Credentialing is uneven —{" "}
+                {championShare}% of all issued credentials sit in the three strongest entities, limiting cross-entity
+                knowledge transfer.
               </p>
               <p>
-                <span className="font-semibold text-primary">Recommendation:</span> Launch a federal AI Workflow Challenge in Q4 2026, pairing high-performing ministries with lagging entities to accelerate capability transfer and close automation gaps.
+                <span className="font-semibold text-primary">Recommendation:</span> Launch a federal challenge on{" "}
+                {topGap ? competencyLabel(topGap.competency.id) : "capability transfer"}, pairing high-performing
+                ministries with the {FEDERAL.ministriesTotal - FEDERAL.ministriesOnTrack} entities below the{" "}
+                {ON_TRACK_READINESS}% threshold.
               </p>
             </div>
           </CardContent>
@@ -289,13 +342,13 @@ export default function LeadershipDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {nationalRisks.map((risk) => (
-                  <TableRow key={risk.gap}>
+                {gaps.map((risk) => (
+                  <TableRow key={risk.competency.id} data-testid={`row-gap-${risk.competency.id}`}>
                     <TableCell className="font-medium flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4 text-chart-5" />
-                      {risk.gap}
+                      {risk.competency.label}
                     </TableCell>
-                    <TableCell className="text-right font-semibold">{risk.affectedMinistries}</TableCell>
+                    <TableCell className="text-right font-semibold">{risk.ministries}</TableCell>
                     <TableCell className="text-right">
                       <Badge 
                         variant="outline" 

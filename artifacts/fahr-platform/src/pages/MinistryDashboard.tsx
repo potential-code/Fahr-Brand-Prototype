@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
@@ -10,36 +10,61 @@ import { Users, Bot, Zap, Clock, Rocket, Search, AlertCircle, CheckCircle2, Tren
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { AGENTS } from "@/lib/constants";
+import { useFederalData } from "@/lib/FederalDataContext";
+import {
+  MINISTRY_BY_ID,
+  TWIN_ADOPTION,
+  competencyLabel,
+  cohortsOf,
+  ministryRollup,
+  peopleOfMinistry,
+} from "@/lib/federal";
 
 export default function MinistryDashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [appliedRecommendations, setAppliedRecommendations] = useState<string[]>([]);
+  const { focus, ministries, submissions } = useFederalData();
+
+  const ministry = ministries.find((m) => m.id === focus.ministryId) ?? MINISTRY_BY_ID[focus.ministryId];
+  const rollup = useMemo(() => ministryRollup(focus.ministryId), [focus.ministryId]);
+  const departmentData = rollup?.departments ?? [];
+  const cohorts = useMemo(() => cohortsOf(focus.ministryId), [focus.ministryId]);
+
+  /** Projects from this entity that still need an entity decision. */
+  const pendingEntityReview = submissions.filter(
+    (s) => s.ministryId === focus.ministryId && (s.state === "awaiting_entity" || s.state === "awaiting_manager"),
+  );
 
   const kpis = [
-    { label: "Total Employees", value: "4,820", icon: Users, color: "text-primary" },
-    { label: "Active Learners", value: "3,940", icon: Search, color: "text-secondary" },
-    { label: "AI Readiness Index", value: "68%", icon: Zap, color: "text-accent" },
-    { label: "AI Digital Twins", value: "1,245", icon: Bot, color: "text-[hsl(var(--chart-4))]" },
-    { label: "Projects Submitted", value: "318", icon: Rocket, color: "text-[hsl(var(--chart-5))]" },
-    { label: "Est. Hours Saved/Mo", value: "9,850", icon: Clock, color: "text-[hsl(var(--chart-3))]" },
+    { label: "Total Employees", value: ministry.employees.toLocaleString(), icon: Users, color: "text-primary" },
+    { label: "Active Learners", value: ministry.activeLearners.toLocaleString(), icon: Search, color: "text-secondary" },
+    { label: "AI Readiness Index", value: `${ministry.readiness}%`, icon: Zap, color: "text-accent" },
+    { label: "AI Digital Twins", value: ministry.twins.toLocaleString(), icon: Bot, color: "text-[hsl(var(--chart-4))]" },
+    { label: "Projects Submitted", value: ministry.projectsSubmitted.toLocaleString(), icon: Rocket, color: "text-[hsl(var(--chart-5))]" },
+    { label: "Est. Hours Saved/Mo", value: ministry.hoursSavedPerMonth.toLocaleString(), icon: Clock, color: "text-[hsl(var(--chart-3))]" },
   ];
 
-  const departmentData = [
-    { name: "Comms & Public Awareness", employees: 120, readiness: 82, twins: 95, projects: 45, hours: 1200, risk: "Low" },
-    { name: "Customer Happiness", employees: 340, readiness: 75, twins: 210, projects: 88, hours: 2400, risk: "Low" },
-    { name: "HR & Training", employees: 85, readiness: 71, twins: 50, projects: 22, hours: 850, risk: "Low" },
-    { name: "Digital Health", employees: 150, readiness: 88, twins: 130, projects: 60, hours: 1800, risk: "Low" },
-    { name: "Preventive Medicine", employees: 620, readiness: 54, twins: 120, projects: 35, hours: 900, risk: "Medium" },
-    { name: "Hospitals & Clinics", employees: 3505, readiness: 42, twins: 640, projects: 68, hours: 2700, risk: "High" },
-  ];
+  const readinessChartData = departmentData.map((d) => ({ name: d.name.split(" ")[0], score: d.readiness }));
 
-  const readinessChartData = departmentData.map(d => ({ name: d.name.split(' ')[0], score: d.readiness }));
+  const twinAdoptionData = useMemo(
+    () => TWIN_ADOPTION.map((point, index) =>
+      index === TWIN_ADOPTION.length - 1 ? { ...point, twins: ministry.twins } : point,
+    ),
+    [ministry.twins],
+  );
 
-  const twinAdoptionData = [
-    { month: "Jan", twins: 120 }, { month: "Feb", twins: 340 }, { month: "Mar", twins: 680 },
-    { month: "Apr", twins: 950 }, { month: "May", twins: 1245 }
-  ];
+  /** Insight cards read the entity's own signals rather than a fixed script. */
+  const weakestDepartment = [...departmentData].sort((a, b) => a.readiness - b.readiness)[0];
+  const atRiskCount = peopleOfMinistry(focus.ministryId).filter(
+    (p) => p.status === "at-risk" || p.status === "needs-attention",
+  ).length;
+  const fastestCohort = [...cohorts]
+    .filter((c) => c.status === "Active")
+    .sort((a, b) => b.progress - a.progress)[0];
+  const slowestCohort = [...cohorts]
+    .filter((c) => c.status === "Active")
+    .sort((a, b) => a.progress - b.progress)[0];
 
   const handleApplyRecommendation = (id: string, action: string) => {
     setAppliedRecommendations(prev => [...prev, id]);
@@ -55,15 +80,15 @@ export default function MinistryDashboard() {
         <PageHeader
           tone="primary"
           className="mb-2"
-          title="Ministry of Health and Prevention"
+          title={ministry.name}
           description="Ministry Admin Dashboard"
           actions={
             <>
               <Button variant="outline" onClick={() => toast({ title: "Report Generating", description: "Capability gap report is being generated." })}>
                 View Capability Gaps
               </Button>
-              <Button onClick={() => setLocation('/ministry/portfolio')}>
-                Review Projects (12)
+              <Button onClick={() => setLocation('/ministry/portfolio')} data-testid="button-review-projects">
+                Review Projects ({pendingEntityReview.length})
               </Button>
             </>
           }
@@ -94,7 +119,8 @@ export default function MinistryDashboard() {
                     <span className="font-semibold text-sm">At-Risk Learners</span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
-                    42 staff members in Hospitals & Clinics have not logged in for 14 days and are falling behind the "Aware" baseline.
+                    {atRiskCount} tracked staff in {weakestDepartment?.name ?? "the entity"} are behind the pathway
+                    baseline — the department sits at {weakestDepartment?.readiness ?? 0}% readiness, the lowest here.
                   </p>
                 </div>
                 <Button 
@@ -114,14 +140,20 @@ export default function MinistryDashboard() {
                     <span className="font-semibold text-sm">Cohort Comparison</span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Cohort C (Customer Happiness) is adopting digital twins 3x faster than Cohort B. Recommend sharing their templates.
+                    {fastestCohort
+                      ? `${fastestCohort.name} is at ${fastestCohort.progress}% completion${
+                          slowestCohort && slowestCohort.id !== fastestCohort.id
+                            ? `, ahead of ${slowestCohort.name} on ${slowestCohort.progress}%`
+                            : ""
+                        }. Recommend sharing their templates.`
+                      : "No active cohorts to compare yet."}
                   </p>
                 </div>
                 <Button 
                   size="sm" 
                   variant="outline"
                   disabled={appliedRecommendations.includes("rec-2")}
-                  onClick={() => handleApplyRecommendation("rec-2", "Publish Cohort C templates to internal marketplace")}
+                  onClick={() => handleApplyRecommendation("rec-2", `Publish ${fastestCohort?.name ?? "cohort"} templates to internal marketplace`)}
                 >
                   {appliedRecommendations.includes("rec-2") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Published</> : "Publish Templates"}
                 </Button>
@@ -134,7 +166,8 @@ export default function MinistryDashboard() {
                     <span className="font-semibold text-sm">Action Recommended</span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
-                    12 Workplace Projects from Digital Health are pending review. They have High impact potential for Patient Services.
+                    {pendingEntityReview.length} workplace projects are awaiting a decision. The entity's biggest gap
+                    remains {competencyLabel(ministry.topGapCompetencyId)}.
                   </p>
                 </div>
                 <Button 
@@ -221,13 +254,13 @@ export default function MinistryDashboard() {
                 </TableHeader>
                 <TableBody>
                   {departmentData.map((dept) => (
-                    <TableRow key={dept.name}>
+                    <TableRow key={dept.id} data-testid={`row-department-${dept.id}`}>
                       <TableCell className="font-medium">{dept.name}</TableCell>
-                      <TableCell className="text-right">{dept.employees}</TableCell>
+                      <TableCell className="text-right">{dept.employees.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{dept.readiness}%</TableCell>
-                      <TableCell className="text-right">{dept.twins}</TableCell>
+                      <TableCell className="text-right">{dept.twins.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{dept.projects}</TableCell>
-                      <TableCell className="text-right">{dept.hours}</TableCell>
+                      <TableCell className="text-right">{dept.hoursSavedPerMonth.toLocaleString()}</TableCell>
                       <TableCell>
                         <Badge variant={dept.risk === 'High' ? 'destructive' : dept.risk === 'Medium' ? 'secondary' : 'outline'} className={dept.risk === 'Low' ? 'bg-green-50 text-green-700 border-green-200' : ''}>
                           {dept.risk} Gap
