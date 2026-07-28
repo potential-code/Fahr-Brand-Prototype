@@ -24,6 +24,7 @@ import AgenticAILabTwin from "@/pages/AgenticAILabTwin";
 import AgenticAILabProject from "@/pages/AgenticAILabProject";
 import AgenticAIEvaluation from "@/pages/AgenticAIEvaluation";
 import RecognitionAndImpact from "@/pages/RecognitionAndImpact";
+import WorkshopsAndEvents from "@/pages/WorkshopsAndEvents";
 
 import MinistryDashboard from "@/pages/MinistryDashboard";
 import MinistryPortfolio from "@/pages/MinistryPortfolio";
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/learner/lab/project" component={AgenticAILabProject} />
       <Route path="/learner/evaluation" component={AgenticAIEvaluation} />
       <Route path="/learner/recognition" component={RecognitionAndImpact} />
+      <Route path="/learner/events" component={WorkshopsAndEvents} />
 
       {/* Manager Routes */}
       <Route path="/manager" component={ManagerDashboard} />

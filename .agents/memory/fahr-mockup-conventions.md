@@ -49,6 +49,20 @@ Every screen in the learner sidebar can be opened directly, in any order, withou
 
 **How to apply:** put the fallback in the domain module next to the real builder (same shapes, same scoring path) rather than hand-writing static display copy in the page, so the demo state and the live state can never drift apart.
 
+## Say where a number came from, or don't show it as earned
+
+The learner-facing record mixes two kinds of figures: those counted from activity inside the platform, and those the platform only reads from FAHR's existing programme records (attendance, peer recognition). Any ledger, badge or headline that mixes them must label the carried-in lines, and the shared headline points figure stays a single constant so recognition, profile and leaderboards can never disagree.
+
+**Why:** a review round flagged "always-earned" badges and static ledger rows as invented data. They are legitimate for a mockup, but only if the screen is honest about their provenance — otherwise the demo overclaims what the platform measured.
+
+**How to apply:** carry a `source` discriminator on the record entry itself, not a caption bolted on in the page, so every consumer of the record inherits the labelling.
+
+## Waiting lists are not registrations
+
+Where a seat can run out, hold "confirmed" and "waiting" as separate state, never one id list plus a full/not-full check. A waiting-list place consumes no seat, shows no joining details or calendar action, and its cancel copy differs.
+
+**Why:** collapsing them produced a card that said "Added to the waiting list" in the toast and "You are registered" with a Join button on the card.
+
 ## Cross-stage wizard state, and how it looks broken to a browser tester
 
 Multi-stage builders render one stage at a time, so inputs from other stages are absent from the DOM entirely. A browser test that reads inputs by test id on the wrong stage reports them as empty and will call it state loss. Confirm real loss by checking a cross-stage indicator (the readiness meter / submit gate) rather than by querying inputs.

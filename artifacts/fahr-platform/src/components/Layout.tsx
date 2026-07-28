@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/lib/LanguageContext";
-import { LayoutDashboard, User, Target, FlaskConical, Award, ShieldCheck, Globe, Briefcase, Menu, LogOut, Landmark, Rocket, BadgeCheck } from "lucide-react";
+import { LayoutDashboard, User, Target, FlaskConical, Award, ShieldCheck, Globe, Briefcase, Menu, LogOut, Landmark, Rocket, BadgeCheck, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AIConcierge } from "@/components/AIConcierge";
@@ -56,7 +56,8 @@ export function Layout({ children, role }: { children: React.ReactNode, role: Ro
           { href: "/learner/lab/project", label: "Workplace Project", icon: Rocket },
           { href: "/learner/evaluation", label: t("nav.evaluation"), icon: BadgeCheck },
           { href: "/learner/recognition", label: t("nav.recognition"), icon: Award },
-          { href: "/learner/community", label: "Community", icon: Users },
+          { href: "/learner/events", label: t("nav.events"), icon: CalendarDays },
+          { href: "/learner/community", label: t("nav.community"), icon: Users },
         ];
       case 'manager':
         return [
