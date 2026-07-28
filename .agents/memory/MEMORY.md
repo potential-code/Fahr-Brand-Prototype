@@ -1,0 +1,1 @@
+- [FAHR mockup conventions](fahr-mockup-conventions.md) — mockup-only scope, shared agent/ladder constants, logo & Radix Select gotchas, fahr.gov.ae blocks scraping.

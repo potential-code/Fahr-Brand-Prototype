@@ -6,6 +6,12 @@ import { LanguageProvider } from "@/lib/LanguageContext";
 import NotFound from "@/pages/not-found";
 
 import Welcome from "@/pages/Welcome";
+import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
+import LearnerOnboarding from "@/pages/LearnerOnboarding";
+import Community from "@/pages/Community";
+import ManagerDashboard from "@/pages/ManagerDashboard";
+import MinistryCohorts from "@/pages/MinistryCohorts";
 import LearnerDashboard from "@/pages/LearnerDashboard";
 import DynamicCapabilityProfile from "@/pages/DynamicCapabilityProfile";
 import PersonalisedDevelopmentMission from "@/pages/PersonalisedDevelopmentMission";
@@ -27,9 +33,13 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Welcome} />
-      
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
+
       {/* Learner Routes */}
       <Route path="/learner" component={LearnerDashboard} />
+      <Route path="/learner/onboarding" component={LearnerOnboarding} />
+      <Route path="/learner/community" component={Community} />
       <Route path="/learner/profile" component={DynamicCapabilityProfile} />
       <Route path="/learner/mission" component={PersonalisedDevelopmentMission} />
       <Route path="/learner/agent" component={MultiInterfaceAgentExperience} />
@@ -38,8 +48,12 @@ function Router() {
       <Route path="/learner/evaluation" component={AgenticAIEvaluation} />
       <Route path="/learner/recognition" component={RecognitionAndImpact} />
 
+      {/* Manager Routes */}
+      <Route path="/manager" component={ManagerDashboard} />
+
       {/* Ministry Routes */}
       <Route path="/ministry" component={MinistryDashboard} />
+      <Route path="/ministry/cohorts" component={MinistryCohorts} />
       <Route path="/ministry/portfolio" component={MinistryPortfolio} />
 
       {/* FAHR Routes */}

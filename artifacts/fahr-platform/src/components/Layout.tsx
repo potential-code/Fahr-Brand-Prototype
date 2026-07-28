@@ -4,9 +4,11 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { LayoutDashboard, User, Target, Bot, FlaskConical, Award, ShieldCheck, Globe, Briefcase, FileText, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AIConcierge } from "@/components/AIConcierge";
+import { Users } from "lucide-react";
 
-export function Layout({ children, role }: { children: React.ReactNode, role: 'learner' | 'ministry' | 'fahr' }) {
-  const { language, setLanguage, t } = useLanguage();
+export function Layout({ children, role }: { children: React.ReactNode, role: 'learner' | 'manager' | 'ministry' | 'fahr' }) {
+  const { language, t } = useLanguage();
   const [location, setLocation] = useLocation();
 
   const getNavLinks = () => {
@@ -19,10 +21,16 @@ export function Layout({ children, role }: { children: React.ReactNode, role: 'l
           { href: "/learner/agent", label: t("nav.agent"), icon: Bot },
           { href: "/learner/lab/twin", label: t("nav.lab"), icon: FlaskConical },
           { href: "/learner/recognition", label: t("nav.recognition"), icon: Award },
+          { href: "/learner/community", label: "Community", icon: Users },
+        ];
+      case 'manager':
+        return [
+          { href: "/manager", label: "Team Dashboard", icon: LayoutDashboard },
         ];
       case 'ministry':
         return [
           { href: "/ministry", label: "Dashboard", icon: LayoutDashboard },
+          { href: "/ministry/cohorts", label: "Cohorts & Programmes", icon: Users },
           { href: "/ministry/portfolio", label: t("nav.portfolio"), icon: Briefcase },
         ];
       case 'fahr':
@@ -77,11 +85,13 @@ export function Layout({ children, role }: { children: React.ReactNode, role: 'l
           <div className="flex items-center gap-2 md:gap-4">
             <div className="hidden md:flex items-center bg-muted rounded-full p-1 border border-border">
               <Button variant="ghost" size="sm" className={`rounded-full px-4 h-8 ${role === 'learner' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/learner')}>{t('nav.learner')}</Button>
+              <Button variant="ghost" size="sm" className={`rounded-full px-4 h-8 ${role === 'manager' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/manager')}>Manager</Button>
               <Button variant="ghost" size="sm" className={`rounded-full px-4 h-8 ${role === 'ministry' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/ministry')}>{t('nav.ministry')}</Button>
               <Button variant="ghost" size="sm" className={`rounded-full px-4 h-8 ${role === 'fahr' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/fahr')}>{t('nav.fahr')}</Button>
             </div>
-            
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
+
+            {/* Language toggle — visual placeholder (platform is English-only for now) */}
+            <Button variant="outline" size="sm" className="gap-2" title="Arabic coming soon">
               <Globe className="h-4 w-4" />
               <span>{language === 'en' ? 'العربية' : 'English'}</span>
             </Button>
@@ -115,6 +125,8 @@ export function Layout({ children, role }: { children: React.ReactNode, role: 'l
           {children}
         </main>
       </div>
+
+      <AIConcierge />
     </div>
   );
 }

@@ -33,7 +33,8 @@ import {
   ChevronLeft,
   type LucideIcon,
 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
+import { AGENTS } from "@/lib/constants";
 
 type LabelPair = { en: string; ar: string };
 
@@ -532,7 +533,7 @@ function VoicePane({ language }: { language: "en" | "ar" }) {
         />
         <img
           src={`${import.meta.env.BASE_URL}brand/aisha-avatar.png`}
-          alt={language === "ar" ? "وكيل القدرات الذكي" : "AI Capability Agent"}
+          alt={language === "ar" ? "المستشار الذكي للمهارات" : AGENTS.advisor}
           className="relative w-36 h-36 rounded-full object-cover border-4 border-white shadow-lg"
         />
         <span className="absolute bottom-1 end-1 w-5 h-5 rounded-full bg-green-500 border-2 border-white" />
@@ -564,7 +565,7 @@ function AvatarPane({ language }: { language: "en" | "ar" }) {
         <div className="absolute inset-2 rounded-[30%] overflow-hidden border border-white/30 shadow-2xl">
           <img
             src={`${import.meta.env.BASE_URL}brand/aisha-avatar.png`}
-            alt={language === "ar" ? "وكيل القدرات الذكي" : "AI Capability Agent"}
+            alt={language === "ar" ? "المستشار الذكي للمهارات" : AGENTS.advisor}
             className="w-full h-full object-cover"
           />
         </div>
@@ -691,10 +692,48 @@ export default function LearnerDashboard() {
   return (
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        
+        {/* Onboarding Banner */}
+        <Card className="bg-gradient-to-r from-primary to-secondary text-white overflow-hidden relative border-none">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+          <CardContent className="p-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">
+                {language === "ar" ? "مرحباً بك في رحلة القدرات الخاصة بك" : "Welcome to your Capability Journey"}
+              </h2>
+              <p className="text-white/80 max-w-2xl text-sm leading-relaxed mb-4">
+                {language === "ar" 
+                  ? "يبدأ مسار تطوير الذكاء الاصطناعي الخاص بك بتقييم تشخيصي قصير. سيتعرف مستشار المهارات الذكي على دورك ويبني خطة تطوير مخصصة لك."
+                  : "Your Agentic AI development pathway starts with a short baseline assessment. The AI Skills Advisor will learn about your role and generate your personalized mission."}
+              </p>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={() => setLocation("/learner/onboarding")}
+                  className="bg-white text-primary hover:bg-white/90 font-semibold"
+                >
+                  {language === "ar" ? "ابدأ التقييم" : "Start Baseline Assessment"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setLocation("/learner/mission")}
+                  className="text-white border-white/30 hover:bg-white/10"
+                >
+                  {language === "ar" ? "متابعة المهمة" : "Continue Mission"}
+                </Button>
+              </div>
+            </div>
+            <div className="hidden md:flex shrink-0">
+              <div className="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center backdrop-blur-sm">
+                <Target className="w-10 h-10 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Learning Journey */}
         <JourneyTimeline language={language} />
 
-        {/* AI Capability Agent Demo */}
+        {/* AI Skills Advisor Demo */}
         <Card className="border-primary/20 overflow-hidden">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
@@ -704,7 +743,7 @@ export default function LearnerDashboard() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-primary leading-tight">
-                    {language === "ar" ? "وكيل القدرات الذكي" : "AI Capability Agent"}
+                    {language === "ar" ? "المستشار الذكي للمهارات" : AGENTS.advisor}
                   </h2>
                   <p className="text-xs text-muted-foreground">
                     {language === "ar"

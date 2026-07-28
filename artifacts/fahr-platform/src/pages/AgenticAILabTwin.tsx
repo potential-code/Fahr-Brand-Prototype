@@ -19,6 +19,10 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 type LabelPair = { en: string; ar: string };
 
@@ -161,23 +165,46 @@ const GUARDRAILS: LabelPair[] = [
 
 export default function AgenticAILabTwin() {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const isAr = language === "ar";
+  
+  // States
   const [active, setActive] = useState(0);
+  const [isTraining, setIsTraining] = useState(false);
+  const [showTrainDialog, setShowTrainDialog] = useState(false);
+  const [showTestDialog, setShowTestDialog] = useState(false);
+  const [showGovDialog, setShowGovDialog] = useState(false);
+
+  // Form states
+  const [trainStep, setTrainStep] = useState(0);
+
   const done = active >= STEPS.length;
   const progress = Math.round((active / STEPS.length) * 100);
 
   useEffect(() => {
-    if (active >= STEPS.length) return;
-    const delay = active === 0 ? 700 : 1300;
-    const tid = setTimeout(() => setActive((a) => a + 1), delay);
+    if (!isTraining) return;
+    if (active >= STEPS.length) {
+      setIsTraining(false);
+      return;
+    }
+    const tid = setTimeout(() => setActive((a) => a + 1), 800);
     return () => clearTimeout(tid);
-  }, [active]);
+  }, [active, isTraining]);
 
-  const replay = () => setActive(0);
+  const replay = () => {
+    setActive(0);
+    setIsTraining(false);
+  };
+
+  const startTraining = () => {
+    setShowTrainDialog(false);
+    setIsTraining(true);
+    if (active === 0) setActive(1);
+  };
 
   return (
     <Layout role="learner">
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto pb-12">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2 text-primary">
@@ -189,15 +216,29 @@ export default function AgenticAILabTwin() {
                 : "Aisha's AI Digital Twin understands her day-to-day work, captures context, learns her workflows, and supports her as a trusted AI assistant."}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={replay} className="shrink-0 self-start">
-            <RotateCcw className="w-4 h-4 me-2" />
-            {isAr ? "إعادة البناء" : "Rebuild"}
-          </Button>
+          {done && (
+            <Button variant="outline" size="sm" onClick={replay} className="shrink-0 self-start">
+              <RotateCcw className="w-4 h-4 me-2" />
+              {isAr ? "إعادة البناء" : "Rebuild"}
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Build Canvas */}
-          <Card className="lg:col-span-3 border-primary/20 overflow-hidden">
+          <Card className="lg:col-span-3 border-primary/20 overflow-hidden relative">
+            {!done && !isTraining && active === 0 && (
+              <div className="absolute inset-0 z-30 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
+                  <UserCog className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-white text-xl font-bold mb-2">Digital Twin Untrained</h3>
+                <p className="text-white/80 mb-6 max-w-sm">Provide your role context and knowledge sources to initialize your personal AI assistant.</p>
+                <Button size="lg" onClick={() => setShowTrainDialog(true)}>
+                  Configure & Train Twin
+                </Button>
+              </div>
+            )}
             <CardContent className="p-0">
               <div
                 className="relative w-full min-h-[520px] overflow-hidden"
@@ -324,7 +365,7 @@ export default function AgenticAILabTwin() {
                     <img
                       src={`${import.meta.env.BASE_URL}brand/agent-avatar.png`}
                       alt={isAr ? "التوأم الرقمي لعائشة" : "Aisha's AI Digital Twin"}
-                      className="relative w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-[0_0_24px_rgba(56,189,248,0.55)]"
+                      className={`relative w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-[0_0_24px_rgba(56,189,248,0.55)] transition-all duration-1000 ${done ? 'scale-105 saturate-110' : 'grayscale-[40%] opacity-80'}`}
                     />
                   </div>
                   <div className="text-center mt-2">
@@ -370,8 +411,8 @@ export default function AgenticAILabTwin() {
                           : "border-dashed border-border bg-muted/30"
                     }`}
                   >
-                    <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${c.iconBg}`}>
-                      <Icon className={`w-4.5 h-4.5 ${c.stepText}`} />
+                    <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${built || building ? c.iconBg : 'bg-muted border-border'}`}>
+                      <Icon className={`w-4.5 h-4.5 ${built || building ? c.stepText : 'text-muted-foreground'}`} />
                     </span>
                     <div className="flex-1 min-w-0">
                       <p
@@ -402,10 +443,23 @@ export default function AgenticAILabTwin() {
           </div>
         </div>
 
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border">
+          <Button size="lg" className="flex-1" onClick={() => setShowTrainDialog(true)} disabled={done || isTraining}>
+            <FlaskConical className="me-2 w-4 h-4" /> {isAr ? "درّب توأمي الرقمي" : "Train my Digital Twin"} 
+          </Button>
+          <Button size="lg" variant="outline" className="flex-1" disabled={!done} onClick={() => setShowTestDialog(true)}>
+            <MessageSquareQuote className="me-2 w-4 h-4" /> {isAr ? "اختبار الاستجابة" : "Test response"}
+          </Button>
+          <Button size="lg" variant="ghost" onClick={() => setShowGovDialog(true)}>
+            <Shield className="me-2 w-4 h-4" /> {isAr ? "إعدادات الحوكمة" : "View governance settings"}
+          </Button>
+        </div>
+
         {/* Twin profile — revealed on completion */}
         <Card
           className={`border-primary/20 overflow-hidden transition-all duration-500 ${
-            done ? "opacity-100" : "opacity-50"
+            done ? "opacity-100 max-h-[800px] mt-6" : "opacity-0 max-h-0 m-0 border-none"
           }`}
         >
           <CardContent className="p-6">
@@ -449,18 +503,103 @@ export default function AgenticAILabTwin() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button size="lg" className="flex-1" disabled={!done}>
-            {isAr ? "درّب توأمي الرقمي" : "Train my Digital Twin"} <ArrowRight className="ms-2 w-4 h-4" />
-          </Button>
-          <Button size="lg" variant="outline" className="flex-1" disabled={!done}>
-            {isAr ? "اختبار الاستجابة" : "Test response"}
-          </Button>
-          <Button size="lg" variant="ghost">
-            {isAr ? "إعدادات الحوكمة" : "View governance settings"}
-          </Button>
-        </div>
       </div>
+
+      {/* Train Dialog */}
+      <Dialog open={showTrainDialog} onOpenChange={setShowTrainDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Configure Digital Twin</DialogTitle>
+            <DialogDescription>Define the knowledge and instructions for your personalized AI assistant.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {trainStep === 0 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Primary Role & Function</label>
+                  <Input defaultValue="Public Health Communications Specialist" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Key Recurring Tasks</label>
+                  <Textarea defaultValue="- Drafting campaign briefs&#10;- Generating social media copy&#10;- Summarizing audience sentiment reports" className="min-h-[100px]" />
+                </div>
+              </div>
+            )}
+            {trainStep === 1 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Tone & Style Guidelines</label>
+                  <Input defaultValue="Authoritative but reassuring, empathetic, clear, avoid jargon" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Knowledge Sources</label>
+                  <div className="p-3 border rounded-md bg-muted/50 space-y-2 text-sm">
+                    <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> FAHR Official Tone Guide</div>
+                    <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> Ministry Health Policies 2024</div>
+                    <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> Past Campaign Performance Data</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            {trainStep === 0 ? (
+              <Button onClick={() => setTrainStep(1)}>Next Step</Button>
+            ) : (
+              <Button onClick={startTraining} className="bg-primary hover:bg-primary/90 text-white">Initialize Training Sequence</Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Test Dialog */}
+      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Test Digital Twin Response</DialogTitle>
+            <DialogDescription>Your twin is constrained by the knowledge and tone you defined.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-primary text-primary-foreground p-3 rounded-2xl rounded-tr-sm max-w-[85%] self-end ml-auto text-sm">
+              Draft a quick alert about the new flu vaccine availability.
+            </div>
+            <div className="bg-muted p-3 rounded-2xl rounded-tl-sm max-w-[85%] text-sm flex gap-3">
+              <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                "Protect yourself and your loved ones. The seasonal flu vaccine is now available at all Ministry health centers. Book your appointment today via the official portal."
+                <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
+                  Applied tone: Reassuring & clear. Referenced: Ministry Health Policies 2024.
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowTestDialog(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Governance Dialog */}
+      <Dialog open={showGovDialog} onOpenChange={setShowGovDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Governance Guardrails</DialogTitle>
+            <DialogDescription>Mandatory settings enforced by FAHR policy.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {GUARDRAILS.map((g) => (
+              <div key={g.en} className="flex justify-between items-center p-3 border rounded-lg bg-card">
+                <span className="text-sm font-medium">{isAr ? g.ar : g.en}</span>
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Enforced</Badge>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowGovDialog(false)}>Acknowledge</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </Layout>
   );
 }

@@ -1,0 +1,1053 @@
+
+COMMERCIAL PROPOSAL TO RFP BPM005906
+Federal Agentic AI
+Learning &amp; Skilling Platform
+Submitted to
+Federal Authority for Government Human Resources (FAHR)
+-20764525273000
+Submitted by
+Potential FZ-LLC
+Dubai Knowledge Park, Block 02, PO Box 500682, Dubai, UAE
+Trade Licence 18294  |  TRN 100339584300003
+Date: 02 August 2026   |   Classification: Confidential
+Table of Contents
+ TOC \o "1-1" \h \z \u PART I – TECHNICAL PROPOSAL PAGEREF _Toc235812619 \h 3
+1. Executive Summary PAGEREF _Toc235812620 \h 3
+2. Understanding of the UAE Federal Agentic AI Skilling Context PAGEREF _Toc235812621 \h 6
+3. Proposed Integrated Solution Overview and Accountable Delivery Model PAGEREF _Toc235812622 \h 9
+4. Functional Learning Platform Response PAGEREF _Toc235812623 \h 12
+5. Agentic AI-Enabled Learning Response PAGEREF _Toc235812624 \h 17
+6. Optional AI Sandbox Response – The Agentic AI Lab PAGEREF _Toc235812625 \h 20
+7. Technical Architecture and Integration Approach PAGEREF _Toc235812626 \h 23
+8. Security, Privacy, Data Governance, and AI Governance Response PAGEREF _Toc235812627 \h 25
+9. Implementation and Rollout Approach PAGEREF _Toc235812628 \h 28
+10. Operations, Support and Knowledge Transfer PAGEREF _Toc235812629 \h 31
+11. Vendor Qualifications, Delivery Team, Strategic Partnerships and Relevant Experience PAGEREF _Toc235812630 \h 35
+12. Risk Register, Assumptions and Dependencies PAGEREF _Toc235812631 \h 41
+13. Compliance Matrix PAGEREF _Toc235812632 \h 44
+PART II – COMMERCIAL PROPOSAL PAGEREF _Toc235812633 \h 48
+1. Commercial Summary PAGEREF _Toc235812634 \h 48
+2. Itemised Pricing (COM-01 to COM-07) PAGEREF _Toc235812635 \h 50
+3. Intellectual Property and Licensing PAGEREF _Toc235812636 \h 65
+4. Exit, Transition and Data Portability PAGEREF _Toc235812637 \h 65
+5. Payment Schedule and Terms PAGEREF _Toc235812638 \h 67
+Closing PAGEREF _Toc235812639 \h 68
+PART I – TECHNICAL PROPOSAL
+1. Executive Summary
+The Federal Authority for Government Human Resources is undertaking a nationally significant initiative to equip up to 80,000 federal government employees with the knowledge, confidence, practical capability, and responsible ways of working required for an Agentic AI-enabled government.
+Delivering this ambition requires more than a traditional learning management system, a catalogue of AI courses, or an AI assistant added to an existing platform. It requires an integrated federal workforce capability ecosystem that can understand employees in the context of their roles, personalise their development, support them as they learn and apply new capabilities, and provide leadership with a real-time view of workforce readiness and impact.
+Potential FZ-LLC, trading as Potential.com, proposes a single, secure, scalable, bilingual, and Agentic AI-enabled platform that brings the complete journey together within one FAHR-branded experience:
+onboarding and learner profiling;
+diagnostic and continuous assessment;
+personalised development missions;
+bilingual learning and content access;
+AI tutoring, coaching, guidance, and feedback;
+experiential learning and workplace application;
+certification and capability recognition;
+learner, manager, entity, and federal dashboards;
+government system integrations;
+security, privacy, data, and AI governance; and
+ongoing support, knowledge transfer, and continuous enhancement.
+The proposed solution is designed not only to teach federal employees about Agentic AI, but to empower them to experience it, apply it responsibly, and translate learning into stronger performance, improved services, practical workplace projects, and measurable government outcomes.
+An Agentic AI Approach to Workforce Development
+Unlike traditional learning platforms that focus on courses, Potential.com’s solution is capability- and outcome-driven.
+AI is embedded at the core of the platform, continuously assessing employee needs, personalising development, and supporting real-world application. The focus shifts from “what to learn next” to “what capability to build and what outcome to achieve.” 
+A Personalised Employee Experience
+Each employee is guided by an AI-driven journey tailored to their role, skills, and goals. The platform adapts continuously, combining learning, coaching, assessment, and practical application into a seamless experience.
+Behind the scenes, specialised AI capabilities work together to personalise development, provide guidance, assess progress, and generate insights—while users experience a simple, unified interface.
+One Integrated Platform
+Potential.com will deliver a single, unified solution with one user experience, one data model, and central oversight by FAHR.
+The platform supports all user groups—from employees to leadership—while enabling entity-level administration, role-based access, and scalable expansion across the federal ecosystem.
+Workforce Intelligence and Leadership Visibility
+The platform provides real-time insights at all levels:
+Employees track their progress and development
+Managers monitor engagement and performance
+FAHR gains a consolidated view of workforce capability, gaps, and trends
+This enables data-driven decision-making and continuous workforce development.
+Secure, Bilingual, and Government-Ready
+The solution supports Arabic and English, with full compliance for security, privacy, and governance. It integrates with existing government systems and supports UAE-based hosting and data sovereignty requirements.
+Proven, Configurable, and Scalable
+The platform is based on an established solution that will be configured—not built from scratch—reducing risk and accelerating delivery.
+Implementation follows a phased approach from design and configuration to pilot and full rollout, ensuring alignment with FAHR’s requirements.
+FAHR-Branded Demonstration Platform
+To support evaluation beyond written descriptions, Potential.com is developing an illustrative FAHR-branded platform mock-up that brings the proposed experience to life.
+During the technical evaluation phase, Potential.com will present this mock-up and provide a guided walkthrough demonstrating key journeys, including learner onboarding, personalised development, AI agent interactions, assessments, administration, and leadership dashboards.
+This mock-up will enable FAHR to directly experience how the platform operates and understand how it would be configured to meet FAHR’s requirements.
+Why Potential.com
+Potential.com brings:
+20 years of UAE experience
+A proven, AI-enabled platform
+Strong government programme expertise
+Bilingual, scalable design
+Integrated analytics and governance
+We offer more than a platform—we provide a capability ecosystem that enables federal employees to apply AI effectively and deliver measurable value.
+Success will be defined not by course completion, but by the capabilities developed and the outcomes achieved across the UAE Government.
+035179000035179000335280035179000035179000
+2. Understanding of the UAE Federal Agentic AI Skilling Context
+2.1 The Next Phase of Government Workforce Transformation
+Artificial Intelligence is reshaping how governments operate, influencing policy design, service delivery, decision-making, and citizen engagement. Globally, public sector organisations are moving beyond traditional digital transformation towards AI-enabled operating models that prioritise agility, intelligence, and responsiveness. Within this evolution, Agentic AI—systems capable of autonomous reasoning, decision support, and collaborative interaction—represents a significant advancement beyond conventional automation.
+For the UAE Federal Government, this transition aligns with national ambitions to lead in innovation, digital governance, and AI adoption. As AI becomes embedded in everyday workflows, the role of public sector employees is evolving from system users to active collaborators with intelligent technologies. This shift requires new competencies in critical thinking, AI interaction, ethical judgement, and continuous learning.
+FAHR’s initiative therefore represents more than the introduction of AI tools or awareness programmes. It is a strategic effort to build workforce capability at scale—enabling employees to confidently and responsibly apply AI to enhance productivity, improve service delivery, and support national priorities. Achieving this requires a fundamental shift in how learning is delivered, how skills are developed, and how performance is measured.
+Through this initiative, FAHR is positioning the UAE Federal Government at the forefront of workforce transformation, ensuring readiness for both current and future technological advancements.
+2.2 From AI Awareness to Workforce Capability
+Traditional workforce development has largely focused on structured learning through courses, certifications, and assessments. While these approaches remain important for foundational knowledge, they are insufficient to develop practical AI capability in a rapidly evolving environment.
+Agentic AI adoption requires a transition from knowledge acquisition to applied capability. Employees must be able to use AI in real-world contexts, solve practical challenges, and continuously refine their skills. This progression—from awareness to application and mastery—cannot be achieved through static learning models alone.
+Effective AI skilling programmes must therefore deliver continuous, adaptive learning embedded within the flow of work. This includes personalised learning journeys aligned to roles and skill levels, real-time guidance, hands-on simulations, and opportunities for safe experimentation. Equally important are mechanisms to track progress, measure outcomes, and provide actionable feedback.
+Given the pace of technological change, workforce capability must also be continuously updated. This requires a dynamic learning ecosystem capable of evolving content, tools, and guidance in line with emerging technologies and organisational priorities.
+FAHR’s initiative reflects this shift, recognising that AI capability development is an ongoing process requiring sustained engagement, intelligent support, and measurable outcomes.
+2.3 Key Success Factors for a Federal Agentic AI Programme
+Based on our experience delivering large-scale workforce transformation programmes, we have identified the following critical success factors:
+Personalised and Role-Based Learning Journeys: Tailored pathways aligned to job functions, skill levels, and organisational priorities to ensure relevance and engagement.
+AI-Powered Guidance and Continuous Coaching: Intelligent support providing real-time recommendations and feedback to enable effective learning and application.
+Practical Application and Experiential Learning: Hands-on simulations and real-world scenarios that enable employees to apply AI in meaningful contexts.
+Integrated Analytics and Workforce Insights: Comprehensive visibility into skill development, adoption, and organisational readiness to support informed decision-making.
+Embedded Responsible AI Governance: Built-in frameworks ensuring ethical, secure, and compliant AI usage, with transparency and accountability.
+Scalability and Multi-Entity Support: A flexible and scalable solution capable of supporting up to 80,000 employees across diverse federal entities.
+Change Management and Adoption Enablement: Structured engagement and communication strategies to drive adoption and sustain participation.
+Continuous Evolution: The ability to update capabilities, integrate new technologies, and incorporate emerging best practices over time.
+2.4 Potential.com's Understanding
+Potential.com recognises that FAHR is establishing a national capability platform rather than procuring a conventional Learning Management System. The objective is to enable up to 80,000 federal employees to develop practical, applied, and continuously evolving Agentic AI capabilities.
+This requires an integrated solution that combines learning, application, analytics, and governance within a unified ecosystem. It must support both individual capability development and organisational oversight, ensuring alignment with federal priorities.
+Our approach is based on embedding AI capability development within the flow of work, supported by intelligent technologies and aligned with operational objectives. We also recognise the importance of providing FAHR with the tools and insights required to manage workforce transformation at scale.
+Accordingly, our solution is designed to empower federal employees to confidently and responsibly adopt AI, while equipping FAHR and participating entities with the governance, intelligence, and operational capabilities needed to deliver measurable and sustainable impact.
+This understanding forms the foundation of the integrated solution presented in the following sections.
+2.5 Potential.com’s Interpretation of Success
+Potential.com defines success as the measurable transformation of workforce capability and organisational performance across the UAE Federal Government.
+At the individual level, success is demonstrated when employees confidently integrate Agentic AI into their daily work—enhancing productivity, improving decision-making, and delivering higher-quality services. This includes the ability to identify opportunities for AI application, collaborate effectively with intelligent systems, and adapt to evolving technologies.
+At the organisational level, success is reflected in improved efficiency, faster service delivery, and stronger policy outcomes supported by data-driven insights. FAHR and participating entities will have clear visibility into workforce capability through real-time analytics, enabling proactive management and alignment with national priorities.
+Sustainability is equally critical. The platform must become an integral part of the federal workforce operating model—widely adopted, continuously evolving, and embedded within a culture of learning and innovation. Responsible AI practices must also be consistently upheld to ensure trust, compliance, and ethical use.
+Ultimately, success is the establishment of a future-ready federal workforce that is not only capable of using AI, but is empowered to lead with it—positioning the UAE as a global benchmark in government-led AI capability development.
+3. Proposed Integrated Solution Overview and Accountable Delivery Model
+3.1 Our Solution at a Glance
+Potential.com proposes the configuration and deployment of its existing enterprise-grade Agentic AI Learning &amp; Skilling Platform to meet FAHR's vision of delivering a secure, bilingual, scalable, and integrated workforce capability ecosystem for up to 80,000 federal government employees.
+Rather than developing a new platform or combining multiple independent products, the proposed solution is built upon Potential.com's mature production platform, which already delivers the core capabilities required throughout the employee learning and skilling journey. These capabilities—including learner onboarding, personalised learning pathways, AI-powered guidance, assessments, analytics, dashboards, administration, integrations, communications, and governance—will be configured, branded, and aligned to FAHR's operational, technical, and governance requirements.
+The platform has been designed around an integrated user experience where employees, managers, entity administrators, and FAHR programme teams interact through a single ecosystem, eliminating the complexity of managing multiple disconnected systems while providing a consistent experience across the entire programme lifecycle.
+As part of this engagement, Potential.com will configure a dedicated FAHR-branded demonstration environment, showcasing the proposed learner journeys, AI-powered capabilities, dashboards, reporting, administration, and governance features described throughout this proposal. Screenshots from this environment are included within the proposal, while the complete platform will be demonstrated during the technical evaluation, allowing the evaluation committee to validate the proposed solution against FAHR's requirements.
+3.2 One Platform. One Experience. One Accountable Partner
+One of the key objectives of this RFP is the procurement of a single integrated solution supported by one accountable delivery partner. Potential.com fully aligns with this objective.
+Our existing platform has been architected as a unified ecosystem where learning, AI capabilities, assessments, analytics, administration, reporting, communications, integrations, and governance operate together within a single platform. This eliminates the need for FAHR to procure, integrate, and manage multiple technologies from different vendors while ensuring a seamless experience for all users.
+Potential.com will act as the Prime Contractor and single accountable partner for the successful delivery and ongoing operation of the platform, providing:
+One integrated platform.
+One implementation programme.
+One governance framework.
+One support and service model.
+One commercial relationship.
+One point of accountability.
+This approach reduces implementation risk, simplifies programme governance, accelerates delivery, and provides FAHR with a trusted partner responsible for the complete end-to-end solution.
+3.3 Integrated Solution Overview
+The proposed FAHR Agentic AI Learning &amp; Skilling Platform will be configured using Potential.com's existing enterprise platform to deliver a comprehensive set of integrated capabilities that support the complete workforce capability lifecycle.
+Learner Experience
+User registration and onboarding
+Personalised learning pathways
+Self-paced and instructor-led learning
+AI-powered tutoring and coaching
+Practical simulations and workplace activities
+Assessments, certifications, and digital credentials
+Continuous AI guidance and recommendations
+Administration &amp; Programme Management
+Programme and cohort management
+Learning content administration
+Communication and notification management
+User and role administration
+Workflow management
+Reporting and operational dashboards
+Leadership &amp; Workforce Intelligence
+Learner dashboards
+Manager dashboards
+Entity-level dashboards
+Federal leadership dashboards
+Skills and capability analytics
+Workforce readiness reporting
+Programme performance insights
+Enterprise Platform Services
+Single Sign-On (SSO) and identity integration
+API framework and third-party integrations
+Security and access management
+Audit logging and monitoring
+AI governance and administration
+Data management and reporting
+These capabilities already exist within the platform and will be configured to align with FAHR's branding, governance model, organisational structure, competency framework, and programme objectives.
+3.4 Accountable Delivery Model
+Potential.com will assume full accountability for the successful implementation, operation, and continuous enhancement of the proposed solution.
+Because the platform is already operational, the implementation programme focuses on configuration, localisation, integration, testing, validation, and rollout rather than software development. This enables FAHR to review and validate a working platform early in the project while significantly reducing delivery timelines and implementation risk.
+Potential.com's responsibilities include:
+Platform configuration and branding.
+Functional configuration and user journeys.
+AI capability configuration.
+Systems integration.
+Security and governance implementation.
+Testing and quality assurance.
+Deployment and rollout.
+Training and knowledge transfer.
+Operational support and continuous improvement.
+Where supporting technologies or third-party services are utilised, Potential.com will remain fully responsible for vendor coordination, service management, quality assurance, and contractual accountability, ensuring FAHR engages with a single delivery partner throughout the programme lifecycle.
+3.5 Existing Capability and Configuration Approach
+Transparency regarding platform maturity is a key principle of Potential.com's delivery approach.
+In line with the RFP requirements, each capability presented throughout this proposal has been clearly identified according to its implementation status, enabling FAHR to distinguish between functionality that already exists within the platform and any future enhancements.
+Capability Status
+Description
+Available Today
+Existing production capability available within Potential.com's platform and requiring configuration only.
+Available by Configuration
+Existing functionality that will be configured or tailored to meet FAHR's operational and business requirements.
+Third-Party Integration
+Capability delivered through integration with an approved external platform or service.
+Custom Development (Where Required)
+Capability requiring bespoke development where specifically requested by FAHR.
+Future Product Roadmap
+Planned enhancements outside the baseline implementation scope.
+This approach provides complete transparency throughout the proposal while demonstrating that the majority of the requested capabilities are already available within the existing platform and can be rapidly configured for FAHR.
+3.6 Designed for Long-Term Federal Evolution
+The proposed solution has been designed as a long-term workforce capability ecosystem that can continuously evolve alongside FAHR's future requirements.
+As additional ministries, learning programmes, competency frameworks, AI capabilities, integrations, and reporting requirements emerge, the platform can be configured and extended without replacing the underlying solution. FAHR will also benefit from Potential.com's ongoing product innovation, allowing future Agentic AI capabilities and platform enhancements to be incorporated as the technology landscape evolves.
+By adopting an established and continuously evolving enterprise platform, FAHR gains a future-ready solution that protects its investment while ensuring the Federal Agentic AI Learning &amp; Skilling Platform remains aligned with emerging government priorities, workforce needs, and advances in Artificial Intelligence.
+The following sections describe each component of the proposed solution in greater detail, beginning with the Functional Learning Platform Response, followed by the Agentic AI-enabled Learning Response, Technical Architecture, Security and Governance, Implementation Approach, and Operational Support Model.
+4. Functional Learning Platform Response
+4.1 Overview
+Potential.com’s Learning Platform provides a comprehensive, enterprise-grade digital learning environment designed to support FAHR’s Federal Agentic AI Learning &amp; Skilling Programme. The platform delivers all core capabilities required to manage large-scale learning initiatives, including user management, content delivery, assessments, certification, reporting, and programme administration.
+Beyond traditional Learning Management Systems, the platform is designed as an intelligent learning ecosystem that supports employees across the full learning lifecycle—from onboarding and baseline assessment through personalised learning, continuous evaluation, certification, and ongoing development.
+A key differentiator of the platform is its integration of structured assessments that enable AI Agents to dynamically design and continuously refine personalised learning pathways. These assessments capture learner competencies, roles, goals, and performance data, forming the foundation for adaptive learning journeys aligned with FAHR’s competency framework.
+The platform is fully responsive, bilingual (Arabic and English), accessible across desktop and mobile devices, and built on a secure, scalable cloud architecture capable of supporting up to 80,000 users. All capabilities described in this section are available within Potential.com’s existing production platform and will be configured to align with FAHR’s branding, organisational structure, governance model, and programme requirements.
+4.2 Learner Registration and Onboarding
+The platform provides flexible onboarding capabilities supporting both self-registration and centrally managed user provisioning. The onboarding process will be configured to align with FAHR’s identity management and operational requirements.
+Key capabilities include:
+Secure authentication and Single Sign-On (SSO), with potential integration with UAE PASS
+User profile creation and management, with optional integration with HR systems
+Role-based access and permissions
+Entity, department, and job role assignment
+Learning cohort allocation
+Profile completion workflows
+Consent and policy acknowledgements
+Fully bilingual onboarding experience
+During onboarding, learners complete structured profiling and baseline assessments that capture their current competency levels, role requirements, and learning objectives. These assessments are critical inputs that enable AI Agents to generate personalised learning pathways tailored to each learner.
+Following registration, learners are presented with a personalised dashboard displaying their assigned learning journey, recommended activities, programme announcements, upcoming events, certificates, achievements, and progress.
+4.3 Learning Experience
+The platform supports multiple learning modalities within a unified and intuitive experience, enabling FAHR to deliver flexible, role-based, and competency-driven learning programmes.
+Supported learning formats include:
+Self-paced digital courses
+Instructor-led virtual sessions
+Classroom-based learning
+Video-based microlearning
+Interactive SCORM/xAPI content
+Downloadable resources
+Structured learning pathways
+Learning playlists
+Knowledge articles
+Practical assignments and projects
+Learning pathways are dynamically assigned based on learner role, competency level, assessment outcomes, entity, and programme requirements. AI Agents leverage assessment data to design and continuously refine these pathways, ensuring that each learner receives a personalised and adaptive learning experience.
+The learner interface provides clear visibility of progress, upcoming activities, and recommended next steps, while continuously adapting based on learner performance and engagement.
+4.4 Learning Content Management
+Potential.com’s platform includes a robust Content Management System (CMS) that enables authorised administrators to create, organise, publish, and manage learning content efficiently without requiring technical expertise.
+Content can be structured and categorised by:
+Programme
+Learning pathway
+Competency framework
+Topic or subject area
+Department or entity
+Target audience
+Language
+Tags and metadata
+The platform supports version control, multilingual content management, scheduling, and lifecycle governance, ensuring that all learning materials remain current and aligned with FAHR’s evolving programme objectives.
+Content is also mapped to competencies and assessment frameworks, enabling AI Agents to select and recommend the most relevant learning resources based on individual learner needs.
+4.5 Assessments, Certification and Progress Tracking
+Assessments are a central component of the platform and play a critical role in enabling personalised, AI-driven learning journeys.
+The platform supports a comprehensive range of assessment types, including:
+Baseline (diagnostic) assessments
+Pre-assessments
+Knowledge checks
+Quizzes
+Scenario-based assessments
+Practical assignments and project submissions
+Competency evaluations
+Final assessments
+Post-programme evaluations
+Baseline and ongoing assessments capture learner proficiency across defined competencies and provide structured data that AI Agents use to design, adjust, and optimise personalised learning pathways.
+Assessment outcomes automatically update learner profiles, trigger pathway adjustments, and contribute to competency tracking and reporting. Successful completion of required components results in the issuance of digital certificates aligned with programme requirements.
+Progress is continuously tracked across all learning activities, providing real-time visibility for both learners and administrators into completion status, performance, and engagement levels.
+4.6 Collaboration and Engagement
+To enhance learner engagement and foster a collaborative learning environment, the platform incorporates a range of interactive and community-driven features, including:
+Announcements and programme updates
+Discussion forums and community spaces
+Polls and feedback tools
+Event registration and webinar integration
+Notifications and reminders
+Gamification elements
+Leaderboards
+Points, badges, and achievements
+These features encourage active participation, peer learning, and sustained engagement throughout the programme, while supporting a culture of continuous learning across FAHR entities.
+4.7 Reporting and Administration
+The platform provides comprehensive administrative and reporting capabilities to support FAHR and participating entities in managing and monitoring programme delivery.
+Administrators can:
+Manage users, roles, and cohorts
+Assign and manage learning pathways
+Publish and manage content
+Schedule and manage events
+Monitor learner progress and performance
+Track completion and certification
+Generate detailed reports and analytics
+Manage communications and notifications
+Configure permissions and access controls
+Role-based dashboards provide tailored visibility for programme administrators, entity coordinators, managers, and executive leadership. Reporting includes insights into learner engagement, competency development, assessment outcomes, and overall programme effectiveness.
+4.8 Alignment with FAHR Requirements
+The proposed platform fully addresses the functional learning requirements outlined in the RFP and aligns with FAHR’s objectives for delivering a scalable, competency-driven, and data-informed learning programme.
+A key strength of the solution is the integration of structured assessments that enable AI Agents to design and continuously optimise personalised learning pathways. This ensures that learning is not only delivered at scale but is also tailored to individual needs, roles, and performance levels.
+The platform will be configured to align with FAHR’s branding, governance model, organisational hierarchy, competency framework, reporting requirements, and user experience expectations.
+The following section builds upon this functional foundation by detailing the platform’s Agentic AI-enabled learning capabilities, which transform the learning experience into an intelligent, adaptive, and continuously evolving workforce development ecosystem.
+5. Agentic AI-Enabled Learning Response
+5.1 Overview
+While the previous section described the platform's core learning capabilities, this section demonstrates how Agentic AI transforms the learning experience from a static, course-based model into an intelligent, adaptive, and continuously evolving workforce capability ecosystem.
+Potential.com's existing platform already incorporates AI-powered capabilities that will be configured to support FAHR's Agentic AI Learning &amp; Skilling Programme. Rather than acting as a standalone chatbot or virtual assistant, Agentic AI operates as an intelligent orchestration layer that continuously understands learner needs, recommends appropriate interventions, provides contextual guidance, supports workplace application, and assists administrators in managing learning programmes more effectively.
+The proposed FAHR platform therefore moves beyond simply delivering learning content—it actively accompanies employees throughout their learning journey, adapting to their progress while supporting capability development within the flow of work.
+5.2 An Agentic AI Learning Experience
+Every learner experiences a personalised learning journey supported by AI throughout each stage of the programme.
+Following registration and completion of baseline assessments, the platform analyses information such as:
+Current competency levels
+Job role and responsibilities
+Entity and department
+Learning objectives
+Assessment outcomes
+Programme participation
+Learning behaviour
+Previous achievements
+Using this information, AI continuously recommends the most appropriate learning activities, resources, coaching interactions, practical exercises, and assessments.
+As learners progress, recommendations evolve automatically based on new assessment results, engagement levels, and demonstrated competency improvements.
+Learning therefore becomes dynamic rather than fixed.
+5.3 AI Agents Supporting the Learner Journey
+The proposed solution enables multiple specialised AI capabilities that work together to enhance different stages of the learner experience.
+These include:
+AI Learning Coach
+Provides contextual explanations, answers learner questions, recommends resources, and supports understanding throughout learning activities.
+AI Skills Advisor
+Interprets assessment outcomes, identifies competency gaps, and recommends personalised development priorities aligned with FAHR's competency framework.
+AI Practice Partner
+Supports learners through practical exercises, workplace scenarios, role-play activities, and guided application of newly acquired knowledge.
+AI Content Assistant
+Helps learners locate relevant learning resources while assisting administrators with organising and maintaining learning content.
+AI Analytics Assistant
+Generates workforce insights, identifies learning trends, highlights learners requiring additional support, and assists administrators with programme monitoring.
+AI Concierge
+Acts as an intelligent virtual assistant for the platform, providing immediate support to learners and administrators by answering platform-related questions, guiding users through features and processes, assisting with navigation, and resolving common enquiries. Where issues require technical intervention, the AI Concierge seamlessly escalates them to the appropriate support team, ensuring a responsive and efficient user experience.
+All AI capabilities are already available within Potential.com's platform and will be configured to align with FAHR's operating model, governance framework, and approved AI use cases.
+5.4 AI-Powered Personalisation
+Unlike conventional learning platforms where pathways are assigned once at enrolment, the proposed platform continuously refines each learner's experience.
+Personalisation may include:
+Dynamic pathway recommendations
+Adaptive learning sequences
+Suggested refresher content
+Additional practice activities
+Targeted assessments
+Contextual coaching
+Competency-based recommendations
+Just-in-time learning resources
+This ensures learners receive the right support at the right time while maintaining alignment with programme objectives.
+5.5 AI Supporting Administrators and Programme Teams
+Agentic AI also enhances programme administration by reducing manual effort and improving decision-making.
+Examples include:
+Intelligent learner segmentation
+Automated communication recommendations
+Identification of learners requiring intervention
+Programme performance summaries
+Skills gap analysis
+Cohort comparisons
+Content recommendations
+Executive insight generation
+These capabilities allow administrators to focus on learner success rather than administrative processes.
+5.6 Responsible Agentic AI
+Potential.com recognises that successful AI adoption requires strong governance alongside innovation.
+Accordingly, all AI capabilities are implemented within a responsible AI framework that supports:
+Human oversight
+Explainability
+Secure handling of learner information
+Role-based permissions
+Audit logging
+Data governance
+Configurable AI behaviours
+Alignment with FAHR's AI governance policies
+These governance capabilities are described in greater detail within the Security, Privacy, Data Governance and AI Governance section of this proposal.
+5.7 Configured for FAHR
+The Agentic AI capabilities described throughout this section are not conceptual future developments. They are existing capabilities within Potential.com's enterprise platform that will be configured, branded, and aligned to FAHR's learner journeys, competency framework, governance model, and operational requirements.
+As part of the technical evaluation, Potential.com will demonstrate these AI-enabled learner experiences through the dedicated FAHR-branded demonstration environment, enabling the evaluation committee to experience how Agentic AI enhances learning, coaching, personalisation, administration, and workforce intelligence within a practical, production-ready platform.
+The following section describes the optional Agentic AI Sandbox environment, enabling employees to safely experiment with their own AI Digital Twin.
+6. Optional AI Sandbox Response – The Agentic AI Lab
+6.1 Overview
+As a value-added capability, Potential.com proposes the Agentic AI Lab—a secure, governed experimentation environment that enables federal employees to safely experience, explore, and apply Agentic AI within a controlled learning environment.
+The Agentic AI Lab is designed to support FAHR's learning objectives by allowing employees to experiment with AI in practical, real-world scenarios without exposing production systems or sensitive government data. It is not intended to function as an agent-development platform; rather, it provides a structured environment where learners progressively build confidence, apply newly acquired skills, and explore Agentic AI concepts through guided activities and simulations, fully aligned with the RFP's intent.
+The Agentic AI Lab follows a phased maturity model, allowing FAHR to introduce increasingly advanced capabilities over time while maintaining governance, security, and operational simplicity.
+6.2 Phase 1 – Build Your AI Digital Twin (Available Today)
+The first stage of the Agentic AI Lab is available today within Potential.com's production platform and will be configured for FAHR as part of the proposed solution.
+Rather than asking employees to build AI agents from scratch, learners are guided through the creation of their own AI Digital Twin—a trusted AI companion that understands their role, responsibilities, working context, preferred communication style, and day-to-day activities.
+Throughout the learning programme, employees progressively train their Digital Twin by defining:
+Their job role and responsibilities.
+Organisational context and business domain.
+Frequently performed tasks and workflows.
+Preferred working style and communication preferences.
+Personal objectives and development goals.
+Knowledge sources and approved reference materials.
+As the learner progresses through the programme, the AI Digital Twin becomes increasingly capable of supporting everyday work by providing contextual guidance, assisting with routine activities, answering questions, generating content, and acting as a personalised productivity assistant aligned with the employee's role.
+This creates a highly engaging learning experience where employees immediately apply newly acquired AI skills while developing an AI companion that continues to deliver value beyond the training programme.
+6.3 Future Phase – Agentic Workflow Studio (Roadmap)
+As FAHR's AI maturity evolves, the Agentic AI Lab can be extended through an optional second phase introducing an Agentic Workflow Studio. This capability is part of Potential.com's product roadmap and can be configured as a future enhancement if required.
+Within this environment, employees move beyond individual AI assistants to designing complete Agentic AI workflows capable of supporting end-to-end business processes.
+Using a guided visual interface, authorised learners can safely experiment with workflows that combine multiple AI capabilities to address practical workplace challenges such as:
+HR and employee services.
+Internal knowledge assistance.
+Policy interpretation.
+Customer and stakeholder support.
+Productivity automation.
+Document processing.
+Administrative workflows.
+Government service scenarios.
+These workflows are created exclusively within the governed sandbox environment and are intended for learning, experimentation, and proof-of-concept activities rather than direct production deployment.
+6.4 Safe, Secure and Governed Experimentation
+The Agentic AI Lab has been specifically designed as an isolated experimentation environment that supports learning while maintaining enterprise-grade governance and security.
+Key capabilities include:
+Complete isolation from production systems and operational government data.
+Configurable simulated government scenarios.
+Role-based permissions and access controls.
+Prompt and response logging.
+AI guardrails and safety controls.
+Content moderation and abuse monitoring.
+Reset and replay functionality for repeated learning exercises.
+Full audit trail of learner interactions.
+These controls allow employees to experiment confidently while enabling FAHR to maintain visibility, compliance, and responsible AI governance throughout the learning experience.
+6.5 Configured for FAHR
+The Agentic AI Lab is an optional value-added capability that complements the core learning platform by providing employees with a practical environment to experience Agentic AI beyond traditional learning activities.
+For the proposed implementation:
+Phase 1 – AI Digital Twin is available today within Potential.com's production platform and can be configured as part of the FAHR implementation.
+Phase 2 – Agentic Workflow Studio represents a future enhancement that can be introduced as FAHR's AI maturity evolves and organisational requirements expand.
+As part of the technical evaluation, Potential.com will demonstrate the AI Digital Twin experience within the dedicated FAHR-branded demonstration environment, allowing the evaluation committee to experience how learners create, train, and interact with their own AI Digital Twin within a secure and governed ecosystem before progressing to more advanced Agentic AI capabilities in future phases.
+7. Technical Architecture and Integration Approach
+7.1 Overview
+Potential.com's Agentic AI Learning &amp; Skilling Platform is built upon a modern, cloud-native, enterprise architecture designed to support secure, scalable, and highly available digital learning programmes. The platform has already been deployed across government and enterprise environments and will be configured to align with FAHR's technical, operational, and security requirements.
+Rather than implementing multiple disconnected technologies, the proposed solution provides a unified platform where learning, AI capabilities, assessments, analytics, administration, communications, integrations, and governance operate within a single architecture. This reduces technical complexity, simplifies ongoing support, and provides a consistent experience for learners, administrators, and leadership.
+The architecture has been designed to support up to 80,000 federal employees, while remaining flexible enough to accommodate future expansion, additional programmes, integrations, and emerging AI capabilities.
+7.2 Platform Architecture
+The proposed solution follows a modular architecture that enables individual components to operate together as an integrated ecosystem while remaining independently scalable.
+The architecture comprises the following layers:
+Presentation Layer
+Provides the user experience for learners, administrators, managers, entity coordinators, and federal leadership through responsive web and mobile interfaces supporting both Arabic and English.
+Application Layer
+Delivers the core business capabilities including learning management, user administration, assessments, communications, reporting, workflow management, certifications, and programme administration.
+Agentic AI Layer
+Provides AI-powered capabilities including personalised recommendations, AI coaching, adaptive learning, AI Digital Twin, intelligent content discovery, analytics assistance, and contextual guidance. These capabilities are configured according to FAHR's approved AI use cases and governance framework.
+Data &amp; Analytics Layer
+Stores learner information, programme data, assessment outcomes, competency records, reporting data, and analytics while supporting dashboards and business intelligence.
+Integration Layer
+Provides secure APIs and integration services enabling interoperability with FAHR's enterprise systems and approved third-party platforms.
+Security &amp; Governance Layer
+Provides identity management, access control, audit logging, encryption, monitoring, AI governance, and compliance capabilities across the platform.
+7.3 Integration Approach
+The platform has been designed using an API-first approach, allowing seamless integration with FAHR's existing technology ecosystem.
+Subject to FAHR's implementation requirements, the platform can integrate with systems including:
+Identity Providers and Single Sign-On (SSO)
+UAE PASS (where required)
+Human Resources Information Systems (HRIS)
+Learning Content Repositories
+Business Intelligence platforms
+Microsoft 365
+Email and notification services
+Video conferencing platforms (Microsoft Teams, Zoom)
+Content authoring tools
+Other government systems through secure REST APIs
+The implementation approach will include detailed integration planning, interface specifications, testing, and validation to ensure secure and reliable interoperability across the solution landscape.
+7.4 Scalability, Performance and Availability
+The platform has been architected to support enterprise-scale deployments and high levels of concurrent usage.
+Key architectural characteristics include:
+Cloud-native deployment architecture
+Optional FEDNet Cloud hosting deployment
+Horizontal scalability
+Load balancing
+High availability
+Automated backup and recovery
+Performance monitoring
+Elastic infrastructure scaling
+Business continuity support
+This architecture enables the platform to accommodate increasing numbers of learners, additional government entities, expanded learning content, and future AI capabilities without requiring significant architectural redesign.
+7.5 Deployment Model
+Potential.com's platform supports multiple deployment models to align with government requirements, including:
+Potential.com UAE-hosted cloud deployment or FEDNet Cloud deployment
+Government-approved cloud environments
+Hybrid deployment models (where required)
+The final deployment architecture will be agreed with FAHR during the design phase, ensuring alignment with hosting, security, and operational policies.
+7.6 Configured for FAHR
+The technical architecture described in this section represents Potential.com's existing production platform and does not require redevelopment for this engagement.
+As part of the implementation, the platform will be configured to align with FAHR's branding, organisational structure, integrations, authentication requirements, security policies, and operational processes. This configuration-first approach reduces implementation risk while allowing FAHR to validate a working platform early in the project through the dedicated FAHR-branded demonstration environment.
+8. Security, Privacy, Data Governance, and AI Governance Response
+8.1 Overview
+Potential.com recognises that security, privacy, governance, and trust are fundamental requirements for any Federal Government digital platform. The proposed Agentic AI Learning &amp; Skilling Platform has therefore been designed with a security-by-design and responsible AI-by-design approach, ensuring that information security, privacy protection, governance, and operational resilience are embedded throughout the platform rather than added as separate controls.
+The proposed solution is based on Potential.com's existing enterprise platform and will be configured to align with FAHR's information security policies, data governance requirements, AI governance framework, and hosting strategy. Throughout implementation, security and governance will be treated as continuous programme activities spanning solution design, configuration, deployment, operation, and ongoing enhancement.
+8.2 Information Security
+The platform incorporates multiple layers of security designed to protect user identities, application services, and organisational data.
+Core security capabilities include:
+Secure user authentication and Single Sign-On (SSO)
+Role-based access control (RBAC)
+Multi-factor authentication (through email where required)
+Encryption of data in transit and at rest
+Secure API authentication and authorisation
+Audit logging of user and administrator activities
+Continuous platform monitoring
+Backup and disaster recovery
+Secure software deployment practices
+Environment segregation for development, testing, and production
+These controls help ensure confidentiality, integrity, and availability of the platform while supporting secure operation across multiple federal entities.
+8.3 Privacy and Data Governance
+Potential.com recognises that learner information and organisational data are valuable government assets requiring careful stewardship.
+The platform includes configurable data governance capabilities supporting:
+Role-based access to learner information
+Data ownership aligned with FAHR policies
+Data classification and segregation
+Configurable data retention and deletion policies
+Comprehensive audit trails
+Controlled administrative access
+Secure backup and recovery
+Data export and reporting controls
+Throughout the implementation, data governance policies will be configured in collaboration with FAHR to ensure alignment with applicable government regulations and operational requirements.
+8.4 Responsible AI Governance
+As Artificial Intelligence becomes increasingly embedded within workforce development, strong governance is essential to ensure transparency, accountability, and responsible use.
+Potential.com's Agentic AI capabilities are governed through a framework that supports:
+Human oversight of AI-assisted decisions
+Transparent AI interactions
+Configurable AI behaviour and permissions
+Prompt and response logging
+Role-based access to AI capabilities
+Monitoring of AI usage
+AI safety guardrails
+Responsible handling of learner information
+Administrative control over AI-enabled features
+Importantly, AI is designed to support human decision-making rather than replace it. Programme administrators and authorised personnel retain oversight of learner pathways, assessments, programme administration, and organisational reporting.
+8.5 Secure AI Digital Twin and Agentic AI Lab
+The optional AI Digital Twin and Agentic AI Lab are delivered within a secure and governed environment that allows learners to experiment with AI while protecting organisational information.
+The environment supports:
+Isolated experimentation from operational systems
+Role-based access controls
+Simulated learning scenarios
+Controlled access to approved knowledge sources
+Prompt and activity logging
+Configurable AI guardrails
+Administrative oversight and monitoring
+This enables employees to safely develop practical AI capability without introducing unnecessary operational or security risks.
+8.6 Business Continuity and Operational Resilience
+The platform has been designed to provide a resilient and reliable service suitable for enterprise and government environments.
+Operational resilience is supported through:
+High-availability architecture
+Automated backups
+Disaster recovery procedures
+Infrastructure monitoring
+Performance monitoring
+Scalable cloud infrastructure
+Incident management processes
+These capabilities support continuity of service while enabling the platform to scale as programme participation grows.
+8.7 Configured for FAHR
+The security, privacy, data governance, and AI governance capabilities described in this section are already incorporated within Potential.com's existing enterprise platform and will be configured to align with FAHR's specific policies, operational procedures, hosting environment, and governance framework.
+During the implementation phase, Potential.com will work closely with FAHR's technical and information security teams to validate the proposed architecture, review integration requirements, confirm governance controls, and ensure that the configured platform aligns with all applicable federal security and operational requirements before production deployment.
+The following section outlines the proposed implementation and rollout approach for configuring, validating, and deploying the FAHR Agentic AI Learning &amp; Skilling Platform.
+9. Implementation and Rollout Approach
+9.1 Overview
+Potential.com will implement the proposed solution using a structured, collaborative, and configuration-led delivery methodology that minimises implementation risk while enabling rapid deployment and early value realisation.
+As the proposed solution is based on Potential.com's existing enterprise Agentic AI Learning &amp; Skilling Platform, implementation focuses on configuring, integrating, validating, and deploying proven capabilities rather than developing a new platform from the ground up. This approach significantly reduces delivery risk, shortens implementation timelines, and enables FAHR to review and validate a working solution throughout the project lifecycle.
+The implementation methodology combines agile configuration activities with structured governance, stakeholder engagement, testing, and change management to ensure successful adoption across participating federal entities.
+9.2 Phase 1 – Project Initiation and Discovery
+The project will commence with a structured initiation phase to establish governance, confirm objectives, and validate implementation requirements.
+Key activities include:
+Project kick-off and governance establishment
+Confirmation of project scope and success criteria
+Stakeholder alignment workshops
+Review of technical and security requirements
+Validation of integration requirements
+Solution architecture confirmation
+Detailed implementation planning
+Risk and dependency assessment
+This phase establishes a shared understanding between FAHR and Potential.com and provides the foundation for successful project delivery.
+9.3 Phase 2 – Platform Configuration and Integration
+During this phase, Potential.com will configure the existing production platform to align with FAHR's branding, organisational structure, competency framework, governance model, and operational processes.
+Configuration activities include:
+Platform branding and user experience configuration
+Organisational hierarchy setup
+User roles and permissions
+Learning pathways and competency framework configuration
+AI capability configuration
+AI Digital Twin configuration
+Reporting and dashboard configuration
+Content structure configuration
+Integration with approved enterprise systems
+Identity and authentication configuration
+Where required, integrations will be developed, tested, and validated using secure APIs and agreed interface specifications.
+9.4 Phase 3 – Content Migration and Validation
+Following platform configuration, learning content and programme resources will be prepared, organised, and validated for deployment.
+During this phase, content may be sourced from FAHR’s existing content library, external providers, Potential.com’s course catalogue, or developed as custom content upon FAHR’s request. FAHR will be responsible for identifying, curating, and organising the required content, while Potential.com will support the ingestion of content into the platform and implement any necessary integrations with external content sources.
+Activities include:
+Content sourcing and organisation by FAHR
+Integration or upload of content into the platform by Potential.com
+Learning pathway population
+Assessment configuration
+Competency mapping
+Resource library setup
+AI knowledge source configuration
+User acceptance review of configured content
+Quality assurance and validation
+This phase ensures that all learning experiences, assessments, and AI-enabled capabilities are fully aligned and ready for deployment prior to wider rollout.
+9.5 Phase 4 – Testing, Training and Readiness
+Before production deployment, the configured platform will undergo comprehensive testing and operational readiness activities.
+These include:
+Functional testing
+Integration testing
+Performance testing
+Security validation
+User Acceptance Testing (UAT)
+Administrator training
+Knowledge transfer sessions
+Operational readiness review
+Go-live approval
+Training will equip FAHR administrators with the knowledge required to manage day-to-day platform operations, learning programmes, users, and reporting.
+9.6 Phase 5 – Go-Live and Hypercare
+Following successful testing and approval, the platform will be deployed into the agreed production environment.
+Potential.com will provide structured post-launch support to ensure a smooth transition into live operations.
+Activities include:
+Production deployment
+User onboarding support
+Hypercare support period
+Performance monitoring
+Issue resolution
+Adoption monitoring
+Continuous optimisation
+Transition to business-as-usual support
+This phased approach enables rapid issue resolution while supporting a positive learner experience during the initial rollout.
+9.7 Project Governance and Delivery Management
+Potential.com will establish a structured governance framework to ensure transparent communication, effective decision-making, and proactive risk management throughout the implementation.
+The governance model includes:
+Executive Steering Committee
+Project Management Office (PMO)
+Joint project governance meetings
+Weekly implementation progress meetings
+Risk and issue management
+Change request management
+Milestone reviews
+Executive reporting
+This governance structure provides clear accountability, timely escalation paths, and continuous visibility of project progress for both FAHR and Potential.com.
+9.8 Knowledge Transfer and Long-Term Success
+Knowledge transfer is embedded throughout the implementation rather than delivered as a single activity at project completion.
+Potential.com will work closely with FAHR teams to ensure administrators are confident in managing the platform independently.
+Knowledge transfer activities include:
+Administrator training sessions
+Platform administration guides
+Configuration documentation
+Technical documentation
+Operational procedures
+Reporting guidance
+AI governance guidance
+Ongoing advisory support during transition
+This collaborative approach ensures that FAHR develops the internal capability required to successfully operate, govern, and continuously evolve the platform beyond the initial implementation.
+The following section outlines Potential.com's operational support model, service management approach, and ongoing maintenance services following successful deployment.
+10. Operations, Support and Knowledge Transfer
+10.1 Overview
+Potential.com is committed to supporting FAHR beyond the initial implementation by providing a structured operational support model that ensures the continued availability, performance, security, and evolution of the Agentic AI Learning &amp; Skilling Platform.
+As part of this model, the platform includes an embedded AI Concierge that serves as the first line of support for users. The AI Concierge provides immediate assistance by answering queries, guiding users through platform features, resolving common issues, and offering contextual support in real time. Where issues require deeper investigation or technical intervention, they are seamlessly escalated to Potential.com’s support team for resolution.
+As the proposed solution is based on Potential.com's existing enterprise platform, our support services extend beyond technical issue resolution to include platform administration support, configuration assistance, continuous product enhancements, user guidance, and proactive service management. This approach ensures that FAHR benefits not only from a reliable platform, but also from a long-term technology partner committed to continuous improvement and innovation.
+10.2 Operational Support Model
+Potential.com will provide a structured service management model designed to ensure efficient issue resolution, transparent communication, and continuous operational oversight throughout the contract period.
+The operational support model includes:
+AI Concierge providing first-level user support and guidance
+Dedicated Customer Success and Project Management contacts
+Service request and incident management
+Issue prioritisation and escalation procedures
+Change request management
+Release and enhancement management
+Continuous platform monitoring
+Scheduled maintenance activities
+Regular operational review meetings
+Performance monitoring and reporting
+Support requests will initially be handled by the AI Concierge within the platform. Requests that cannot be resolved at this level will be escalated to Potential.com's service management process, ensuring clear ownership, timely communication, and visibility throughout the incident lifecycle.
+10.3 Service Levels (SLA)
+Potential.com is committed to delivering responsive and reliable support services through clearly defined Service Level Agreements (SLAs). Incidents are prioritised according to their business impact, ensuring that critical issues receive immediate attention while lower-priority requests are managed through structured service planning.
+The proposed service levels are outlined below.
+Severity
+Definition
+Response SLA
+Resolution Target
+S1 – Critical
+Production unavailable with no acceptable workaround; significant business impact.
+≤ 1 business hour
+≤ 4 business hours
+S2 – High
+Major functionality impaired; acceptable workaround available.
+≤ 4 business hours
+≤ 1 business day
+S3 – Medium
+Minor functionality impaired with limited business impact.
+≤ 1 business day
+≤ 5 business days
+S4 – Low
+Cosmetic issues, user guidance, enhancement requests, or general enquiries.
+≤ 2 business days
+As mutually agreed
+Service levels apply to incidents escalated beyond the AI Concierge to Potential.com’s support team. Service levels will be reviewed periodically with FAHR to ensure they continue to support operational requirements and agreed service expectations.
+10.4 Platform Maintenance and Continuous Improvement
+Potential.com continuously maintains and enhances its enterprise platform to ensure optimal performance, security, and user experience.
+Ongoing maintenance services include:
+Platform monitoring and health checks
+Corrective maintenance and defect resolution
+Preventive maintenance activities
+Security patches and platform updates
+Performance optimisation
+Backup verification and recovery testing
+Infrastructure monitoring
+Minor product enhancements
+In addition to operational maintenance, FAHR will benefit from the continuous evolution of Potential.com's enterprise platform, including future enhancements to AI capabilities, reporting, user experience, integrations, and platform functionality where applicable.
+Scheduled maintenance activities will be planned to minimise disruption and communicated in advance whenever service interruptions are anticipated.
+10.5 Customer Support
+Potential.com provides responsive support services for authorised FAHR administrators throughout the operational lifecycle.
+Support services include:
+AI Concierge providing immediate, first-level support to users
+Platform administration support
+Functional guidance and user assistance
+Technical troubleshooting
+Configuration support
+Incident investigation and resolution
+Escalation management
+User issue tracking
+Ongoing advisory support
+Where issues cannot be resolved by the AI Concierge, they will be escalated to Potential.com’s technical and product teams to ensure timely and effective resolution.
+10.6 Knowledge Transfer
+Knowledge transfer is embedded throughout the implementation and operational phases to ensure FAHR develops the internal capability to confidently manage the platform.
+Knowledge transfer activities include:
+Administrator training workshops
+Platform administration manuals
+User guides and quick reference materials
+Configuration documentation
+Reporting and analytics guidance
+AI capability guidance, including use of the AI Concierge
+Operational procedures
+Best practice recommendations
+This collaborative approach enables FAHR administrators to independently manage users, learning programmes, reporting, communications, and day-to-day platform operations while leveraging the AI Concierge for routine support and relying on Potential.com for ongoing technical and strategic support when required.
+10.7 Operational Governance
+Following go-live, Potential.com will continue working collaboratively with FAHR through a structured operational governance framework designed to ensure service quality, continuous improvement, and strategic alignment.
+Operational governance activities include:
+Regular service review meetings
+Operational performance reporting
+Platform usage and adoption reviews
+AI capability and AI Concierge performance review sessions
+Enhancement planning
+Risk and issue management
+Product roadmap discussions
+Continuous improvement planning
+This governance approach ensures that the platform continues to evolve in line with FAHR's strategic priorities while maintaining high levels of service quality and user satisfaction.
+10.8 Long-Term Partnership
+Potential.com views this engagement as a long-term strategic partnership rather than a traditional software implementation.
+By combining enterprise-grade operational support, AI-driven first-level assistance through the AI Concierge, clearly defined service levels, continuous product innovation, structured governance, and ongoing knowledge transfer, Potential.com will work alongside FAHR to ensure that the Agentic AI Learning &amp; Skilling Platform continues to deliver measurable value, adapt to evolving workforce requirements, and support the UAE Federal Government's long-term AI capability ambitions.
+The following section presents the commercial proposal, including licensing, implementation services, optional capabilities, commercial assumptions, and pricing.
+11. Vendor Qualifications, Delivery Team, Strategic Partnerships and Relevant Experience
+11.1 About Potential.com
+Potential.com is an award-winning technology company specialising in AI-powered workforce development, digital learning, innovation, entrepreneurship, and organisational capability building. For more than two decades, Potential.com has partnered with governments, international organisations, educational institutions, and private sector organisations to design and deliver large-scale digital transformation and workforce empowerment initiatives.
+Today, Potential.com's flagship offering is its Agentic AI Learning &amp; Skilling Platform—an enterprise platform that combines digital learning, AI-powered coaching, personalised learning journeys, AI Digital Twins, assessments, analytics, collaboration, and workforce intelligence within a single integrated ecosystem.
+Unlike traditional Learning Management Systems, the platform has been purpose-built to enable organisations to continuously develop workforce capability through intelligent, personalised, and measurable learning experiences.
+Potential.com operates globally while maintaining a strong presence across the Middle East and has successfully delivered numerous government programmes supporting national workforce development, leadership, entrepreneurship, innovation, AI adoption, and digital transformation.
+11.2 Why Potential.com
+Potential.com combines deep expertise in workforce development with practical experience in deploying enterprise AI platforms within government environments.
+Key differentiators include:
+Existing enterprise Agentic AI Learning &amp; Skilling Platform already operating in production.
+Proven AI-powered learning capabilities, including AI Coaches, AI Digital Twins, and personalised learning experiences.
+Extensive experience delivering digital capability programmes for government entities across the UAE.
+Configuration-led implementation methodology that significantly reduces project risk and implementation timelines.
+End-to-end accountability covering implementation, hosting, support, AI enablement, and continuous platform evolution.
+Modern cloud-native architecture supporting enterprise-scale deployments.
+Continuous investment in AI innovation and product development.
+Long-term partnership approach focused on measurable workforce capability outcomes.
+Rather than delivering a collection of disconnected technologies, Potential.com provides a single integrated platform that enables FAHR to manage learning, AI enablement, assessments, analytics, collaboration, and future innovation through one enterprise solution.
+11.3 Proposed Delivery Team
+Potential.com will deliver this engagement through a dedicated, multidisciplinary team with extensive experience in enterprise AI, digital transformation, innovation management and large-scale government programmes. The proposed team combines executive leadership, programme management, solution architecture, AI engineering and full-stack platform development to ensure the successful implementation and long-term success of the Federal Agentic AI Learning &amp; Skilling Platform.
+Detailed Curriculum Vitae (CVs) for all named personnel are provided as separate attachments to this proposal.
+Role
+Named Personnel
+Key Responsibilities
+Executive Sponsor
+Shadi BannaChief Empowerment Officer &amp; Co-Founder
+Executive oversight and overall accountability for the engagement, executive stakeholder management, strategic governance, Steering Committee participation and executive escalation.
+Programme Manager – Innovation Management &amp; AI Architecture Lead
+Khaled AdasSenior National Advisor
+Overall programme leadership, project governance, delivery management, stakeholder coordination, requirements management, risk management, AI architecture, data architecture and responsible AI governance.
+Solution Architect &amp; Stakeholder Engagement Director
+Rawzaba AlhalabiDirector of Stakeholder Engagement
+Overall solution design, platform configuration, implementation planning, client engagement, procurement coordination, cross-functional stakeholder management, governance, change management and adoption support.
+Lead AI Engineer
+Mamoon RajaForward Deployed AI Engineer
+AI agent implementation, Large Language Model (LLM) integration, enterprise AI architecture, cloud deployment and AI solution optimisation.
+Senior Full-Stack AI Engineer
+Keenan FernandesFull-Stack AI Product Engineer
+Full-stack platform engineering, enterprise integrations, AI feature development, infrastructure configuration, networking and cloud engineering.
+Local Delivery Capability
+The proposed engagement team is based in the United Arab Emirates and provides bilingual (Arabic and English) delivery capabilities across client engagement, project management and technical implementation. The team brings together expertise in programme management, enterprise solution architecture, artificial intelligence, cloud engineering, cybersecurity and digital transformation.
+Extended Delivery Team
+The named engagement team is supported by the wider Potential.com delivery organisation, providing access to additional specialist resources as required throughout the engagement. These include AI engineers, software developers, UX/UI designers, instructional designers, content development specialists, customer success managers, cybersecurity consultants, quality assurance engineers, DevOps specialists and data analysts. This flexible resourcing model ensures that specialist expertise can be mobilised efficiently to support peak delivery activities, evolving project requirements and future platform enhancements while maintaining continuity through the named core engagement team.
+11.4 Strategic Technology Partnership
+Potential.com leverages industry-leading technologies to complement its enterprise platform while maintaining full ownership of the overall solution, implementation, and customer relationship.
+Our technology ecosystem includes strategic partnerships and integrations with globally recognised technology providers supporting:
+Artificial Intelligence and Large Language Models (LLMs)
+Cloud hosting and infrastructure services
+Identity and authentication services
+Enterprise productivity platforms
+Collaboration and virtual meeting platforms
+Content authoring and learning standards
+Enterprise integration technologies
+This approach enables FAHR to benefit from best-in-class technologies while working with a single accountable implementation partner responsible for the successful delivery and ongoing operation of the solution.
+11.5 Relevant Government and Enterprise Experience
+Potential.com has successfully delivered digital platforms and workforce capability programmes for government entities, public sector organisations, educational institutions, and enterprise clients across multiple sectors.
+Case Study — Ministry of Education / NAFIS Graduate Fund
+Potential.com operates the platform behind the NAFIS Graduate Fund, a federal Emirati empowerment programme. Emiratis join through the platform, use our AI tools to develop their ideas, and compete for recognition and prizes. 
+At the NAFIS Graduate Fund ceremony, AI agents we built on this platform were demonstrated to UAE Ministers and senior Executives. Officials sat with the agents in person and worked through plans for entrepreneurs — a practical preview of the kind of agentic interaction the RFI envisions for FAHR’s federal workforce. 
+Case Study — DCT VX Academy (50,000+ frontliners)
+Potential.com built and operates VX Academy for the Department of Culture and Tourism, Abu Dhabi. The programme targets every frontliner across every sector of Abu Dhabi — hospitality, transport, retail, attractions, cultural sites, public services — at a scale of targeting more than 100,000 users.
+Several VX Academy capabilities map directly onto the RFI ask:
+19392901206500Nouf — the AI Concierge. Nouf greets each user, recommends pathways tailored by sector, role, and seniority, intervenes when the user struggles, accelerates when the user is proficient, and certifies when the user has demonstrated capability.
+Multi-level admin and executive live reporting. VX Academy ships with multiple administrator roles — sector administrators, organisation administrators, programme operators — and a senior executive live-reporting view that drills from city level through sector, organisation, role, and individual.
+AI Role-Plays for impact assessment. Completed training is followed by an AI role-play in a realistic scenario; the AI assesses how the user handles it. This is real applied-capability assessment, not an MCQ.
+Multilingual conversational channel for under-educated cohorts. A dedicated AI interface delivered through a WhatsApp-style channel walks under-educated frontliners through learning, assessment, and certification without requiring them to enter a full LXP. 
+374523044386500FAHR’s 80,000 federal employees include a similar distribution of profiles. The patterns operating inside VX Academy generalise to FAHR’s federal context.
+Case Study — 40455853526700UAE Ministry of Economy — The Entrepreneurial Nation (TEN)
+TEN is the UAE Ministry of Economy’s national entrepreneurship platform — submission, evaluation, recognition — supported by over $1M in ecosystem support and national-scale reach. Configured on the same platform, TEN demonstrated that a UAE federal entity can run a national programme on Potential.com’s platform: structured submission, qualified evaluation, structured recognition, and analytics back to ministry leadership on what the entrepreneurial signal is telling them.
+Case Study — 38941791303100Abu Dhabi DED — Technology Innovation Pioneers (TIP)
+3892550914179
+DED's Technology Innovation Pioneers Final Event – an innovation program running on the Potential.com platform
+DED's Technology Innovation Pioneers Final Event – an innovation program running on the Potential.com platformTIP is a multi-year cross-sector innovation programme that captures innovation submissions from across the Abu Dhabi economy, evaluates them, and converts the best into patents and Proofs of Concept.
+Case Study — 40290755146100ADGM — Future Entrepreneurs (600+ Emirati students)
+40252651211138
+ADGM's Emirati Future Entrepreneurs Programme0
+ADGM's Emirati Future Entrepreneurs ProgrammePotential.com configured the platform for ADGM’s Future Entrepreneurs programme, supporting 600+ Emirati students through structured submission, training, mentorship, evaluation, and recognition.
+Case Study — 36741101836420
+HSBC Innovation program, running on the Potential.com platform, winning awards
+HSBC Innovation program, running on the Potential.com platform, winning awards36762613438100HSBC Tatawwar — global enterprise innovation
+Tatawwar is HSBC’s flagship enterprise innovation programme: 91M+ media impressions and 25,000+ innovators. The programme has won multiple international and local awards3601720266700040208208318500.
+11.6 Commitment to FAHR
+Potential.com believes that the success of this initiative depends on more than technology. It requires a trusted implementation partner capable of combining proven technology, practical AI expertise, structured programme delivery, and long-term operational support.
+By leveraging an existing enterprise Agentic AI Learning &amp; Skilling Platform, an experienced multidisciplinary delivery team, extensive government implementation experience, and a continuous innovation roadmap, Potential.com is uniquely positioned to support FAHR in delivering a national platform that enables federal employees to confidently adopt, apply, and continuously develop Agentic AI capabilities.
+The following section presents the project risk register, implementation assumptions, and key dependencies that will be actively managed throughout the engagement to ensure successful delivery.
+12. Risk Register, Assumptions and Dependencies
+12.1 Overview
+Potential.com adopts a proactive risk management approach throughout the implementation and operational lifecycle of the FAHR Agentic AI Learning &amp; Skilling Platform. Risk management is embedded within the project governance framework to ensure that potential risks are identified early, assessed collaboratively, mitigated proactively, and monitored continuously.
+As the proposed solution is based on Potential.com's existing enterprise platform, many of the risks commonly associated with software development projects—such as platform design, core functionality development, and technology uncertainty—have already been substantially mitigated. The implementation therefore focuses primarily on configuration, integration, data preparation, change management, and user adoption.
+A joint FAHR–Potential.com project governance structure will oversee the ongoing management of risks, assumptions, issues, and dependencies throughout the engagement.
+12.2 Risk Management Approach
+Potential.com will maintain a live Risk and Issue Register throughout the project and review it regularly with FAHR as part of the project governance process.
+The risk management process includes:
+Identification of potential risks and dependencies
+Assessment of likelihood and business impact
+Definition of mitigation strategies
+Assignment of ownership and accountability
+Regular monitoring and reporting
+Escalation through agreed governance channels
+Continuous review throughout implementation and operations
+This structured approach enables both parties to proactively manage risks before they impact project delivery.
+12.3 Key Project Risks
+The table below identifies the principal risks anticipated for the implementation together with the proposed mitigation approach.
+Risk
+Potential Impact
+Mitigation Strategy
+Delay in project approvals or stakeholder decisions
+Implementation schedule may be affected.
+Establish clear governance, decision-making processes, and regular steering committee meetings.
+Delays in availability of learning content
+Learning pathways may not be fully populated before go-live.
+Agree content delivery milestones early and progressively configure content as it becomes available.
+Delays in third-party integrations
+Certain functionality may be delayed.
+Confirm integration requirements during discovery and engage technical stakeholders early.
+Changes to project scope
+Additional effort and implementation time may be required.
+Apply formal change management procedures and impact assessments before approving scope changes.
+User adoption challenges
+Reduced utilisation and slower benefits realisation.
+Deliver structured onboarding, communications, AI Concierge support, administrator training, and ongoing engagement activities.
+Data quality issues during migration
+Incorrect learner information or reporting.
+Validate data prior to migration and perform structured testing before production deployment.
+AI governance or policy changes
+AI functionality may require configuration updates.
+Configure AI capabilities in accordance with FAHR governance and adapt configurations as policies evolve.
+Increased user volumes beyond initial projections
+Additional infrastructure resources may be required.
+Utilise the platform's scalable cloud architecture and monitor usage to proactively adjust capacity.
+Higher-than-anticipated AI token consumption
+Higher AI usage than originally projected may increase operational costs and, if unmanaged, could impact the availability of AI services for some users.
+Implement configurable AI token usage caps per user, with administrator-configurable quotas, real-time usage monitoring, consumption alerts, and automated throttling where required. FAHR administrators can adjust limits for specific user groups or programmes, ensuring fair usage, budget control, and uninterrupted access to critical AI capabilities.
+Potential.com will continuously review this register throughout the project and introduce additional mitigation measures where required.
+12.4 Project Assumptions
+The proposed implementation has been prepared based on the following assumptions:
+FAHR will appoint appropriate project sponsors, administrators, and technical representatives.
+Required project decisions and approvals will be provided within agreed timeframes.
+FAHR will identify and provide learning content or approve external content sources unless content development is separately commissioned.
+Access to third-party systems required for integrations will be facilitated by FAHR and the relevant system owners.
+Hosting arrangements will be confirmed during the implementation phase.
+User and organisational data required for platform configuration will be provided in agreed formats.
+Appropriate technical environments and connectivity will be available where integrations are required.
+Administrator participation in training and User Acceptance Testing (UAT) will be scheduled as part of the implementation plan.
+These assumptions are intended to facilitate efficient implementation and minimise project risk.
+12.5 Project Dependencies
+Successful delivery of the platform depends upon close collaboration between FAHR, Potential.com, and relevant third parties.
+Key dependencies include:
+Availability of FAHR project stakeholders.
+Timely confirmation of branding, organisational structures, and configuration requirements.
+Availability of learner and organisational data.
+Completion of security and technical reviews.
+Access to identity management services and third-party systems where integrations are required.
+Availability of learning content and competency frameworks.
+Timely completion of User Acceptance Testing (UAT).
+Production deployment approvals.
+Potential.com will actively monitor these dependencies throughout the project and work collaboratively with FAHR to minimise any impact on delivery timelines.
+12.6 Change Management
+Potential.com recognises that programme requirements may evolve throughout implementation.
+A structured change management process will therefore be established to ensure that all requested changes are:
+Formally documented.
+Assessed for technical, commercial, and schedule impact.
+Reviewed jointly with FAHR.
+Approved through the agreed governance process.
+Planned and implemented in a controlled manner.
+This approach ensures transparency while protecting project objectives, timelines, and quality.
+12.7 Commitment to Successful Delivery
+Potential.com's configuration-led implementation approach, proven enterprise platform, structured governance framework, and experienced multidisciplinary delivery team significantly reduce implementation risk when compared to traditional custom software development projects.
+By proactively managing risks, maintaining transparent governance, validating assumptions, and closely monitoring project dependencies, Potential.com will work collaboratively with FAHR to ensure the successful delivery, adoption, and long-term sustainability of the Agentic AI Learning &amp; Skilling Platform.
+The final section of this proposal presents the detailed Compliance Matrix, demonstrating how the proposed solution addresses each requirement specified within the RFP.
+13. Compliance Matrix
+13.1 Overview
+Potential.com has carefully reviewed the requirements set out within the Request for Proposal (RFP) and confirms that the proposed Agentic AI Learning &amp; Skilling Platform has been designed to fully address the functional, technical, security, implementation, operational, and commercial requirements specified by FAHR.
+The Compliance Matrix provides a consolidated view of how each requirement has been addressed within this proposal. It enables evaluators to quickly identify the relevant sections describing the proposed solution while demonstrating Potential.com's commitment to delivering a fully compliant, enterprise-grade platform.
+Unless otherwise stated, all requirements are considered Fully Compliant and are supported through the standard capabilities of Potential.com's existing enterprise platform, configured specifically for FAHR.
+13.2 Compliance Summary
+The detailed Compliance Matrix is provided in the following tables and maps each RFP requirement to the corresponding solution capability and proposal reference.
+Functional Requirements
+RFP Ref.
+Requirement
+Compliance
+Proposed Response
+Proposal Reference
+FR-01
+User Registration &amp; Authentication
+Fully Compliant
+Supports self-registration, invitation-based onboarding, UAE PASS, Single Sign-On (SSO), HR system integration, and configurable user management.
+Sections 4.2, 7.3
+FR-02
+Learning Management
+Fully Compliant
+Enterprise learning management including learning pathways, courses, webinars, certifications, assessments, and personalised learning journeys.
+Sections 4.3–4.7
+FR-03
+Assessments
+Fully Compliant
+Baseline, formative, summative, and competency-based assessments with AI-driven recommendations.
+Section 4.5
+FR-04
+Reporting &amp; Analytics
+Fully Compliant
+Real-time dashboards, learner analytics, competency reporting, AI insights, and administrative reporting.
+Section 4.7
+FR-05
+Collaboration &amp; Engagement
+Fully Compliant
+Communities, discussions, notifications, messaging, events, gamification, and learner engagement capabilities.
+Section 4.6
+Agentic AI Requirements
+RFP Ref.
+Requirement
+Compliance
+Proposed Response
+Proposal Reference
+AI-01
+Personalised Learning
+Fully Compliant
+AI-generated learning pathways based on assessments, competencies, and learner behaviour.
+Section 5.2
+AI-02
+AI Coaches &amp; Learning Assistants
+Fully Compliant
+AI Learning Coach, Skills Advisor, Practice Partner, Content Assistant, and Analytics Assistant.
+Section 5.3
+AI-03
+AI Digital Twin
+Fully Compliant
+AI Digital Twin capability enabling employees to create secure, role-specific AI assistants.
+Section 6
+AI-04
+Responsible AI
+Fully Compliant
+Human oversight, governance controls, guardrails, audit logging, and configurable AI policies.
+Sections 5.6, 8.4
+Technical Requirements
+RFP Ref.
+Requirement
+Compliance
+Proposed Response
+Proposal Reference
+TECH-01
+Cloud Architecture
+Fully Compliant
+Cloud-native enterprise architecture supporting multiple deployment models.
+Section 7
+TECH-02
+Integration
+Fully Compliant
+REST APIs, Microsoft 365, HR systems, UAE PASS, SSO, Teams, and third-party integrations.
+Section 7.3
+TECH-03
+Scalability
+Fully Compliant
+Enterprise platform supporting large-scale deployments with elastic infrastructure.
+Section 7.4
+TECH-04
+Deployment Flexibility
+Fully Compliant
+Potential Cloud, Government Cloud, FEDNet Cloud, or Hybrid deployment options.
+Section 7.5
+Security &amp; Governance Requirements
+RFP Ref.
+Requirement
+Compliance
+Proposed Response
+Proposal Reference
+SEC-01
+Information Security
+Fully Compliant
+Encryption, RBAC, MFA, audit logging, monitoring, backup, and resilience.
+Section 8
+SEC-02
+Privacy &amp; Data Protection
+Fully Compliant
+Role-based access, data governance, retention policies, and privacy controls.
+Section 8.3
+SEC-03
+AI Governance
+Fully Compliant
+Responsible AI framework, governance controls, explainability, monitoring, and human oversight.
+Sections 5.6, 8.4
+SEC-04
+Business Continuity
+Fully Compliant
+High availability, disaster recovery, backups, and operational resilience.
+Section 8.6
+Implementation &amp; Support Requirements
+RFP Ref.
+Requirement
+Compliance
+Proposed Response
+Proposal Reference
+IMP-01
+Implementation Methodology
+Fully Compliant
+Configuration-led implementation with structured discovery, testing, training, and deployment.
+Section 9
+IMP-02
+Knowledge Transfer
+Fully Compliant
+Administrator training, documentation, workshops, and operational enablement.
+Sections 9.8, 10.6
+OPS-01
+Operational Support
+Fully Compliant
+AI Concierge, service desk, incident management, SLAs, and operational governance.
+Section 10
+OPS-02
+Continuous Improvement
+Fully Compliant
+Ongoing product enhancements, AI innovation, roadmap reviews, and platform evolution.
+Sections 10.4, 10.7
+13.3 Statement of Compliance
+Potential.com confirms that the proposed solution satisfies the requirements of the RFP through a mature, enterprise-grade Agentic AI Learning &amp; Skilling Platform that is already operating in production and will be configured specifically for FAHR.
+Where configuration or implementation activities are required, these are delivered as part of the proposed implementation services and do not require redevelopment of the core platform. This significantly reduces implementation risk while enabling FAHR to benefit from a secure, scalable, and continuously evolving solution.
+Potential.com remains committed to working collaboratively with FAHR throughout the implementation and operational phases to ensure full alignment with functional, technical, security, and governance requirements, while supporting the UAE Federal Government's long-term vision for AI-enabled workforce development.

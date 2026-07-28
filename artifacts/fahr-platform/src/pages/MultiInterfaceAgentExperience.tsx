@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bot, MessageSquare, Mic, User } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { AGENTS } from "@/lib/constants";
 
 export default function MultiInterfaceAgentExperience() {
   const { language } = useLanguage();
@@ -14,7 +15,7 @@ export default function MultiInterfaceAgentExperience() {
         
         <div className="flex justify-between items-end border-b border-border pb-4">
           <div>
-            <h1 className="text-2xl font-bold">AI Capability Agent</h1>
+            <h1 className="text-2xl font-bold">{AGENTS.coach}</h1>
             <p className="text-sm text-muted-foreground">Interact with your personal guide</p>
           </div>
           <div className="text-right" dir="rtl">

@@ -1,13 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
+import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { Users, Bot, Zap, Clock, Rocket, Search } from "lucide-react";
+import { Users, Bot, Zap, Clock, Rocket, Search, AlertCircle, CheckCircle2, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { AGENTS } from "@/lib/constants";
 
 export default function MinistryDashboard() {
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  const [appliedRecommendations, setAppliedRecommendations] = useState<string[]>([]);
+
   const kpis = [
     { label: "Total Employees", value: "4,820", icon: Users, color: "text-blue-500" },
     { label: "Active Learners", value: "3,940", icon: Search, color: "text-indigo-500" },
@@ -33,6 +40,14 @@ export default function MinistryDashboard() {
     { month: "Apr", twins: 950 }, { month: "May", twins: 1245 }
   ];
 
+  const handleApplyRecommendation = (id: string, action: string) => {
+    setAppliedRecommendations(prev => [...prev, id]);
+    toast({
+      title: "Action Applied",
+      description: `Successfully executed: ${action}`,
+    });
+  };
+
   return (
     <Layout role="ministry">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -42,10 +57,95 @@ export default function MinistryDashboard() {
             <p className="text-muted-foreground">Ministry Admin Dashboard</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">View Capability Gaps</Button>
-            <Button>Review Projects (12)</Button>
+            <Button variant="outline" onClick={() => toast({ title: "Report Generating", description: "Capability gap report is being generated." })}>
+              View Capability Gaps
+            </Button>
+            <Button onClick={() => setLocation('/ministry/portfolio')}>
+              Review Projects (12)
+            </Button>
           </div>
         </div>
+
+        {/* AI Analytics Assistant Panel */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardHeader className="pb-3 flex flex-row items-start gap-4 space-y-0">
+            <div className="bg-primary text-primary-foreground p-3 rounded-lg shrink-0">
+              <Bot className="w-6 h-6" />
+            </div>
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                {AGENTS.analytics} Insights
+                <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">Live Analysis</Badge>
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">
+                Continuous monitoring of workforce adoption and performance.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2 text-destructive">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="font-semibold text-sm">At-Risk Learners</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    42 staff members in Hospitals & Clinics have not logged in for 14 days and are falling behind the "Aware" baseline.
+                  </p>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  disabled={appliedRecommendations.includes("rec-1")}
+                  onClick={() => handleApplyRecommendation("rec-1", "Send automated check-in via AI Learning Coach")}
+                >
+                  {appliedRecommendations.includes("rec-1") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Triggered</> : "Send Coach Check-in"}
+                </Button>
+              </div>
+
+              <div className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2 text-primary">
+                    <TrendingUp className="w-4 h-4" />
+                    <span className="font-semibold text-sm">Cohort Comparison</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Cohort C (Customer Happiness) is adopting digital twins 3x faster than Cohort B. Recommend sharing their templates.
+                  </p>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  disabled={appliedRecommendations.includes("rec-2")}
+                  onClick={() => handleApplyRecommendation("rec-2", "Publish Cohort C templates to internal marketplace")}
+                >
+                  {appliedRecommendations.includes("rec-2") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Published</> : "Publish Templates"}
+                </Button>
+              </div>
+
+              <div className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2 text-green-600">
+                    <Zap className="w-4 h-4" />
+                    <span className="font-semibold text-sm">Action Recommended</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    12 Outcome Projects from Digital Health are pending review. They have High impact potential for Patient Services.
+                  </p>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  disabled={appliedRecommendations.includes("rec-3")}
+                  onClick={() => handleApplyRecommendation("rec-3", `Assign fast-track review to ${AGENTS.analytics}`)}
+                >
+                  {appliedRecommendations.includes("rec-3") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Fast-Tracked</> : "Fast-Track Review"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {kpis.map((kpi, i) => (
@@ -98,7 +198,9 @@ export default function MinistryDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Department Capability Overview</CardTitle>
-            <Button variant="secondary" size="sm">Export Report</Button>
+            <Button variant="secondary" size="sm" onClick={() => toast({ title: "Export Started", description: "Your CSV is downloading." })}>
+              Export Report
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
