@@ -210,7 +210,7 @@ export default function Welcome() {
           <Button variant="ghost" className="hidden md:inline-flex font-medium text-foreground hover:text-primary hover:bg-primary/5" asChild>
             <Link href="/login">Sign In</Link>
           </Button>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
+          <Button className="rounded-full px-6 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
             Register
           </Button>
         </div>
@@ -222,8 +222,8 @@ export default function Welcome() {
           className="absolute inset-0 w-full h-full"
           style={{ y: heroY }}
         >
-          <div className="absolute inset-0 bg-black/45 z-10"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/70 z-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20 z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 z-20"></div>
           <img 
             src={`${import.meta.env.BASE_URL}brand/landing/hero-bg.jpg`} 
             alt="AI Hero" 
@@ -231,29 +231,44 @@ export default function Welcome() {
           />
         </motion.div>
         
-        <div ref={textRef} className="relative z-30 flex flex-col items-center text-center px-6 max-w-5xl">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-white/10 text-white font-medium text-sm mb-6 border border-white/25 backdrop-blur-sm shadow-sm"
-          >
-            <Shield className="w-4 h-4 mr-2" /> UAE Government Executive Platform
-          </motion.div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
-            Federal Agentic AI <br />
-            <span className="text-primary">Learning & Skilling Platform</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-white/80 leading-relaxed max-w-3xl mb-10">
-            Equipping 80,000 federal employees with the practical capability, confidence, and responsible workflows required for an Agentic AI-enabled government.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 h-auto shadow-md hover-elevate" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
-              Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="text-white border-white/40 hover:bg-white/10 text-lg px-8 py-6 h-auto bg-white/5 backdrop-blur-sm shadow-sm hover-elevate" asChild>
-              <Link href="/login">Platform Login</Link>
-            </Button>
+        <div className="relative z-30 w-full max-w-7xl mx-auto px-6">
+          <div ref={textRef} className="flex flex-col items-start text-left max-w-3xl">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-primary/20 text-white font-medium text-sm mb-6 border border-primary/40 backdrop-blur-sm shadow-sm"
+            >
+              <Shield className="w-4 h-4 mr-2 text-primary" /> UAE Government Executive Platform
+            </motion.div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.05]">
+              Federal Agentic AI <br />
+              <span className="text-primary">Learning & Skilling</span> Platform
+            </h1>
+            <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl mb-10">
+              Equipping 80,000 federal employees with the practical capability, confidence, and responsible workflows required for an Agentic AI-enabled government.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 mb-14">
+              <Button size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-10 py-6 h-auto shadow-lg shadow-primary/25 hover-elevate" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
+                Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button size="lg" variant="outline" className="rounded-full text-white border-white/40 hover:bg-white/10 text-lg px-10 py-6 h-auto bg-white/5 backdrop-blur-sm shadow-sm hover-elevate" asChild>
+                <Link href="/login">Platform Login</Link>
+              </Button>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-10 gap-y-4 border-t border-white/15 pt-6">
+              {[
+                { value: '80,000', label: 'Federal employees targeted' },
+                { value: '41,850', label: 'Active learners' },
+                { value: '64%', label: 'AI readiness index' },
+                { value: 'AED 72M', label: 'Value generated' },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <div className="text-2xl md:text-3xl font-bold text-white">{stat.value}</div>
+                  <div className="text-xs md:text-sm text-white/60 mt-0.5">{stat.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
