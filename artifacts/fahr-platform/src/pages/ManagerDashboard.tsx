@@ -64,7 +64,7 @@ export default function ManagerDashboard() {
     switch (status) {
       case 'on-track': return <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">On Track</Badge>;
       case 'excelling': return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Excelling</Badge>;
-      case 'needs-attention': return <Badge variant="outline" className="bg-accent/10 text-accent-foreground border-accent/20">Needs Attention</Badge>;
+      case 'needs-attention': return <Badge variant="outline" className="bg-accent/10 text-accent border-accent/25">Needs Attention</Badge>;
       case 'at-risk': return <Badge variant="destructive" className="shadow-none">At Risk</Badge>;
       default: return null;
     }
@@ -140,7 +140,7 @@ export default function ManagerDashboard() {
                  <BrainCircuit className="w-32 h-32 text-accent" />
               </div>
               <CardHeader className="pb-3 border-b border-border/50 bg-background/50 backdrop-blur-sm relative z-10">
-                <div className="flex items-center gap-2 text-accent-foreground font-semibold">
+                <div className="flex items-center gap-2 text-foreground font-semibold">
                    <BrainCircuit className="w-5 h-5 text-accent" />
                    {AGENTS.analytics} Insights
                 </div>

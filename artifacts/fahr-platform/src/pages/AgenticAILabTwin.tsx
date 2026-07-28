@@ -42,58 +42,58 @@ const COLORS: Record<
   { chip: string; dot: string; iconText: string; iconBg: string; line: string; stepBar: string; stepText: string }
 > = {
   blue: {
-    chip: "bg-blue-500/15 border-blue-400/50 text-blue-50",
-    dot: "bg-blue-400",
-    iconText: "text-blue-300",
-    iconBg: "bg-blue-500/20 border-blue-400/40",
-    line: "#60a5fa",
-    stepBar: "bg-blue-500",
-    stepText: "text-blue-600",
+    chip: "bg-[hsl(var(--chart-1))]/10 border-[hsl(var(--chart-1))]/30 text-foreground",
+    dot: "bg-[hsl(var(--chart-1))]",
+    iconText: "text-[hsl(var(--chart-1))]",
+    iconBg: "bg-[hsl(var(--chart-1))]/10 border-[hsl(var(--chart-1))]/20",
+    line: "hsl(var(--chart-1))",
+    stepBar: "bg-[hsl(var(--chart-1))]",
+    stepText: "text-[hsl(var(--chart-1))]",
   },
   violet: {
-    chip: "bg-violet-500/15 border-violet-400/50 text-violet-50",
-    dot: "bg-violet-400",
-    iconText: "text-violet-300",
-    iconBg: "bg-violet-500/20 border-violet-400/40",
-    line: "#a78bfa",
-    stepBar: "bg-violet-500",
-    stepText: "text-violet-600",
+    chip: "bg-[hsl(var(--chart-2))]/10 border-[hsl(var(--chart-2))]/30 text-foreground",
+    dot: "bg-[hsl(var(--chart-2))]",
+    iconText: "text-[hsl(var(--chart-2))]",
+    iconBg: "bg-[hsl(var(--chart-2))]/10 border-[hsl(var(--chart-2))]/20",
+    line: "hsl(var(--chart-2))",
+    stepBar: "bg-[hsl(var(--chart-2))]",
+    stepText: "text-[hsl(var(--chart-2))]",
   },
   teal: {
-    chip: "bg-teal-500/15 border-teal-400/50 text-teal-50",
-    dot: "bg-teal-400",
-    iconText: "text-teal-300",
-    iconBg: "bg-teal-500/20 border-teal-400/40",
-    line: "#2dd4bf",
-    stepBar: "bg-teal-500",
-    stepText: "text-teal-600",
+    chip: "bg-[hsl(var(--chart-3))]/10 border-[hsl(var(--chart-3))]/30 text-foreground",
+    dot: "bg-[hsl(var(--chart-3))]",
+    iconText: "text-[hsl(var(--chart-3))]",
+    iconBg: "bg-[hsl(var(--chart-3))]/10 border-[hsl(var(--chart-3))]/20",
+    line: "hsl(var(--chart-3))",
+    stepBar: "bg-[hsl(var(--chart-3))]",
+    stepText: "text-[hsl(var(--chart-3))]",
   },
   amber: {
-    chip: "bg-amber-500/15 border-amber-400/50 text-amber-50",
-    dot: "bg-amber-400",
-    iconText: "text-amber-300",
-    iconBg: "bg-amber-500/20 border-amber-400/40",
-    line: "#fbbf24",
-    stepBar: "bg-amber-500",
-    stepText: "text-amber-600",
+    chip: "bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/30 text-foreground",
+    dot: "bg-[hsl(var(--primary))]",
+    iconText: "text-[hsl(var(--primary))]",
+    iconBg: "bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/20",
+    line: "hsl(var(--primary))",
+    stepBar: "bg-[hsl(var(--primary))]",
+    stepText: "text-[hsl(var(--primary))]",
   },
   cyan: {
-    chip: "bg-cyan-500/15 border-cyan-400/50 text-cyan-50",
-    dot: "bg-cyan-400",
-    iconText: "text-cyan-300",
-    iconBg: "bg-cyan-500/20 border-cyan-400/40",
-    line: "#22d3ee",
-    stepBar: "bg-cyan-500",
-    stepText: "text-cyan-600",
+    chip: "bg-[hsl(var(--chart-4))]/10 border-[hsl(var(--chart-4))]/30 text-foreground",
+    dot: "bg-[hsl(var(--chart-4))]",
+    iconText: "text-[hsl(var(--chart-4))]",
+    iconBg: "bg-[hsl(var(--chart-4))]/10 border-[hsl(var(--chart-4))]/20",
+    line: "hsl(var(--chart-4))",
+    stepBar: "bg-[hsl(var(--chart-4))]",
+    stepText: "text-[hsl(var(--chart-4))]",
   },
   emerald: {
-    chip: "bg-emerald-500/15 border-emerald-400/50 text-emerald-50",
-    dot: "bg-emerald-400",
-    iconText: "text-emerald-300",
-    iconBg: "bg-emerald-500/20 border-emerald-400/40",
-    line: "#34d399",
-    stepBar: "bg-emerald-500",
-    stepText: "text-emerald-600",
+    chip: "bg-green-500/10 border-green-500/30 text-foreground",
+    dot: "bg-green-500",
+    iconText: "text-green-600",
+    iconBg: "bg-green-500/10 border-green-500/20",
+    line: "hsl(142, 71%, 45%)",
+    stepBar: "bg-green-500",
+    stepText: "text-green-600",
   },
 };
 
@@ -228,12 +228,12 @@ export default function AgenticAILabTwin() {
           {/* Build Canvas */}
           <Card className="lg:col-span-3 border-primary/20 overflow-hidden relative">
             {!done && !isTraining && active === 0 && (
-              <div className="absolute inset-0 z-30 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
-                  <UserCog className="w-8 h-8 text-white" />
+              <div className="absolute inset-0 z-30 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <UserCog className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-white text-xl font-bold mb-2">Digital Twin Untrained</h3>
-                <p className="text-white/80 mb-6 max-w-sm">Provide your role context and knowledge sources to initialize your personal AI assistant.</p>
+                <h3 className="text-foreground text-xl font-bold mb-2">Digital Twin Untrained</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm">Provide your role context and knowledge sources to initialize your personal AI assistant.</p>
                 <Button size="lg" onClick={() => setShowTrainDialog(true)}>
                   Configure & Train Twin
                 </Button>
@@ -241,18 +241,14 @@ export default function AgenticAILabTwin() {
             )}
             <CardContent className="p-0">
               <div
-                className="relative w-full min-h-[520px] overflow-hidden"
-                style={{
-                  background:
-                    "radial-gradient(circle at 50% 45%, #16233f 0%, #0c1525 55%, #070c16 100%)",
-                }}
+                className="relative w-full min-h-[520px] overflow-hidden bg-muted/20"
               >
                 {/* grid texture */}
                 <div
                   className="absolute inset-0 opacity-60 pointer-events-none"
                   style={{
                     backgroundImage:
-                      "linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px)",
+                      "linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)",
                     backgroundSize: "26px 26px",
                   }}
                 />
@@ -272,8 +268,8 @@ export default function AgenticAILabTwin() {
                         y1="50"
                         x2={s.pos.x}
                         y2={s.pos.y}
-                        stroke={on ? COLORS[s.color].line : "#ffffff"}
-                        strokeOpacity={on ? 0.55 : 0.08}
+                        stroke={on ? COLORS[s.color].line : "hsl(var(--border))"}
+                        strokeOpacity={on ? 0.55 : 0.8}
                         strokeWidth={on ? 0.5 : 0.3}
                         vectorEffect="non-scaling-stroke"
                         className="transition-all duration-500"
@@ -287,12 +283,12 @@ export default function AgenticAILabTwin() {
                   <span
                     className={`inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border backdrop-blur-sm ${
                       done
-                        ? "bg-emerald-500/15 border-emerald-400/40 text-emerald-200"
-                        : "bg-white/10 border-white/20 text-white/80"
+                        ? "bg-green-500/15 border-green-400/40 text-green-700"
+                        : "bg-background/80 border-border text-muted-foreground"
                     }`}
                   >
                     <span
-                      className={`w-2 h-2 rounded-full ${done ? "bg-emerald-400" : "bg-amber-400 animate-pulse"}`}
+                      className={`w-2 h-2 rounded-full ${done ? "bg-green-500" : "bg-primary animate-pulse"}`}
                     />
                     {done
                       ? isAr
@@ -305,7 +301,7 @@ export default function AgenticAILabTwin() {
                 </div>
 
                 {/* progress chip */}
-                <div className="absolute top-4 right-4 z-20 text-xs font-semibold text-white/80 bg-white/10 border border-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                <div className="absolute top-4 right-4 z-20 text-xs font-semibold text-foreground bg-background/80 border border-border backdrop-blur-sm px-3 py-1.5 rounded-full">
                   {progress}%
                 </div>
 
@@ -319,7 +315,7 @@ export default function AgenticAILabTwin() {
                     <div
                       key={s.id}
                       className={`absolute z-10 transition-all duration-500 ${
-                        built || building ? "opacity-100 scale-100" : "opacity-30 scale-90"
+                        built || building ? "opacity-100 scale-100" : "opacity-60 scale-90"
                       }`}
                       style={{
                         top: `${s.pos.y}%`,
@@ -328,19 +324,19 @@ export default function AgenticAILabTwin() {
                       }}
                     >
                       <div
-                        className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full border backdrop-blur-sm shadow-lg whitespace-nowrap ${
-                          built || building ? c.chip : "bg-white/5 border-white/15 text-white/50"
+                        className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full border backdrop-blur-sm shadow-sm whitespace-nowrap ${
+                          built || building ? c.chip : "bg-background/80 border-border text-muted-foreground"
                         } ${building ? "animate-pulse" : ""}`}
                       >
                         <span
                           className={`w-6 h-6 rounded-full flex items-center justify-center border ${
-                            built || building ? c.iconBg : "bg-white/10 border-white/15"
+                            built || building ? c.iconBg : "bg-muted border-border"
                           }`}
                         >
-                          <Icon className={`w-3.5 h-3.5 ${built || building ? c.iconText : "text-white/50"}`} />
+                          <Icon className={`w-3.5 h-3.5 ${built || building ? c.iconText : "text-muted-foreground"}`} />
                         </span>
                         <span className="text-[11px] font-medium">{isAr ? s.node.ar : s.node.en}</span>
-                        {built && <CheckCircle2 className="w-3.5 h-3.5 text-white/90" />}
+                        {built && <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />}
                       </div>
                     </div>
                   );
@@ -357,23 +353,23 @@ export default function AgenticAILabTwin() {
                       className="absolute -inset-4 rounded-full blur-2xl transition-opacity duration-700"
                       style={{
                         background:
-                          "radial-gradient(circle, rgba(56,189,248,0.45) 0%, rgba(37,99,235,0.25) 50%, transparent 70%)",
+                          "radial-gradient(circle, hsl(var(--primary)/0.2) 0%, hsl(var(--secondary)/0.1) 50%, transparent 70%)",
                         opacity: 0.25 + (active / STEPS.length) * 0.6,
                       }}
                     />
-                    <div className="absolute inset-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-sm" />
+                    <div className="absolute inset-2 rounded-full border border-border bg-background/50 backdrop-blur-sm" />
                     <img
                       src={`${import.meta.env.BASE_URL}brand/agent-avatar.png`}
                       alt={isAr ? "التوأم الرقمي لعائشة" : "Aisha's AI Digital Twin"}
-                      className={`relative w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-[0_0_24px_rgba(56,189,248,0.55)] transition-all duration-1000 ${done ? 'scale-105 saturate-110' : 'grayscale-[40%] opacity-80'}`}
+                      className={`relative w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-md transition-all duration-1000 ${done ? 'scale-105 saturate-110' : 'grayscale-[20%] opacity-90'}`}
                     />
                   </div>
                   <div className="text-center mt-2">
-                    <p className="text-white font-semibold text-sm flex items-center justify-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <p className="text-foreground font-semibold text-sm flex items-center justify-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-primary" />
                       {isAr ? "توأم عائشة" : "Aisha Twin"}
                     </p>
-                    <p className="text-white/60 text-[11px]">
+                    <p className="text-muted-foreground text-[11px]">
                       {active}/{STEPS.length} {isAr ? "وحدات مفعّلة" : "modules active"}
                     </p>
                   </div>
@@ -564,7 +560,7 @@ export default function AgenticAILabTwin() {
               Draft a quick alert about the new flu vaccine availability.
             </div>
             <div className="bg-muted p-3 rounded-2xl rounded-tl-sm max-w-[85%] text-sm flex gap-3">
-              <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
               <div>
                 "Protect yourself and your loved ones. The seasonal flu vaccine is now available at all Ministry health centers. Book your appointment today via the official portal."
                 <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">

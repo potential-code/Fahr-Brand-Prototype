@@ -16,12 +16,12 @@ export default function MinistryDashboard() {
   const [appliedRecommendations, setAppliedRecommendations] = useState<string[]>([]);
 
   const kpis = [
-    { label: "Total Employees", value: "4,820", icon: Users, color: "text-blue-500" },
-    { label: "Active Learners", value: "3,940", icon: Search, color: "text-indigo-500" },
-    { label: "AI Readiness Index", value: "68%", icon: Zap, color: "text-yellow-500" },
-    { label: "AI Digital Twins", value: "1,245", icon: Bot, color: "text-purple-500" },
-    { label: "Projects Submitted", value: "318", icon: Rocket, color: "text-green-500" },
-    { label: "Est. Hours Saved/Mo", value: "9,850", icon: Clock, color: "text-orange-500" },
+    { label: "Total Employees", value: "4,820", icon: Users, color: "text-primary" },
+    { label: "Active Learners", value: "3,940", icon: Search, color: "text-secondary" },
+    { label: "AI Readiness Index", value: "68%", icon: Zap, color: "text-accent" },
+    { label: "AI Digital Twins", value: "1,245", icon: Bot, color: "text-[hsl(var(--chart-4))]" },
+    { label: "Projects Submitted", value: "318", icon: Rocket, color: "text-[hsl(var(--chart-5))]" },
+    { label: "Est. Hours Saved/Mo", value: "9,850", icon: Clock, color: "text-[hsl(var(--chart-3))]" },
   ];
 
   const departmentData = [
@@ -126,7 +126,7 @@ export default function MinistryDashboard() {
 
               <div className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-2 mb-2 text-green-600">
+                  <div className="flex items-center gap-2 mb-2 text-accent">
                     <Zap className="w-4 h-4" />
                     <span className="font-semibold text-sm">Action Recommended</span>
                   </div>

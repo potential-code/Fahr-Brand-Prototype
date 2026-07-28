@@ -336,14 +336,14 @@ function AgentChatDemo() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-accent-foreground mb-2">
+                      <p className="text-xs font-medium text-accent mb-2">
                         {language === "ar" ? "فجوات يجب سدها" : "Gaps to close"}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {step.gaps.map((s) => (
                           <span
                             key={s.en}
-                            className="text-xs px-2 py-1 rounded-full bg-accent/15 text-accent-foreground border border-accent/30"
+                            className="text-xs px-2 py-1 rounded-full bg-accent/15 text-accent border border-accent/30"
                           >
                             {language === "ar" ? s.ar : s.en}
                           </span>
@@ -472,8 +472,8 @@ function AgentChatDemo() {
                 <Bot className="w-5 h-5 text-primary" />
               </div>
               <div className={`rounded-2xl rounded-tl-sm p-3 max-w-[90%] w-full border ${statusStyles} flex items-center gap-3`}>
-                <div className="w-9 h-9 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5 text-red-600" />
+                <div className="w-9 h-9 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center shrink-0">
+                  <Icon className="w-5 h-5 text-secondary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -558,8 +558,8 @@ function VoicePane({ language }: { language: "en" | "ar" }) {
 
 function AvatarPane({ language }: { language: "en" | "ar" }) {
   return (
-    <Card className="h-full flex flex-col items-center justify-center p-8 overflow-hidden relative bg-slate-900 border-none min-h-[460px]">
-      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-slate-900 to-slate-900"></div>
+    <Card className="h-full flex flex-col items-center justify-center p-8 overflow-hidden relative bg-foreground border-none min-h-[460px]">
+      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-foreground to-foreground"></div>
       <div className="w-56 h-56 relative z-10 mb-8">
         <div className="absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-[40%] animate-[spin_10s_linear_infinite] opacity-50 blur-xl"></div>
         <div className="absolute inset-2 rounded-[30%] overflow-hidden border border-white/30 shadow-2xl">
@@ -857,12 +857,12 @@ export default function LearnerDashboard() {
                 <div>
                   <div className="flex justify-between items-start mb-2">
                     <Zap className="w-5 h-5 text-accent" />
-                    <span className="text-xs font-medium bg-accent/20 text-accent-foreground px-2 py-1 rounded-full">In Progress</span>
+                    <span className="text-xs font-medium bg-accent/15 text-accent px-2 py-1 rounded-full">In Progress</span>
                   </div>
                   <p className="text-sm text-muted-foreground">Outcome Project</p>
                   <p className="font-semibold line-clamp-1">Campaign Brief Generator</p>
                 </div>
-                <Button variant="ghost" className="w-full justify-between mt-4 p-0 h-auto hover:bg-transparent text-accent-foreground">
+                <Button variant="ghost" className="w-full justify-between mt-4 p-0 h-auto hover:bg-transparent text-accent">
                   {t("btn.submit")} <ArrowRight className="w-4 h-4" />
                 </Button>
               </CardContent>

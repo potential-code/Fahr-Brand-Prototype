@@ -192,17 +192,15 @@ export default function Welcome() {
     <div className="min-h-[100dvh] bg-background flex flex-col font-sans overflow-hidden">
       {/* Header */}
       <header className="absolute top-0 w-full p-6 flex justify-between items-center z-50 transition-all duration-300">
-        <div className="bg-white rounded-lg px-3 py-2 shadow-md">
-          <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-9 md:h-11 object-contain" />
-        </div>
+        <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 md:h-12 object-contain drop-shadow-sm" />
         <div className="flex items-center gap-4">
-          <Button variant="ghost" className="text-white hover:bg-white/20 hover:text-white hidden md:inline-flex" asChild>
+          <Button variant="ghost" className="text-foreground hover:bg-black/5 hidden md:inline-flex font-medium" asChild>
             <Link href="/login">Sign In</Link>
           </Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" asChild>
             <Link href="/signup">Register</Link>
           </Button>
-          <Button variant="outline" size="sm" className="bg-transparent text-white border-white/30 hover:bg-white/20" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
+          <Button variant="outline" size="sm" className="bg-white/50 backdrop-blur-sm text-foreground border-border hover:bg-black/5 shadow-sm" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
             <Globe className="h-4 w-4 mr-2" />
             {language === 'en' ? 'العربية' : 'English'}
           </Button>
@@ -215,12 +213,12 @@ export default function Welcome() {
           className="absolute inset-0 w-full h-full"
           style={{ y: heroY }}
         >
-          <div className="absolute inset-0 bg-primary/80 mix-blend-multiply z-10"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/50 to-background z-20"></div>
+          <div className="absolute inset-0 bg-background/40 mix-blend-overlay z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/40 to-background z-20"></div>
           <img 
             src={`${import.meta.env.BASE_URL}brand/landing/hero-bg.jpg`} 
             alt="AI Hero" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover opacity-90"
           />
         </motion.div>
         
@@ -229,22 +227,22 @@ export default function Welcome() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-accent/20 text-accent font-medium text-sm mb-6 border border-accent/30 backdrop-blur-sm"
+            className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6 border border-primary/20 backdrop-blur-sm shadow-sm"
           >
             <Shield className="w-4 h-4 mr-2" /> UAE Government Executive Platform
           </motion.div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight drop-shadow-lg">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground mb-6 leading-tight">
             Federal Agentic AI <br />
-            <span className="text-accent italic">Learning & Skilling Platform</span>
+            <span className="text-primary italic font-serif tracking-normal">Learning & Skilling Platform</span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 leading-relaxed max-w-3xl drop-shadow-md mb-10">
+          <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mb-10">
             Equipping 80,000 federal employees with the practical capability, confidence, and responsible workflows required for an Agentic AI-enabled government.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg px-8 py-6 h-auto" onClick={() => document.getElementById('stakeholders')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 h-auto shadow-md hover-elevate" onClick={() => document.getElementById('stakeholders')?.scrollIntoView({ behavior: 'smooth' })}>
               Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 text-lg px-8 py-6 h-auto bg-white/5 backdrop-blur-sm" asChild>
+            <Button size="lg" variant="outline" className="text-foreground border-border hover:bg-black/5 text-lg px-8 py-6 h-auto bg-white/60 backdrop-blur-sm shadow-sm hover-elevate" asChild>
               <Link href="/login">Platform Login</Link>
             </Button>
           </div>
@@ -277,16 +275,16 @@ export default function Welcome() {
                 <motion.div 
                   key={stakeholder.id}
                   whileHover={{ y: -10 }}
-                  className="stagger-fade group cursor-pointer relative overflow-hidden rounded-2xl aspect-[3/4] shadow-lg border border-border"
+                  className="stagger-fade group cursor-pointer relative overflow-hidden rounded-2xl aspect-[3/4] shadow-lg border border-border/50 bg-white"
                   onClick={() => handleOpenRegistration(stakeholder)}
                 >
-                  <div className="absolute inset-0 bg-primary/20 group-hover:scale-110 transition-transform duration-700">
-                    <img src={bgImage} alt={stakeholder.title} className="w-full h-full object-cover mix-blend-overlay" />
+                  <div className="absolute inset-0 bg-background/50 group-hover:scale-105 transition-transform duration-700">
+                    <img src={bgImage} alt={stakeholder.title} className="w-full h-full object-cover mix-blend-multiply opacity-80" />
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/60 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 p-6 w-full flex flex-col items-start text-left">
-                    <h4 className="text-white font-bold text-xl mb-2">{stakeholder.title}</h4>
-                    <span className="inline-flex items-center text-accent text-sm font-semibold opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 p-6 w-full flex flex-col items-start text-left z-10">
+                    <h4 className="text-foreground font-bold text-xl mb-2 leading-snug">{stakeholder.title}</h4>
+                    <span className="inline-flex items-center text-primary text-sm font-semibold opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                       Access Portal <ChevronRight className="w-4 h-4 ml-1" />
                     </span>
                   </div>
@@ -298,7 +296,7 @@ export default function Welcome() {
       </section>
 
       {/* Agents Ecosystem Section */}
-      <section className="py-24 bg-muted/50 border-y border-border">
+      <section className="py-24 bg-white border-y border-border">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col lg:flex-row gap-16 items-center">
             <div className="lg:w-1/3 stagger-fade">
@@ -343,37 +341,38 @@ export default function Welcome() {
       </section>
 
       {/* Lab / Digital Twin Section */}
-      <section className="py-24 bg-primary text-primary-foreground relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-           <img src={`${import.meta.env.BASE_URL}brand/landing/section-lab.jpg`} alt="Lab Background" className="w-full h-full object-cover mix-blend-luminosity" />
+      <section className="py-24 bg-background text-foreground relative overflow-hidden border-b border-border">
+        <div className="absolute inset-0 opacity-40">
+           <img src={`${import.meta.env.BASE_URL}brand/landing/section-lab.jpg`} alt="Lab Background" className="w-full h-full object-cover mix-blend-overlay" />
+           <div className="absolute inset-0 bg-gradient-to-br from-background via-background/90 to-background/50"></div>
         </div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="stagger-fade order-2 lg:order-1">
-              <div className="relative rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
-                <img src={`${import.meta.env.BASE_URL}brand/landing/section-lab.jpg`} alt="Agentic AI Lab" className="w-full h-auto" />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-8">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-3 w-3 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
+              <div className="relative rounded-2xl overflow-hidden border border-border shadow-xl hover-elevate">
+                <img src={`${import.meta.env.BASE_URL}brand/landing/section-lab.jpg`} alt="Agentic AI Lab" className="w-full h-auto opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
+                  <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30">
+                    <span className="flex h-2.5 w-2.5 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
                     </span>
-                    <span className="text-white font-mono text-sm tracking-wider">SECURE SANDBOX ACTIVE</span>
+                    <span className="text-white font-mono text-xs font-semibold tracking-wider">SECURE SANDBOX ACTIVE</span>
                   </div>
                 </div>
               </div>
             </div>
             <div className="stagger-fade order-1 lg:order-2">
-              <h2 className="text-accent font-bold tracking-wider uppercase mb-2">Practical Application</h2>
-              <h3 className="text-3xl md:text-5xl font-bold mb-6">The Agentic AI Lab & Digital Twin</h3>
-              <p className="text-lg text-primary-foreground/80 mb-8 leading-relaxed">
+              <h2 className="text-primary font-bold tracking-wider uppercase mb-2 text-sm">Practical Application</h2>
+              <h3 className="text-3xl md:text-5xl font-bold mb-6 text-foreground">The Agentic AI Lab & Digital Twin</h3>
+              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                 Transform learning into measurable outcomes. The AI Lab provides a secure, sandboxed environment where federal employees can build, test, and deploy actual Agentic workflows without risking production data.
               </p>
               <ul className="space-y-4 mb-8">
                 {['Safely simulate entity-specific scenarios', 'Collaborate with the Practice Partner AI', 'Translate capabilities into real-world efficiency gains', 'Governed by UAE data privacy standards'].map((item, i) => (
                   <li key={i} className="flex items-start">
-                    <CheckCircle2 className="w-6 h-6 text-accent shrink-0 mr-3" />
-                    <span className="text-primary-foreground/90">{item}</span>
+                    <CheckCircle2 className="w-6 h-6 text-primary shrink-0 mr-3" />
+                    <span className="text-foreground/90 font-medium">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -383,14 +382,16 @@ export default function Welcome() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-background py-12 border-t border-border">
+      <footer className="bg-[#2a2825] text-white py-14">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-4">
-             <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 object-contain grayscale opacity-60" />
-             <div className="h-8 w-px bg-border"></div>
-             <p className="text-sm text-muted-foreground">Federal Authority for Government Human Resources</p>
+             <div className="bg-white rounded-md px-2.5 py-1.5">
+               <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-9 object-contain" />
+             </div>
+             <div className="h-8 w-px bg-white/20"></div>
+             <p className="text-sm text-white/70">Federal Authority for Government Human Resources</p>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-white/50">
             &copy; {new Date().getFullYear()} UAE Government. All rights reserved.
           </div>
         </div>
@@ -400,18 +401,18 @@ export default function Welcome() {
 
       {/* Registration Modal */}
       <Dialog open={isRegModalOpen} onOpenChange={setIsRegModalOpen}>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-0">
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border border-border shadow-xl">
           {showSuccess ? (
-            <div className="p-12 flex flex-col items-center text-center bg-primary text-primary-foreground">
+            <div className="p-12 flex flex-col items-center text-center bg-white text-foreground">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="w-20 h-20 rounded-full bg-accent text-accent-foreground flex items-center justify-center mb-6"
+                className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-6"
               >
                 <CheckCircle2 className="w-10 h-10" />
               </motion.div>
-              <DialogTitle className="text-2xl font-bold mb-2 text-white">Registration Complete</DialogTitle>
-              <DialogDescription className="text-primary-foreground/80 mb-6 text-base">
+              <DialogTitle className="text-2xl font-bold mb-2 text-foreground">Registration Complete</DialogTitle>
+              <DialogDescription className="text-muted-foreground mb-6 text-base">
                 Your profile has been provisioned. Redirecting to your personalized workspace...
               </DialogDescription>
               <div className="flex gap-2">
@@ -420,31 +421,31 @@ export default function Welcome() {
                     key={i}
                     animate={{ opacity: [0.3, 1, 0.3] }}
                     transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
-                    className="w-3 h-3 rounded-full bg-accent"
+                    className="w-3 h-3 rounded-full bg-primary"
                   />
                 ))}
               </div>
             </div>
           ) : (
             <>
-              <div className="bg-primary p-6 text-primary-foreground flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                  <Shield className="w-6 h-6 text-accent" />
+              <div className="bg-background p-6 text-foreground flex items-center gap-4 border-b border-border">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Shield className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl text-white">Create Profile</DialogTitle>
-                  <DialogDescription className="text-primary-foreground/80">
+                  <DialogTitle className="text-xl text-foreground font-bold">Create Profile</DialogTitle>
+                  <DialogDescription className="text-muted-foreground">
                     Registering as {selectedRole?.title}
                   </DialogDescription>
                 </div>
               </div>
-              <form onSubmit={handleRegisterSubmit} className="p-6 space-y-6">
+              <form onSubmit={handleRegisterSubmit} className="p-6 space-y-6 bg-white">
                 <div className="space-y-4">
                   {renderRegistrationFields()}
                 </div>
                 <div className="flex justify-end gap-3 pt-4 border-t border-border">
-                  <Button type="button" variant="outline" onClick={() => setIsRegModalOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[120px]">
+                  <Button type="button" variant="outline" onClick={() => setIsRegModalOpen(false)} className="hover:bg-black/5 border-border">Cancel</Button>
+                  <Button type="submit" disabled={isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[120px] shadow-sm">
                     {isSubmitting ? "Provisioning..." : "Access Platform"}
                   </Button>
                 </div>

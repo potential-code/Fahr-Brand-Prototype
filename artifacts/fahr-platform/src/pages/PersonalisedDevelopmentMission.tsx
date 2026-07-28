@@ -57,7 +57,7 @@ export default function PersonalisedDevelopmentMission() {
     if (stepId === "s4" && !hasAdapted) {
       setHasAdapted(true);
       toast({
-        title: "Mission Adapted 🔄",
+        title: "Mission Adapted",
         description: "Your AI Practice Partner noted a gap in stakeholder communication. A new module has been added to your pathway.",
       });
       // Add adaptive step before build step

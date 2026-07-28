@@ -75,11 +75,6 @@ export function Layout({ children, role }: { children: React.ReactNode, role: 'l
             <Link href="/">
               <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 cursor-pointer object-contain" />
             </Link>
-            <div className="hidden md:block">
-              <h1 className="text-sm font-semibold text-primary leading-tight">
-                Federal Agentic AI<br />Learning & Skilling Platform
-              </h1>
-            </div>
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
@@ -102,22 +97,32 @@ export function Layout({ children, role }: { children: React.ReactNode, role: 'l
       {/* Main Layout */}
       <div className="flex-1 flex flex-col md:flex-row container mx-auto px-4 py-8 gap-8">
         {/* Desktop Sidebar Navigation */}
-        <aside className="hidden md:flex w-64 flex-col gap-2 flex-shrink-0">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            const isActive = location === link.href;
-            return (
-              <Button
-                key={link.href}
-                variant={isActive ? "default" : "ghost"}
-                className={`justify-start gap-3 w-full ${language === 'ar' ? 'flex-row-reverse' : ''}`}
-                onClick={() => setLocation(link.href)}
-              >
-                <Icon className="h-4 w-4" />
-                <span>{link.label}</span>
-              </Button>
-            );
-          })}
+        <aside className="hidden md:block w-64 flex-shrink-0">
+          <div className="sticky top-24 rounded-xl border border-sidebar-border bg-sidebar shadow-sm p-3">
+            <p className="px-3 pt-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Navigation
+            </p>
+            <nav className="flex flex-col gap-1">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = location === link.href;
+                return (
+                  <button
+                    key={link.href}
+                    onClick={() => setLocation(link.href)}
+                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent"
+                    } ${language === "ar" ? "flex-row-reverse text-right" : ""}`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{link.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
         </aside>
 
         {/* Page Content */}

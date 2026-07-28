@@ -111,8 +111,8 @@ export default function MinistryCohorts() {
           </Card>
           <Card>
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="bg-green-100 p-4 rounded-full">
-                <BookOpen className="w-8 h-8 text-green-600" />
+              <div className="bg-secondary/10 p-4 rounded-full">
+                <BookOpen className="w-8 h-8 text-secondary" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Active Learners</p>
@@ -122,8 +122,8 @@ export default function MinistryCohorts() {
           </Card>
           <Card>
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="bg-blue-100 p-4 rounded-full">
-                <Send className="w-8 h-8 text-blue-600" />
+              <div className="bg-accent/10 p-4 rounded-full">
+                <Send className="w-8 h-8 text-accent" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pathways Assigned</p>

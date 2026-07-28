@@ -28,24 +28,23 @@ export default function Login() {
   return (
     <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background">
       {/* Left side - Visuals */}
-      <div className="hidden md:flex md:w-1/2 relative overflow-hidden bg-primary items-center justify-center">
+      <div className="hidden md:flex md:w-1/2 relative overflow-hidden bg-background items-center justify-center">
         <div className="absolute inset-0">
           <img 
             src={`${import.meta.env.BASE_URL}brand/landing/hero-bg.jpg`} 
             alt="Federal Building" 
-            className="w-full h-full object-cover mix-blend-overlay opacity-60"
+            className="w-full h-full object-cover opacity-90"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-primary/40"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-white/60 to-white/30"></div>
         </div>
         <div className="relative z-10 p-12 max-w-lg">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <div className="inline-block bg-white rounded-lg px-4 py-3 shadow-md mb-12">
-              <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-12 object-contain" />
-            </div>
-            <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
-              Welcome back to your <br /><span className="text-accent italic">Agentic AI workspace</span>
+            <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-12 object-contain mb-12 drop-shadow-sm" />
+            
+            <h1 className="text-4xl font-bold text-foreground mb-6 leading-tight">
+              Welcome back to your <br /><span className="text-primary italic font-serif tracking-normal">Agentic AI workspace</span>
             </h1>
-            <p className="text-lg text-primary-foreground/80 leading-relaxed">
+            <p className="text-lg text-muted-foreground leading-relaxed">
               Continue your development mission, collaborate with your AI agents, and track your capability progress across the federal ecosystem.
             </p>
           </motion.div>

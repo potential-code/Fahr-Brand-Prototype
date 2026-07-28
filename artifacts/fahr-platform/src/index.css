@@ -73,51 +73,51 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Deep Blue (Primary), Gold (Accent), Teal (Secondary) */
-  --background: 0 0% 98%; /* Light gray background */
-  --foreground: 222 47% 11%;
-  
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 221 83% 53%;
-  
+  /* Official FAHR identity: camel/desert gold, cream/white, warm near-black */
+  --background: 40 33% 98%; /* warm off-white / cream */
+  --foreground: 30 10% 16%; /* near-black warm grey */
+
+  --border: 38 22% 88%;
+  --input: 38 22% 86%;
+  --ring: 37 33% 45%;
+
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --card-border: 214 32% 91%;
-  
+  --card-foreground: 30 10% 16%;
+  --card-border: 38 22% 89%;
+
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --popover-border: 214 32% 91%;
-  
-  --primary: 215 72% 23%; /* Deep Blue #102B51 */
-  --primary-foreground: 210 40% 98%;
-  
-  --secondary: 180 100% 25%; /* Teal #008080 */
-  --secondary-foreground: 210 40% 98%;
-  
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  
-  --accent: 45 93% 47%; /* Gold #F5B907 */
-  --accent-foreground: 222 47% 11%;
-  
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
+  --popover-foreground: 30 10% 16%;
+  --popover-border: 38 22% 89%;
 
-  --chart-1: 215 72% 23%;
-  --chart-2: 180 100% 25%;
-  --chart-3: 45 93% 47%;
-  --chart-4: 215 16% 47%;
-  --chart-5: 222 47% 11%;
+  --primary: 37 33% 42%; /* deepened camel gold for text contrast */
+  --primary-foreground: 40 40% 99%;
 
-  --sidebar: 0 0% 100%;
-  --sidebar-foreground: 222 47% 11%;
-  --sidebar-border: 214 32% 91%;
-  --sidebar-primary: 215 72% 23%;
-  --sidebar-primary-foreground: 210 40% 98%;
-  --sidebar-accent: 210 40% 96.1%;
-  --sidebar-accent-foreground: 222 47% 11%;
-  --sidebar-ring: 221 83% 53%;
+  --secondary: 195 18% 36%; /* muted slate teal-grey (support tone) */
+  --secondary-foreground: 40 40% 99%;
+
+  --muted: 40 25% 94%;
+  --muted-foreground: 32 9% 43%;
+
+  --accent: 35 38% 44%; /* deeper bronze accent */
+  --accent-foreground: 40 40% 99%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 40 40% 99%;
+
+  --chart-1: 37 30% 51%;
+  --chart-2: 195 18% 36%;
+  --chart-3: 35 45% 62%;
+  --chart-4: 32 9% 55%;
+  --chart-5: 30 10% 24%;
+
+  --sidebar: 40 30% 96%;
+  --sidebar-foreground: 30 10% 16%;
+  --sidebar-border: 38 22% 87%;
+  --sidebar-primary: 37 33% 42%;
+  --sidebar-primary-foreground: 40 40% 99%;
+  --sidebar-accent: 38 28% 90%;
+  --sidebar-accent-foreground: 30 10% 16%;
+  --sidebar-ring: 37 33% 45%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: Georgia, serif;
@@ -139,32 +139,32 @@
 }
 
 .dark {
-  --background: 222 47% 11%;
-  --foreground: 0 0% 98%;
-  
-  --card: 215 32% 14%;
-  --card-foreground: 0 0% 98%;
-  --card-border: 215 32% 20%;
-  
-  --popover: 215 32% 14%;
-  --popover-foreground: 0 0% 98%;
-  --popover-border: 215 32% 20%;
-  
-  --primary: 215 72% 43%;
-  --primary-foreground: 0 0% 98%;
-  
-  --secondary: 180 100% 25%;
-  --secondary-foreground: 0 0% 98%;
-  
-  --muted: 215 32% 20%;
-  --muted-foreground: 215 20% 65%;
-  
-  --accent: 45 93% 47%;
-  --accent-foreground: 222 47% 11%;
-  
-  --border: 215 32% 20%;
-  --input: 215 32% 20%;
-  --ring: 215 72% 43%;
+  --background: 30 10% 12%;
+  --foreground: 40 30% 96%;
+
+  --card: 30 9% 15%;
+  --card-foreground: 40 30% 96%;
+  --card-border: 30 8% 22%;
+
+  --popover: 30 9% 15%;
+  --popover-foreground: 40 30% 96%;
+  --popover-border: 30 8% 22%;
+
+  --primary: 37 35% 58%;
+  --primary-foreground: 30 10% 12%;
+
+  --secondary: 195 18% 42%;
+  --secondary-foreground: 40 30% 96%;
+
+  --muted: 30 8% 20%;
+  --muted-foreground: 38 12% 65%;
+
+  --accent: 35 40% 55%;
+  --accent-foreground: 30 10% 12%;
+
+  --border: 30 8% 22%;
+  --input: 30 8% 22%;
+  --ring: 37 35% 58%;
 }
 
 @layer base {

@@ -75,8 +75,8 @@ export default function MultiInterfaceAgentExperience() {
             </TabsContent>
 
             <TabsContent value="avatar" className="flex-1 m-0">
-              <Card className="h-full flex flex-col items-center justify-center p-8 overflow-hidden relative bg-slate-900 border-none">
-                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-slate-900 to-slate-900"></div>
+              <Card className="h-full flex flex-col items-center justify-center p-8 overflow-hidden relative bg-foreground border-none">
+                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-foreground to-foreground"></div>
                  
                  {/* Simulated 3D Avatar Placeholder */}
                  <div className="w-64 h-64 relative z-10 mb-8">

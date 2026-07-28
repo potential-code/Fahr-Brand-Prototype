@@ -56,7 +56,7 @@ export default function RecognitionAndImpact() {
             </p>
           </div>
           <div className="flex gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-sm">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-accent/20 text-accent-foreground">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-accent/15 text-accent">
               <Star className="w-6 h-6 fill-current" />
             </div>
             <div>

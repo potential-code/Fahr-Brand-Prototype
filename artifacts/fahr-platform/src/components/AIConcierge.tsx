@@ -92,7 +92,7 @@ export function AIConcierge() {
         >
           <span className="relative flex">
             <Bot className="w-6 h-6" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-primary" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-primary" />
           </span>
           <span className="hidden sm:block text-sm font-medium pr-1">{AGENTS.concierge}</span>
         </button>
@@ -109,7 +109,7 @@ export function AIConcierge() {
               <div>
                 <p className="text-sm font-semibold leading-tight">{AGENTS.concierge}</p>
                 <p className="text-[11px] text-primary-foreground/70 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Online — simulated
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Online — simulated
                 </p>
               </div>
             </div>
@@ -175,7 +175,7 @@ export function AIConcierge() {
             <button
               onClick={escalate}
               disabled={escalated}
-              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors disabled:opacity-60"
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary/15 transition-colors disabled:opacity-60"
             >
               {escalated ? <CheckCircle2 className="w-3.5 h-3.5" /> : <PhoneCall className="w-3.5 h-3.5" />}
               {escalated ? "Specialist notified" : "Talk to a human"}

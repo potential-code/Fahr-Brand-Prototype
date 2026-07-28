@@ -7,3 +7,6 @@ description: Durable conventions and gotchas for the FAHR platform mockup
 - English-only for now; the nav language toggle is an intentional non-functional placeholder (Arabic/RTL is a separate proposed task).
 - **Why:** user explicitly chose these scopes during Task planning.
 - Gotchas: fahr.gov.ae blocks scraping/screenshots (branding capture fails — use the existing theme in src/index.css). The FAHR logo PNG has a white background — never use `brightness-0 invert` on it (renders a white box); place it on a white chip instead. Radix/shadcn `<Select required>` creates unfulfillable native validation — avoid `required` on Selects.
+
+## Rebrand palette (official FAHR, applied)
+Theme tokens now: cream bg (40 33% 98%), camel-gold primary deepened to 37 33% 42% for white-text contrast (51% lightness failed review), bronze accent (35 38% 44%) with WHITE accent-foreground — never use `text-accent-foreground` on light surfaces (invisible); use `text-accent` instead. Greens/reds kept only for genuine success/danger semantics. Sidebar is a separated `bg-sidebar` panel card; top bar is logo-only.

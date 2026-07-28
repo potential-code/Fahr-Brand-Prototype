@@ -24,7 +24,7 @@ export default function AgenticAILabProject() {
   const handleSubmit = () => {
     setStatus("Submitted");
     toast({
-      title: "Project Submitted 🎉",
+      title: "Project Submitted",
       description: "Your outcome project has been submitted for human review and AI evaluation.",
     });
   };
@@ -33,7 +33,7 @@ export default function AgenticAILabProject() {
     setShowImproveDialog(false);
     setIdea("Create an AI-assisted workflow that helps generate campaign briefs, audience segments, content angles, Arabic/English messaging, and reporting templates. \n\n*Updated: Included an automated feedback loop for performance metrics tracking to ensure continuous improvement.*");
     toast({
-      title: "Idea Improved ✨",
+      title: "Idea Improved",
       description: `${AGENTS.content} enhanced your solution idea.`,
     });
   };
