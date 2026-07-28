@@ -54,7 +54,7 @@ export function Layout({ children, role }: { children: React.ReactNode, role: Ro
           { href: "/learner/mission", label: t("nav.mission"), icon: Target },
           { href: "/learner/lab/twin", label: t("nav.lab"), icon: FlaskConical },
           { href: "/learner/lab/project", label: "Workplace Project", icon: Rocket },
-          { href: "/learner/evaluation", label: "Assessment & Certification", icon: BadgeCheck },
+          { href: "/learner/evaluation", label: t("nav.evaluation"), icon: BadgeCheck },
           { href: "/learner/recognition", label: t("nav.recognition"), icon: Award },
           { href: "/learner/community", label: "Community", icon: Users },
         ];

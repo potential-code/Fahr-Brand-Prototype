@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/lib/LanguageContext";
 import { LearnerProgressProvider } from "@/lib/LearnerProgressContext";
+import { WorkplaceProjectProvider } from "@/lib/WorkplaceProjectContext";
 import NotFound from "@/pages/not-found";
 
 import Welcome from "@/pages/Welcome";
@@ -81,9 +82,11 @@ function App() {
       <TooltipProvider>
         <LanguageProvider>
           <LearnerProgressProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <Router />
-            </WouterRouter>
+            <WorkplaceProjectProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <Router />
+              </WouterRouter>
+            </WorkplaceProjectProvider>
           </LearnerProgressProvider>
         </LanguageProvider>
         <Toaster />

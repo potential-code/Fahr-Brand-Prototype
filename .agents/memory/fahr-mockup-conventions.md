@@ -40,3 +40,17 @@ description: Durable conventions and gotchas for the FAHR platform mockup
 ## Rebrand palette (official FAHR, applied)
 Theme tokens now: cream bg (40 33% 98%), camel-gold primary deepened to 37 33% 42% for white-text contrast (51% lightness failed review), bronze accent (35 38% 44%) with WHITE accent-foreground — never use `text-accent-foreground` on light surfaces (invisible); use `text-accent` instead. Greens/reds kept only for genuine success/danger semantics. Sidebar is a separated `bg-sidebar` panel card; top bar is logo-only.
 - A low competency score is a development priority, not an error: rank strength / steady / gap by **weight** (solid primary, bronze accent, muted bar plus a solid dark "Priority gap" pill), never by hue. `destructive` red on a capability bar reads as a system failure on a government screen.
+
+## Sidebar-reachable screens must never be dead ends
+
+Every screen in the learner sidebar can be opened directly, in any order, without the preceding step having been done. A screen whose content depends on an earlier action (an evaluation depending on a submitted project, a credential depending on an evaluation) must synthesise a worked example from the same derivation helpers it would use for real input, and label the real case explicitly ("this is the project you just submitted").
+
+**Why:** stakeholders click through the sidebar top to bottom in demos rather than following the intended journey, and an empty "nothing submitted yet" panel reads as a broken screen.
+
+**How to apply:** put the fallback in the domain module next to the real builder (same shapes, same scoring path) rather than hand-writing static display copy in the page, so the demo state and the live state can never drift apart.
+
+## Cross-stage wizard state, and how it looks broken to a browser tester
+
+Multi-stage builders render one stage at a time, so inputs from other stages are absent from the DOM entirely. A browser test that reads inputs by test id on the wrong stage reports them as empty and will call it state loss. Confirm real loss by checking a cross-stage indicator (the readiness meter / submit gate) rather than by querying inputs.
+
+**Why:** an e2e run flagged "outcomes emptied without a reload"; the outcome inputs simply were not mounted on the stage being inspected, and the submit gate — which requires every stage complete at once — passed.

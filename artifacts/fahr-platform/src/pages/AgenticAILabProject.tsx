@@ -1,221 +1,495 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation } from "wouter";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle2, Bot, Send, ShieldCheck, Check, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  Lock,
+  Rocket,
+  Send,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { AGENTS } from "@/lib/constants";
-import { useLocation } from "wouter";
+import { useLearnerProgress } from "@/lib/LearnerProgressContext";
+import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
+import { buildRecommendations } from "@/lib/recommendations";
+import {
+  HUMAN_CHECKPOINTS,
+  SENSITIVITY_LABEL,
+  STAGES,
+  assessReadiness,
+  defaultDraft,
+  estimateImpact,
+  evaluatePolicies,
+  filled,
+  improveSolution,
+  stageIndex,
+  suggestFor,
+  type DataSensitivity,
+  type StageId,
+} from "@/lib/workplaceProject";
+import { StageStepper } from "@/components/project/StageStepper";
+import { PracticePartner, ImprovementPanel } from "@/components/project/PracticePartner";
+import { LineList } from "@/components/project/LineList";
+import { ImpactEstimator } from "@/components/project/ImpactEstimator";
+import { GovernanceCheck } from "@/components/project/GovernanceCheck";
+import { ReadinessMeter } from "@/components/project/ReadinessMeter";
 
 export default function AgenticAILabProject() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  
-  const [status, setStatus] = useState<"Draft" | "Submitted">("Draft");
-  const [showImproveDialog, setShowImproveDialog] = useState(false);
-  const [showGovernanceDialog, setShowGovernanceDialog] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const { result, answers } = useLearnerProgress();
+  const { draft, seedDraft, updateDraft, submission, submit, reopen } = useWorkplaceProject();
 
-  const [idea, setIdea] = useState("Create an AI-assisted workflow that helps generate campaign briefs, audience segments, content angles, Arabic/English messaging, and reporting templates.");
+  const [stage, setStage] = useState<StageId>("challenge");
+  const [governanceRun, setGovernanceRun] = useState(false);
+
+  // The project the learner builds is the one their own assessment asked for.
+  const plan = useMemo(() => (result ? buildRecommendations(result, answers) : null), [result, answers]);
+  useEffect(() => {
+    seedDraft(defaultDraft(plan?.project ?? null));
+  }, [plan, seedDraft]);
+
+  const policies = useMemo(() => evaluatePolicies(draft), [draft]);
+  const impact = useMemo(() => estimateImpact(draft), [draft]);
+  const readiness = useMemo(() => assessReadiness(draft, policies, governanceRun), [draft, policies, governanceRun]);
+
+  const completeStages = useMemo(() => {
+    const byStage = new Map<StageId, boolean>();
+    for (const item of readiness.items) {
+      byStage.set(item.stage, (byStage.get(item.stage) ?? true) && item.done);
+    }
+    return new Set<StageId>([...byStage.entries()].filter(([, done]) => done).map(([id]) => id));
+  }, [readiness]);
+
+  const index = stageIndex(stage);
+  const current = STAGES[index];
+  const locked = submission !== null;
 
   const handleSubmit = () => {
-    setStatus("Submitted");
+    submit(impact, policies);
     toast({
-      title: "Project Submitted",
-      description: "Your workplace project has been submitted for human review and AI evaluation.",
+      title: "Project submitted",
+      description: `"${draft.title}" is with the Ministry Innovation Lead and the evaluation engine.`,
     });
   };
 
-  const handleImprove = () => {
-    setShowImproveDialog(false);
-    setIdea("Create an AI-assisted workflow that helps generate campaign briefs, audience segments, content angles, Arabic/English messaging, and reporting templates. \n\n*Updated: Included an automated feedback loop for performance metrics tracking to ensure continuous improvement.*");
-    toast({
-      title: "Idea Improved",
-      description: `${AGENTS.content} enhanced your solution idea.`,
-    });
-  };
+  // ---------------------------------------------------------------- submitted
+  if (submission) {
+    return (
+      <Layout role="learner">
+        <div className="mx-auto w-full max-w-3xl pb-12">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="rounded-2xl border border-border bg-card p-8 text-center"
+          >
+            <motion.span
+              initial={reduceMotion ? false : { scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 220, damping: 16 }}
+              className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary"
+            >
+              <CheckCircle2 className="h-8 w-8" />
+            </motion.span>
+            <h2 className="text-2xl font-bold text-foreground">Your project is submitted</h2>
+            <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              "{submission.draft.title}" has gone to the Ministry Innovation Lead for human review and to the evaluation engine for scoring
+              against the four federal dimensions.
+            </p>
 
+            <div className="mt-7 grid gap-3 text-start sm:grid-cols-3">
+              {[
+                { label: "Estimated return", value: `${submission.impact.hoursPerMonth} h / month` },
+                { label: "Governance", value: `${submission.policies.length} policies cleared` },
+                { label: "Submitted", value: new Date(submission.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }) },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.label}
+                  initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25 + i * 0.08 }}
+                  className="rounded-xl border border-border bg-muted/30 px-4 py-3"
+                >
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{item.label}</p>
+                  <p className="mt-0.5 text-sm font-semibold text-foreground">{item.value}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button className="gap-2" onClick={() => setLocation("/learner/evaluation")} data-testid="button-view-evaluation">
+                See the evaluation <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" onClick={reopen} data-testid="button-reopen-draft">
+                Reopen my draft
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ------------------------------------------------------------------ builder
   return (
     <Layout role="learner">
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto w-full pb-12">
-        
+      <div className="mx-auto w-full max-w-6xl space-y-6 pb-12">
         <PageHeader
           bordered
-          tone="primary"
-          className="mb-8"
-          title="Stage 2: Build a Workplace Project"
-          description="Apply your new AI capability to a real workplace challenge."
+          title="Workplace Project"
+          description="Apply what you have learned to one real piece of your work, then submit it for evaluation and certification."
           actions={
-            <Badge variant="outline" className={`text-sm py-1 px-3 ${status === 'Submitted' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-primary/5 text-primary border-primary/20'}`}>
-              {status} Status
+            <Badge variant="outline" className="border-primary/25 bg-primary/5 px-3 py-1 text-sm text-primary">
+              Draft · {readiness.percent}% ready
             </Badge>
           }
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="md:col-span-2">
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Project Title</label>
-                <Input disabled={status === 'Submitted'} defaultValue="AI-Assisted Public Health Campaign Brief Generator" className="font-medium text-lg border-primary/20 focus-visible:ring-primary disabled:opacity-70" />
-              </div>
-            </CardContent>
-          </Card>
+        <StageStepper current={stage} complete={completeStages} onSelect={setStage} />
 
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  Problem Statement
-                </label>
-                <Textarea 
-                  disabled={status === 'Submitted'}
-                  defaultValue="Campaign briefs currently take significant manual coordination between communication, content, and technical teams."
-                  className="min-h-[100px] resize-none disabled:opacity-70"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-secondary/30 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-1 h-full bg-secondary"></div>
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-2 flex flex-col h-full">
-                <label className="text-sm font-semibold flex items-center justify-between text-secondary">
-                  <span className="flex items-center gap-2"><Bot className="w-4 h-4" /> AI Solution Idea</span>
-                </label>
-                <Textarea 
-                  disabled={status === 'Submitted'}
-                  value={idea}
-                  onChange={(e) => setIdea(e.target.value)}
-                  className="min-h-[100px] resize-none focus-visible:ring-secondary mt-2 disabled:opacity-70"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Expected Outcomes</label>
-                <div className={`bg-muted p-4 rounded-md space-y-2 text-sm ${status === 'Submitted' ? 'opacity-70' : ''}`}>
-                  <p>• Save 42 hours per month</p>
-                  <p>• Reduce campaign planning time by 35%</p>
-                  <p>• Improve message consistency</p>
-                  <p>• Support bilingual campaign creation</p>
-                  <p>• Improve reporting quality</p>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0 space-y-5">
+            <AnimatePresence mode="wait">
+              <motion.section
+                key={stage}
+                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="space-y-5"
+              >
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Stage {index + 1} of {STAGES.length}
+                  </p>
+                  <h2 className="mt-1 text-lg font-bold text-foreground">{current.question}</h2>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{current.guidance}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Measurement Plan</label>
-                <div className={`bg-muted p-4 rounded-md space-y-2 text-sm ${status === 'Submitted' ? 'opacity-70' : ''}`}>
-                  <p>• Time saved per campaign</p>
-                  <p>• Number of briefs generated</p>
-                  <p>• Approval cycle reduction</p>
-                  <p>• Campaign content quality score</p>
-                  <p>• Stakeholder satisfaction</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                {stage === "challenge" && (
+                  <div className="space-y-5">
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                      <div className="space-y-2">
+                        <label htmlFor="project-title" className="text-sm font-semibold text-foreground">
+                          Project title
+                        </label>
+                        <Input
+                          id="project-title"
+                          value={draft.title}
+                          disabled={locked}
+                          onChange={(e) => updateDraft({ title: e.target.value })}
+                          className="text-base font-medium"
+                          data-testid="input-project-title"
+                        />
+                        {plan && (
+                          <p className="text-xs text-muted-foreground">
+                            Suggested by your assessment as the project that closes {plan.project.competency.short}.
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="project-challenge" className="text-sm font-semibold text-foreground">
+                          The challenge in your own words
+                        </label>
+                        <Textarea
+                          id="project-challenge"
+                          value={draft.challenge}
+                          disabled={locked}
+                          placeholder="Which recurring task, who does it, how long it takes and what goes wrong."
+                          onChange={(e) => updateDraft({ challenge: e.target.value })}
+                          className="min-h-[150px] resize-none leading-relaxed"
+                          data-testid="input-project-challenge"
+                        />
+                        <p className="text-xs text-muted-foreground">{draft.challenge.trim().length} characters · 120 or more reads as a defined challenge</p>
+                      </div>
+                    </div>
+                    <PracticePartner
+                      subject="the challenge"
+                      suggestion={suggestFor("challenge", draft)}
+                      hasContent={draft.challenge.trim().length > 0}
+                      onAccept={(text) => updateDraft({ challenge: text })}
+                    />
+                  </div>
+                )}
+
+                {stage === "solution" && (
+                  <div className="space-y-5">
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                      <div className="space-y-2">
+                        <label htmlFor="project-solution" className="text-sm font-semibold text-foreground">
+                          How the AI solution works
+                        </label>
+                        <Textarea
+                          id="project-solution"
+                          value={draft.solution}
+                          disabled={locked}
+                          placeholder="The steps the assistant runs, the data it reads, and where a person reviews its output."
+                          onChange={(e) => updateDraft({ solution: e.target.value })}
+                          className="min-h-[170px] resize-none leading-relaxed"
+                          data-testid="input-project-solution"
+                        />
+                        <p className="text-xs text-muted-foreground">{draft.solution.trim().length} characters · 160 or more reads as a designed solution</p>
+                      </div>
+
+                      <div className="space-y-2 border-t border-border pt-4">
+                        <p className="text-sm font-semibold text-foreground">Human checkpoint</p>
+                        <p className="text-xs text-muted-foreground">Who accepts or rejects what the assistant produces.</p>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {HUMAN_CHECKPOINTS.map((option) => {
+                            const active = draft.humanCheckpoint === option;
+                            return (
+                              <button
+                                key={option}
+                                type="button"
+                                disabled={locked}
+                                onClick={() => updateDraft({ humanCheckpoint: active ? "" : option })}
+                                data-testid={`checkpoint-${option.slice(0, 12).replace(/\s+/g, "-").toLowerCase()}`}
+                                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                  active
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-card text-muted-foreground hover:bg-muted"
+                                }`}
+                              >
+                                {active && <Check className="me-1 inline h-3 w-3" />}
+                                {option}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <PracticePartner
+                      subject="the solution design"
+                      suggestion={suggestFor("solution", draft)}
+                      hasContent={draft.solution.trim().length > 0}
+                      onAccept={(text) => updateDraft({ solution: text })}
+                    />
+
+                    <ImprovementPanel
+                      run={() => improveSolution(draft.solution)}
+                      onApply={(text) => {
+                        updateDraft({ solution: text });
+                        toast({ title: "Improvements applied", description: "Your solution design has been updated." });
+                      }}
+                      disabled={draft.solution.trim().length < 40}
+                    />
+                  </div>
+                )}
+
+                {stage === "outcomes" && (
+                  <div className="space-y-5">
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Expected outcomes</p>
+                        <p className="text-xs text-muted-foreground">Three things a colleague could confirm in three months.</p>
+                      </div>
+                      <LineList
+                        lines={draft.outcomes}
+                        disabled={locked}
+                        onChange={(outcomes) => updateDraft({ outcomes })}
+                        placeholders={[
+                          "Brief preparation drops from six hours a week to under two",
+                          "Every campaign launches bilingual from one source",
+                          "Approvals stop bouncing on inconsistent structure",
+                        ]}
+                        addLabel="Add an outcome"
+                        testIdPrefix="input-outcome"
+                      />
+                    </div>
+                    <PracticePartner
+                      subject="three outcomes"
+                      suggestion={suggestFor("outcomes", draft)}
+                      hasContent={filled(draft.outcomes).length > 0}
+                      onAccept={(text) => updateDraft({ outcomes: text.split("\n") })}
+                    />
+                    <ImpactEstimator draft={draft} impact={impact} onChange={updateDraft} disabled={locked} />
+                  </div>
+                )}
+
+                {stage === "measurement" && (
+                  <div className="space-y-5">
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Measurement plan</p>
+                        <p className="text-xs text-muted-foreground">One countable measure per outcome, each with a baseline you can take now.</p>
+                      </div>
+                      <LineList
+                        lines={draft.measures}
+                        disabled={locked}
+                        onChange={(measures) => updateDraft({ measures })}
+                        placeholders={[
+                          "Hours per brief against the manual baseline",
+                          "Briefs accepted without rework",
+                          "Days from objective to approved brief",
+                        ]}
+                        addLabel="Add a measure"
+                        testIdPrefix="input-measure"
+                      />
+                    </div>
+                    <PracticePartner
+                      subject="the measurement plan"
+                      suggestion={suggestFor("measurement", draft)}
+                      hasContent={filled(draft.measures).length > 0}
+                      onAccept={(text) => updateDraft({ measures: text.split("\n") })}
+                    />
+                    <div className="rounded-xl border border-border bg-muted/30 p-4">
+                      <p className="text-xs leading-relaxed text-muted-foreground">
+                        Your entity reports these figures into the federal impact register, which is where the numbers on the leadership
+                        dashboards come from. Measures without a baseline cannot be reported.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {stage === "review" && (
+                  <div className="space-y-5">
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-foreground">Data classification</p>
+                        <p className="text-xs text-muted-foreground">What the assistant reads determines which guardrails apply.</p>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {(Object.keys(SENSITIVITY_LABEL) as DataSensitivity[]).map((key) => {
+                            const active = draft.sensitivity === key;
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                disabled={locked}
+                                onClick={() => updateDraft({ sensitivity: key })}
+                                data-testid={`sensitivity-${key}`}
+                                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                  active
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-card text-muted-foreground hover:bg-muted"
+                                }`}
+                              >
+                                {SENSITIVITY_LABEL[key]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex items-start justify-between gap-4 border-t border-border pt-4">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Label AI-assisted outputs</p>
+                          <p className="text-xs text-muted-foreground">Colleagues see that a draft came from the assistant before they review it.</p>
+                        </div>
+                        <Switch
+                          checked={draft.disclosure}
+                          disabled={locked}
+                          onCheckedChange={(disclosure) => updateDraft({ disclosure })}
+                          aria-label="Label AI-assisted outputs"
+                          data-testid="switch-disclosure"
+                        />
+                      </div>
+                    </div>
+
+                    <GovernanceCheck
+                      policies={policies}
+                      hasRun={governanceRun}
+                      onRunComplete={() => setGovernanceRun(true)}
+                      onFix={updateDraft}
+                    />
+
+                    <div className="rounded-xl border border-border bg-card p-5">
+                      <p className="text-sm font-semibold text-foreground">What you are submitting</p>
+                      <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {[
+                          ["Project", draft.title],
+                          ["Outcomes", `${filled(draft.outcomes).length} recorded`],
+                          ["Measures", `${filled(draft.measures).length} with baselines`],
+                          ["Estimated return", `${impact.hoursPerMonth} hours a month · ${impact.band.toLowerCase()} impact`],
+                          ["Oversight", draft.humanCheckpoint || "Not named yet"],
+                          ["Classification", SENSITIVITY_LABEL[draft.sensitivity]],
+                        ].map(([label, value]) => (
+                          <div key={label} className="rounded-lg border border-border bg-muted/25 px-3 py-2">
+                            <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</dt>
+                            <dd className="mt-0.5 text-sm font-medium text-foreground">{value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+
+                      <div className="mt-5 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-muted-foreground">
+                          {readiness.submittable ? (
+                            <span className="flex items-center gap-1.5 font-medium text-primary">
+                              <ShieldCheck className="h-3.5 w-3.5" /> Ready for evaluation.
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1.5">
+                              <Lock className="h-3.5 w-3.5" /> Still needed: {readiness.nextUp?.label.toLowerCase()}.
+                            </span>
+                          )}
+                        </p>
+                        <Button className="gap-2" onClick={handleSubmit} disabled={!readiness.submittable} data-testid="button-submit-project">
+                          <Send className="h-4 w-4" /> Submit for evaluation
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.section>
+            </AnimatePresence>
+
+            <div className="flex items-center justify-between gap-3 border-t border-border pt-5">
+              <Button
+                variant="ghost"
+                className="gap-2"
+                disabled={index === 0}
+                onClick={() => setStage(STAGES[Math.max(0, index - 1)].id)}
+                data-testid="button-stage-back"
+              >
+                <ArrowLeft className="h-4 w-4" /> {index > 0 ? STAGES[index - 1].label : "Back"}
+              </Button>
+              {index < STAGES.length - 1 && (
+                <Button className="gap-2" onClick={() => setStage(STAGES[index + 1].id)} data-testid="button-stage-next">
+                  {STAGES[index + 1].label} <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
+            <ReadinessMeter readiness={readiness} onJump={setStage} />
+
+            <div className="rounded-xl border border-accent/25 bg-accent/[0.04] p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Sparkles className="h-3.5 w-3.5 text-accent" /> Working with you on this
+              </p>
+              <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-muted-foreground">
+                <li>The AI Practice Partner drafts and improves your wording.</li>
+                <li>The AI Analytics Assistant keeps the impact estimate live.</li>
+                <li>FAHR Governance and Audit runs the policy check before you submit.</li>
+              </ul>
+            </div>
+
+            <div className="rounded-xl border border-border bg-muted/30 p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Rocket className="h-3.5 w-3.5 text-primary" /> What happens next
+              </p>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                Submitting sends your brief to the Ministry Innovation Lead for human review and to the evaluation engine, which scores it on
+                practical application, innovation, feasibility and governance. Clearing it issues your credential.
+              </p>
+            </div>
+          </aside>
         </div>
-
-        {status === "Draft" ? (
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
-            <Button variant="outline" className="flex-1 gap-2 border-secondary text-secondary hover:bg-secondary/5" onClick={() => setShowImproveDialog(true)}>
-              <Sparkles className="w-4 h-4" /> Ask {AGENTS.content} to improve
-            </Button>
-            <Button variant="outline" className="flex-1 gap-2" onClick={() => setShowGovernanceDialog(true)}>
-              <ShieldCheck className="w-4 h-4" /> Run governance check
-            </Button>
-            <Button className="flex-1 gap-2 bg-primary hover:bg-primary/90 text-white" onClick={handleSubmit}>
-              <Send className="w-4 h-4" /> Submit for review
-            </Button>
-          </div>
-        ) : (
-          <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <Check className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-green-900">Project Submitted Successfully</h3>
-                <p className="text-sm text-green-700 mt-1">Your project is now locked and under review by the Ministry Innovation Lead.</p>
-              </div>
-            </div>
-            <Button variant="outline" className="bg-white" onClick={() => setLocation('/learner/evaluation')}>
-              View Evaluation Status
-            </Button>
-          </div>
-        )}
-
       </div>
-
-      {/* Improve Dialog */}
-      <Dialog open={showImproveDialog} onOpenChange={setShowImproveDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>AI Enhancement Suggestion</DialogTitle>
-            <DialogDescription>The {AGENTS.content} reviewed your solution idea.</DialogDescription>
-          </DialogHeader>
-          <div className="p-4 bg-muted rounded-lg text-sm border-l-4 border-secondary space-y-2">
-            <p className="font-medium">Original:</p>
-            <p className="text-muted-foreground">"Create an AI-assisted workflow that helps generate campaign briefs, audience segments, content angles, Arabic/English messaging, and reporting templates."</p>
-            <p className="font-medium mt-4">Suggested addition:</p>
-            <p className="text-foreground font-medium">Include an automated feedback loop for performance metrics tracking to ensure continuous improvement.</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowImproveDialog(false)}>Cancel</Button>
-            <Button onClick={handleImprove}>Accept Suggestion</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Governance Dialog */}
-      <Dialog open={showGovernanceDialog} onOpenChange={setShowGovernanceDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Automated Governance Check</DialogTitle>
-            <DialogDescription>Validating your project against FAHR AI policies.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-4">
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50/50 border-green-200">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Data Privacy</p>
-                <p className="text-xs text-muted-foreground">No PII or sensitive data indicators detected in project scope.</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50/50 border-green-200">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Alignment with Mandate</p>
-                <p className="text-xs text-muted-foreground">Project objectives align with Ministry public health communication goals.</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50/50 border-green-200">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Human-in-the-loop</p>
-                <p className="text-xs text-muted-foreground">Workflow implies human review of generated briefs before publishing.</p>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setShowGovernanceDialog(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
     </Layout>
   );
 }
