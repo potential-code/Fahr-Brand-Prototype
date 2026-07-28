@@ -1,0 +1,49 @@
+Screen by screen, with what goes on each. This is the spine of the mockup.
+
+1. Login
+SSO button + UAE PASS button, Arabic/English toggle, FAHR branding.
+
+2. Profile setup
+Name, entity, department, job role, seniority. Learning objectives. Consent/policy acknowledgement checkbox. Progress stepper.
+
+3. Baseline assessment
+Diagnostic quiz — scenario-based questions, progress bar, question counter. Ends with a results screen: competency scores (radar or bars), strengths vs gaps.
+
+4. AI Skills Advisor result
+"Based on your assessment…" — named gaps, recommended development priorities, mapped to FAHR competencies. This is the handoff into the pathway.
+
+5. Learner dashboard ← the hero screen
+
+Assigned pathway with % progress
+Recommended next activity ("AI suggests…")
+Upcoming events/webinars
+Announcements
+Certificates and badges earned
+Points / leaderboard rank
+Persistent AI Concierge launcher (corner bubble)
+
+6. Pathway view
+Ordered modules with lock/unlock states, mixed formats visible: self-paced course, webinar, microlearning video, SCORM, practical assignment. Competency tag on each.
+
+7. Course player
+Video or content pane, progress, notes — plus AI Learning Coach side panel: ask questions, get explanations, resource suggestions.
+
+8. AI Practice Partner
+Role-play / workplace scenario. Chat interface, learner responds to a simulated situation, gets feedback on their answer.
+
+9. Assessment + adaptive moment
+Knowledge check → score → pathway visibly updates. Show a "your pathway has been adjusted" state. This is the single most important screen — it proves the adaptive claim in §5.2.
+
+10. Certificate
+Digital certificate, FAHR-branded, competencies achieved, shareable/downloadable.
+
+11. AI Digital Twin (§6.2)
+Setup wizard: role, org context, frequent tasks, working style, goals, knowledge sources. Then a chat screen where the trained twin assists with a work task.
+
+12. Community / engagement
+Discussion forum, leaderboard, polls, event registration.
+
+13. My progress
+Competency growth over time, completions, assessment history.
+
+The loop to make visible: assessment → AI reads it → pathway personalises → learner progresses → new assessment → pathway adjusts.
