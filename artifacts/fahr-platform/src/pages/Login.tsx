@@ -147,43 +147,6 @@ export default function Login() {
             </Button>
           </form>
 
-          {/* Federal single sign-on options */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">or sign in with</span>
-              <span className="h-px flex-1 bg-border" />
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 justify-center gap-3"
-              onClick={() => setLocation("/learner")}
-              data-testid="button-uae-pass"
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded bg-foreground text-[10px] font-bold text-background">
-                UAE
-              </span>
-              <span className="font-semibold">UAE PASS</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 justify-center gap-3"
-              onClick={() => setLocation("/learner")}
-              data-testid="button-federal-sso"
-            >
-              <Building2 className="h-5 w-5" />
-              <span className="font-semibold">Federal Entity Single Sign-On</span>
-            </Button>
-
-            <p className="text-center text-xs text-muted-foreground">
-              Demo environment — federal identity providers are simulated.
-            </p>
-          </div>
-
           <div className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link href="/signup" className="text-primary font-semibold hover:underline">
