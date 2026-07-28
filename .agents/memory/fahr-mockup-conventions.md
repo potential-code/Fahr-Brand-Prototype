@@ -14,6 +14,7 @@ description: Durable conventions and gotchas for the FAHR platform mockup
 - The dashboard AI chat stays a conversational concierge; the assessment owns the diagnostic. Do not duplicate scoring in the chat.
 - **Why:** the user chose a single spine so the demo reads as one continuous story rather than competing features.
 - Reference screenshots the user supplies are for visual design only — all content stays FAHR/federal AI-competency themed.
+- The landing page journey graphic is a user-supplied raster with the six stage names baked into the pixels, and the user explicitly accepted it as-is — including a caption overflow and two stage labels that the platform-wide terminology cleanup retires elsewhere. Do not regenerate, crop, overlay, or "correct" it, and do not add a text stage list beside it to compensate. **Why:** the user was shown the conflict and chose the image unchanged. Only replace it if they ask.
 
 ## Rebrand palette (official FAHR, applied)
 Theme tokens now: cream bg (40 33% 98%), camel-gold primary deepened to 37 33% 42% for white-text contrast (51% lightness failed review), bronze accent (35 38% 44%) with WHITE accent-foreground — never use `text-accent-foreground` on light surfaces (invisible); use `text-accent` instead. Greens/reds kept only for genuine success/danger semantics. Sidebar is a separated `bg-sidebar` panel card; top bar is logo-only.

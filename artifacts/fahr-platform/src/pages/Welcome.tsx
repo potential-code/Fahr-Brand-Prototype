@@ -361,6 +361,48 @@ export default function Welcome() {
         </div>
       </section>
 
+      {/* Learner Journey Section */}
+      <section id="journey" className="py-24 bg-gradient-to-b from-background to-white border-t border-border">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-14 stagger-fade">
+            <h2 className="text-sm font-bold text-primary tracking-wider uppercase mb-2">The Learner Journey</h2>
+            <h3 className="text-3xl md:text-5xl font-bold text-foreground">Six Stages, One Continuous Experience</h3>
+            <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">
+              Every federal employee follows the same guided arc — from an AI-informed understanding of their role, through personalised learning and real workplace application, to validated capability and measurable impact.
+            </p>
+          </div>
+
+          <motion.figure
+            className="max-w-6xl mx-auto"
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+          >
+            <div className="rounded-3xl overflow-hidden shadow-xl border border-border/60 bg-white">
+              <img
+                src={`${import.meta.env.BASE_URL}brand/learner-journey.png`}
+                alt="The six-stage FAHR learner journey: Onboarding and Profiling, Personalized Learning and Development Mission, Experiential Learning and Outcome Projects, Build and Train Digital Twin, Assess and Validate, and Recognition and Impact."
+                className="w-full h-auto block"
+                loading="lazy"
+                data-testid="img-learner-journey"
+              />
+            </div>
+          </motion.figure>
+
+          <div className="mt-12 text-center stagger-fade">
+            <Button
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 h-auto text-lg shadow-md hover-elevate"
+              onClick={() => setLocation('/learner')}
+              data-testid="button-explore-journey"
+            >
+              Walk through the journey <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Agents Ecosystem Section */}
       <section id="ecosystem" className="py-24 bg-white border-y border-border">
         <div className="max-w-7xl mx-auto px-6">
