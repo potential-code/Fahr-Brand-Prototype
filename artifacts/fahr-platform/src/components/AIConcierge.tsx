@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { AGENTS } from "@/lib/constants";
+import { AGENTS, LEARNER_PROFILE } from "@/lib/constants";
+import { useFederalData } from "@/lib/FederalDataContext";
 import {
   Bot,
   X,
@@ -55,6 +56,9 @@ export function AIConcierge() {
   const [typing, setTyping] = useState(false);
   const [escalated, setEscalated] = useState(false);
   const [, setLocation] = useLocation();
+  const { raiseEscalation, people } = useFederalData();
+  /** The person the demo is played as, so the escalation carries their record. */
+  const learner = people.find((person) => person.live);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,12 +76,28 @@ export function AIConcierge() {
     }, 900);
   };
 
+  /**
+   * Escalating raises a real support item in the FAHR programme team's queue,
+   * carrying the last thing the learner asked about as its detail.
+   */
   const escalate = () => {
+    const lastQuestion = [...messages].reverse().find((m) => m.from === "user")?.text;
+    const reference = raiseEscalation({
+      ministryId: learner?.ministryId ?? "mohap",
+      subject: `Concierge escalation — ${learner?.name ?? LEARNER_PROFILE.name}`,
+      kind: "Support",
+      detail: lastQuestion
+        ? `${AGENTS.concierge} could not resolve: “${lastQuestion}”. Learner asked for a human specialist.`
+        : `${learner?.name ?? LEARNER_PROFILE.name} asked to speak with a human specialist through the ${AGENTS.concierge}.`,
+      raisedBy: learner?.name ?? LEARNER_PROFILE.name,
+      agent: AGENTS.concierge,
+      personId: learner?.id,
+    });
     setEscalated(true);
     setMessages((m) => [
       ...m,
       { from: "user", text: "I'd like to speak with a human specialist." },
-      { from: "agent", text: CANNED.help },
+      { from: "agent", text: `${CANNED.help} Your reference is ${reference.toUpperCase()}.` },
     ]);
   };
 

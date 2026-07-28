@@ -44,8 +44,12 @@ type MutableState = {
   audit: AuditEvent[];
   credentials: Credential[];
   escalations: Escalation[];
+  /** Triage changes FAHR made to an escalation, seeded or raised this session. */
+  escalationPatches: Record<string, Partial<Escalation>>;
   /** ministryId -> revised monthly token quota, in millions. */
   quotas: Record<string, number>;
+  /** ministryId -> entity administrator FAHR assigned this session. */
+  entityAdmins: Record<string, string>;
   readNotificationIds: string[];
 };
 
@@ -55,7 +59,9 @@ const EMPTY_STATE: MutableState = {
   audit: [],
   credentials: [],
   escalations: [],
+  escalationPatches: {},
   quotas: {},
+  entityAdmins: {},
   readNotificationIds: [],
 };
 
@@ -119,9 +125,26 @@ function readStored(): MutableState {
       }
     }
 
+    const entityAdmins: Record<string, string> = {};
+    if (isRecord(parsed.entityAdmins)) {
+      const ministryIds = new Set(MINISTRIES.map((m) => m.id));
+      for (const [id, value] of Object.entries(parsed.entityAdmins)) {
+        if (ministryIds.has(id) && typeof value === "string" && value.trim()) entityAdmins[id] = value;
+      }
+    }
+
+    const escalationPatches: Record<string, Partial<Escalation>> = {};
+    if (isRecord(parsed.escalationPatches)) {
+      for (const [id, value] of Object.entries(parsed.escalationPatches)) {
+        if (isRecord(value)) escalationPatches[id] = value as Partial<Escalation>;
+      }
+    }
+
     const asArray = <T,>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
 
     return {
+      escalationPatches,
+      entityAdmins,
       submissions,
       approvals: asArray<ApprovalRecord>(parsed.approvals).filter((a) => isRecord(a) && typeof a.id === "string"),
       audit: asArray<AuditEvent>(parsed.audit).filter((a) => isRecord(a) && typeof a.id === "string"),
@@ -156,6 +179,29 @@ const nextId = (prefix: string) => {
 };
 
 export type DecisionOptions = { by?: string; note?: string };
+
+/** An entity, learner-support agent or system raising an item with FAHR. */
+export type EscalationRequest = {
+  ministryId: string;
+  subject: string;
+  kind: Escalation["kind"];
+  detail: string;
+  raisedBy?: string;
+  /** Named agent, when the platform rather than a person raised it. */
+  agent?: string;
+  submissionId?: string;
+  requestedQuotaM?: number;
+  personId?: string;
+  priority?: Escalation["priority"];
+};
+
+/** The fields FAHR can change while triaging an escalation. */
+export type EscalationTriage = {
+  status?: Escalation["status"];
+  assignee?: string;
+  priority?: Escalation["priority"];
+  resolution?: string;
+};
 
 export type CredentialRequest = {
   personId: string;
@@ -195,6 +241,10 @@ export type FederalDataValue = {
   escalate: (submissionId: string, options?: DecisionOptions) => void;
   issueCredential: (request: CredentialRequest) => void;
   adjustQuota: (ministryId: string, quotaM: number, options?: DecisionOptions) => void;
+  /** Raises a new federal escalation and returns its id. */
+  raiseEscalation: (input: EscalationRequest) => string;
+  triageEscalation: (escalationId: string, patch: EscalationTriage, options?: DecisionOptions) => void;
+  assignEntityAdmin: (ministryId: string, adminName: string, options?: DecisionOptions) => void;
   recordAudit: (event: Omit<AuditEvent, "id" | "time"> & { time?: string }) => void;
 
   // Notifications.
@@ -248,10 +298,17 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
 
   const ministries = useMemo<Ministry[]>(
     () =>
-      MINISTRIES.map((ministry) =>
-        state.quotas[ministry.id] ? { ...ministry, tokenQuotaM: state.quotas[ministry.id] } : ministry,
-      ),
-    [state.quotas],
+      MINISTRIES.map((ministry) => {
+        const quota = state.quotas[ministry.id];
+        const admin = state.entityAdmins[ministry.id];
+        if (!quota && !admin) return ministry;
+        return {
+          ...ministry,
+          tokenQuotaM: quota ?? ministry.tokenQuotaM,
+          entityAdmin: admin ?? ministry.entityAdmin,
+        };
+      }),
+    [state.quotas, state.entityAdmins],
   );
 
   const submissions = useMemo<Submission[]>(
@@ -272,7 +329,14 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
   const approvals = useMemo(() => [...APPROVALS, ...state.approvals], [state.approvals]);
   const auditEvents = useMemo(() => [...state.audit, ...AUDIT_EVENTS], [state.audit]);
   const credentials = useMemo(() => [...state.credentials, ...CREDENTIALS], [state.credentials]);
-  const escalations = useMemo(() => [...state.escalations, ...ESCALATIONS], [state.escalations]);
+  const escalations = useMemo(
+    () =>
+      [...state.escalations, ...ESCALATIONS].map((escalation) => {
+        const patch = state.escalationPatches[escalation.id];
+        return patch ? { ...escalation, ...patch } : escalation;
+      }),
+    [state.escalations, state.escalationPatches],
+  );
 
   const recordAudit = useCallback(
     (event: Omit<AuditEvent, "id" | "time"> & { time?: string }) =>
@@ -474,6 +538,116 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
     [update],
   );
 
+  /** An entity, a learner-support agent or the platform raising a federal item. */
+  const raiseEscalation = useCallback(
+    (input: EscalationRequest) => {
+      const ministry = MINISTRIES.find((m) => m.id === input.ministryId);
+      const id = nextId("es");
+      update((prev) => ({
+        ...prev,
+        escalations: [
+          {
+            id,
+            ministryId: input.ministryId,
+            subject: input.subject,
+            kind: input.kind,
+            raisedOn: today(),
+            raisedBy: input.raisedBy ?? "Entity Admin",
+            status: "Open",
+            detail: input.detail,
+            submissionId: input.submissionId,
+            requestedQuotaM: input.requestedQuotaM,
+            personId: input.personId,
+            priority: input.priority ?? "Standard",
+          },
+          ...prev.escalations,
+        ],
+        audit: [
+          {
+            id: nextId("ae"),
+            time: "Just now",
+            actor: input.raisedBy ?? "Entity Admin",
+            agent: input.agent ?? "Human decision",
+            action: `Raised ${input.kind.toLowerCase()} escalation to FAHR: ${input.subject}`,
+            risk: "Medium" as const,
+            status: "Open",
+            ministryId: ministry?.id,
+          },
+          ...prev.audit,
+        ],
+      }));
+      return id;
+    },
+    [update],
+  );
+
+  /** FAHR triaging an escalation: assignment, progress and resolution. */
+  const triageEscalation = useCallback(
+    (escalationId: string, patch: EscalationTriage, options?: DecisionOptions) => {
+      const escalation = [...ESCALATIONS].find((e) => e.id === escalationId);
+      update((prev) => {
+        const known = escalation ?? prev.escalations.find((e) => e.id === escalationId);
+        if (!known) return prev;
+        const merged: Partial<Escalation> = {
+          ...prev.escalationPatches[escalationId],
+          ...patch,
+          ...(patch.status === "Resolved" ? { resolvedOn: today() } : {}),
+        };
+        const describe = patch.status
+          ? patch.status === "Resolved"
+            ? `Resolved escalation: ${known.subject}`
+            : `Moved escalation to ${patch.status.toLowerCase()}: ${known.subject}`
+          : patch.assignee
+            ? `Assigned escalation to ${patch.assignee}: ${known.subject}`
+            : `Updated escalation: ${known.subject}`;
+        return {
+          ...prev,
+          escalationPatches: { ...prev.escalationPatches, [escalationId]: merged },
+          audit: [
+            {
+              id: nextId("ae"),
+              time: "Just now",
+              actor: options?.by ?? "FAHR Programme Team",
+              agent: "Human decision",
+              action: options?.note ? `${describe} — ${options.note}` : describe,
+              risk: "Low" as const,
+              status: patch.status ?? "Updated",
+              ministryId: known.ministryId,
+            },
+            ...prev.audit,
+          ],
+        };
+      });
+    },
+    [update],
+  );
+
+  /** FAHR naming (or replacing) an entity's administrator. */
+  const assignEntityAdmin = useCallback(
+    (ministryId: string, adminName: string, options?: DecisionOptions) => {
+      const ministry = MINISTRIES.find((m) => m.id === ministryId);
+      if (!ministry || !adminName.trim()) return;
+      update((prev) => ({
+        ...prev,
+        entityAdmins: { ...prev.entityAdmins, [ministryId]: adminName.trim() },
+        audit: [
+          {
+            id: nextId("ae"),
+            time: "Just now",
+            actor: options?.by ?? "FAHR Programme Team",
+            agent: "Human decision",
+            action: `Assigned ${adminName.trim()} as entity administrator for ${ministry.shortName}`,
+            risk: "Low" as const,
+            status: "Applied",
+            ministryId,
+          },
+          ...prev.audit,
+        ],
+      }));
+    },
+    [update],
+  );
+
   const adjustQuota = useCallback(
     (ministryId: string, quotaM: number, options?: DecisionOptions) => {
       const ministry = MINISTRIES.find((m) => m.id === ministryId);
@@ -584,6 +758,9 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       escalate,
       issueCredential,
       adjustQuota,
+      raiseEscalation,
+      triageEscalation,
+      assignEntityAdmin,
       recordAudit,
       notificationsFor,
       isNotificationRead,
@@ -611,6 +788,9 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       escalate,
       issueCredential,
       adjustQuota,
+      raiseEscalation,
+      triageEscalation,
+      assignEntityAdmin,
       recordAudit,
       notificationsFor,
       isNotificationRead,

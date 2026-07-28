@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/lib/LanguageContext";
 import { LearnerProgressProvider } from "@/lib/LearnerProgressContext";
 import { FederalDataProvider } from "@/lib/FederalDataContext";
+import { FahrConsoleProvider } from "@/lib/FahrConsoleContext";
 import { WorkplaceProjectProvider } from "@/lib/WorkplaceProjectContext";
 import NotFound from "@/pages/not-found";
 import PlaceholderScreen from "@/pages/PlaceholderScreen";
@@ -33,6 +34,14 @@ import MinistryPortfolio from "@/pages/MinistryPortfolio";
 
 import FAHRDashboard from "@/pages/FAHRDashboard";
 import FAHRGovernance from "@/pages/FAHRGovernance";
+import FAHREntities from "@/pages/FAHREntities";
+import FAHRUsers from "@/pages/FAHRUsers";
+import FAHRFramework from "@/pages/FAHRFramework";
+import FAHREscalations from "@/pages/FAHREscalations";
+import FAHRCredentials from "@/pages/FAHRCredentials";
+import FAHRIntegrations from "@/pages/FAHRIntegrations";
+import FAHRCommunications from "@/pages/FAHRCommunications";
+import FAHRReports from "@/pages/FAHRReports";
 
 import LeadershipDashboard from "@/pages/LeadershipDashboard";
 
@@ -206,103 +215,15 @@ function Router() {
 
       {/* FAHR Routes */}
       <Route path="/fahr" component={FAHRDashboard} />
-      <Route path="/fahr/entities">
-        <PlaceholderScreen
-          role="fahr"
-          title="Entities"
-          description="Every federal entity on the programme, with readiness, coverage, quota and administrators."
-          willInclude={[
-            "Entity list with readiness, coverage and risk band",
-            "Quota allocation and adjustment",
-            "Entity administrators and onboarding state",
-          ]}
-        />
-      </Route>
-      <Route path="/fahr/users">
-        <PlaceholderScreen
-          role="fahr"
-          title="Users"
-          description="Federal user administration across every entity and role."
-          willInclude={[
-            "Cross-entity user directory",
-            "Role assignment and account status",
-            "Bulk onboarding of an entity's users",
-          ]}
-        />
-      </Route>
-      <Route path="/fahr/framework">
-        <PlaceholderScreen
-          role="fahr"
-          title="Framework & Catalogue"
-          description="The federal AI capability framework and the national content catalogue built on it."
-          willInclude={[
-            "Competency framework and capability ladder",
-            "National catalogue with competency mapping and versions",
-            "Publishing and review workflow",
-          ]}
-        />
-      </Route>
+      <Route path="/fahr/entities" component={FAHREntities} />
+      <Route path="/fahr/users" component={FAHRUsers} />
+      <Route path="/fahr/framework" component={FAHRFramework} />
       <Route path="/fahr/governance" component={FAHRGovernance} />
-      <Route path="/fahr/escalations">
-        <PlaceholderScreen
-          role="fahr"
-          title="Escalations"
-          description="Approvals, quota and policy items entities have referred to the FAHR programme team."
-          willInclude={[
-            "Escalation queue with the entity's decision trail",
-            "Federal decision, with the audit event it records",
-            "Quota and policy exceptions",
-          ]}
-        />
-      </Route>
-      <Route path="/fahr/credentials">
-        <PlaceholderScreen
-          role="fahr"
-          title="Credential Registry"
-          description="Every credential issued nationally, with the project and verification code behind it."
-          willInclude={[
-            "National credential register with verification codes",
-            "Issue a credential against a validated project",
-            "Entity and level breakdown",
-          ]}
-        />
-      </Route>
-      <Route path="/fahr/integrations">
-        <PlaceholderScreen
-          role="fahr"
-          title="Integrations"
-          description="Connections to federal HR systems, identity and entity platforms."
-          willInclude={[
-            "Connected systems with status and last sync",
-            "Field mapping for HR records and credentials",
-            "Failure and retry history",
-          ]}
-        />
-      </Route>
-      <Route path="/fahr/communications">
-        <PlaceholderScreen
-          role="fahr"
-          title="Communications"
-          description="National announcements and campaigns to entities, administrators and learners."
-          willInclude={[
-            "National announcements and programme campaigns",
-            "Audience selection by entity, role or capability level",
-            "Delivery and engagement history",
-          ]}
-        />
-      </Route>
-      <Route path="/fahr/reports">
-        <PlaceholderScreen
-          role="fahr"
-          title="Reports"
-          description="Programme reporting across entities: readiness, coverage, adoption and impact."
-          willInclude={[
-            "Entity comparison and national roll-up",
-            "Capability distribution and gap analysis",
-            "Exportable reporting pack for leadership",
-          ]}
-        />
-      </Route>
+      <Route path="/fahr/escalations" component={FAHREscalations} />
+      <Route path="/fahr/credentials" component={FAHRCredentials} />
+      <Route path="/fahr/integrations" component={FAHRIntegrations} />
+      <Route path="/fahr/communications" component={FAHRCommunications} />
+      <Route path="/fahr/reports" component={FAHRReports} />
 
       {/* Federal Leadership Routes */}
       <Route path="/leadership" component={LeadershipDashboard} />
@@ -355,11 +276,15 @@ function App() {
         <LanguageProvider>
           <LearnerProgressProvider>
             <FederalDataProvider>
-              <WorkplaceProjectProvider>
-                <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                  <Router />
-                </WouterRouter>
-              </WorkplaceProjectProvider>
+              <FahrConsoleProvider>
+                <WorkplaceProjectProvider>
+                  <WouterRouter
+                    base={import.meta.env.BASE_URL.replace(/\/$/, "")}
+                  >
+                    <Router />
+                  </WouterRouter>
+                </WorkplaceProjectProvider>
+              </FahrConsoleProvider>
             </FederalDataProvider>
           </LearnerProgressProvider>
         </LanguageProvider>

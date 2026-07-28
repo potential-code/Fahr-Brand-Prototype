@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/lib/LanguageContext";
 import { LearnerProgressProvider } from "@/lib/LearnerProgressContext";
 import { FederalDataProvider } from "@/lib/FederalDataContext";
+import { FahrConsoleProvider } from "@/lib/FahrConsoleContext";
 
 /**
  * Renders a screen inside the same provider stack as the app, so tests exercise
@@ -18,7 +19,9 @@ export function renderScreen(ui: React.ReactElement, path = "/"): RenderResult {
       <LanguageProvider>
         <TooltipProvider>
           <LearnerProgressProvider>
-            <FederalDataProvider>{ui}</FederalDataProvider>
+            <FederalDataProvider>
+              <FahrConsoleProvider>{ui}</FahrConsoleProvider>
+            </FederalDataProvider>
           </LearnerProgressProvider>
         </TooltipProvider>
       </LanguageProvider>

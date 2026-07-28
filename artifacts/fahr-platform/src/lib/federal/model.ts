@@ -200,6 +200,8 @@ export type Credential = {
   verificationCode: string;
 };
 
+export type EscalationStatus = "Open" | "In progress" | "Resolved";
+
 export type Escalation = {
   id: string;
   ministryId: string;
@@ -207,9 +209,19 @@ export type Escalation = {
   kind: "Approval" | "Quota" | "Policy" | "Support";
   raisedOn: string;
   raisedBy: string;
-  status: "Open" | "In progress" | "Resolved";
+  status: EscalationStatus;
   detail: string;
   submissionId?: string;
+  /** FAHR programme-team member the item is triaged to. */
+  assignee?: string;
+  priority?: "Standard" | "High";
+  /** How the federal team closed the item. */
+  resolution?: string;
+  resolvedOn?: string;
+  /** Token quota, in millions, an entity is asking for. */
+  requestedQuotaM?: number;
+  /** Person the item was raised on behalf of, for support escalations. */
+  personId?: string;
 };
 
 export type GovernancePolicy = {
