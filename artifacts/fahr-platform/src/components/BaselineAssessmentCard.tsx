@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ASSESSMENT_QUESTIONS, COMPETENCY_BY_ID, COURSE_BY_ID } from "@/lib/learningData";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
+import { RecommendedCourseCard } from "@/components/RecommendedCourseCard";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -30,18 +31,18 @@ export function BaselineAssessmentCard() {
     return (
       <Card className="overflow-hidden border-card-border" data-testid="card-baseline-assessment">
         <CardContent className="p-0">
-          <div className="flex flex-col md:flex-row">
-            <div className="relative md:w-64 lg:w-72 shrink-0 h-44 md:h-auto overflow-hidden bg-muted">
+          <div className="flex flex-col lg:flex-row">
+            <div className="relative lg:w-72 shrink-0 h-44 lg:h-auto overflow-hidden bg-muted">
               <img
                 src={`${BASE}brand/learning/assessment-hero.jpg`}
                 alt=""
                 aria-hidden="true"
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/45 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/45 to-transparent" />
             </div>
 
-            <div className="flex-1 p-6 md:p-7">
+            <div className="min-w-0 flex-1 p-6 md:p-7">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className="rounded-full">Step 1 of your journey</Badge>
                 <Badge variant="outline" className="rounded-full">
@@ -134,32 +135,18 @@ export function BaselineAssessmentCard() {
               {courses.length} courses have been matched to your profile.
             </p>
 
-            <div className="mt-5 grid gap-2.5 sm:grid-cols-3">
-              {courses.map((course) => {
-                const percent = getCoursePercent(course.id);
-                return (
-                  <button
-                    key={course.id}
-                    type="button"
-                    onClick={() => setLocation(`/learner/course/${course.id}`)}
-                    data-testid={`chip-course-${course.id}`}
-                    className="text-left rounded-xl border border-card-border p-3 hover:border-primary/40 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <BookOpen className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground leading-snug line-clamp-2">
-                          {course.title}
-                        </p>
-                        <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
-                        </div>
-                        <p className="mt-1 text-[11px] text-muted-foreground">{percent}% complete</p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+            <p className="mt-5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <BookOpen className="h-3.5 w-3.5" /> Recommended courses
+            </p>
+            <div className="mt-2.5 grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
+              {courses.map((course, i) => (
+                <RecommendedCourseCard
+                  key={course.id}
+                  course={course}
+                  percent={getCoursePercent(course.id)}
+                  index={i}
+                />
+              ))}
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2">

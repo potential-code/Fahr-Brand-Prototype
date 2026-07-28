@@ -864,6 +864,14 @@ export const COURSES: Course[] = [
 
 export const COURSE_BY_ID: Record<string, Course> = Object.fromEntries(COURSES.map((c) => [c.id, c]));
 
+/** Neutral artwork used when a course has no image of its own. */
+export const COURSE_IMAGE_FALLBACK = "brand/learning/course-default.jpg";
+
+/** Resolves the artwork path for a course, falling back to the neutral image. */
+export function courseImage(course: Pick<Course, "image"> | undefined | null): string {
+  return course?.image || COURSE_IMAGE_FALLBACK;
+}
+
 /** Total steps used for course progress: every lesson plus the final assessment. */
 export function courseStepCount(course: Course): number {
   return course.groups.reduce((n, g) => n + g.lessons.length, 0) + 1;

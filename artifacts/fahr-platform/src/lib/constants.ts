@@ -9,6 +9,19 @@ export const AGENTS = {
   concierge: "AI Concierge",
 } as const;
 
+/** The demo learner used throughout the learner journey screens. */
+export const LEARNER_PROFILE = {
+  name: "Aisha Al Mansoori",
+  nameAr: "عائشة المنصوري",
+  role: "Marketing Specialist",
+  roleAr: "أخصائية تسويق",
+  entity: "Ministry of Health and Prevention",
+  entityAr: "وزارة الصحة ووقاية المجتمع",
+  department: "Communications and Public Awareness",
+  departmentAr: "الاتصال والتوعية المجتمعية",
+  avatar: "brand/aisha-avatar.png",
+} as const;
+
 export type CapabilityLevel = {
   id: string;
   label: string;
