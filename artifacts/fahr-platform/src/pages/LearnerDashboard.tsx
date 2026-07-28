@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { AGENTS } from "@/lib/constants";
+import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 
 type LabelPair = { en: string; ar: string };
 
@@ -689,6 +690,8 @@ function JourneyTimeline({ language }: { language: "en" | "ar" }) {
 export default function LearnerDashboard() {
   const { language, t } = useLanguage();
   const [, setLocation] = useLocation();
+  const { result } = useLearnerProgress();
+  const assessed = result !== null;
 
   return (
     <Layout role="learner">
@@ -700,32 +703,74 @@ export default function LearnerDashboard() {
           <CardContent className="p-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h2 className="text-2xl font-bold mb-2">
-                {language === "ar" ? "مرحباً بك في رحلة القدرات الخاصة بك" : "Welcome to your Capability Journey"}
+                {assessed
+                  ? language === "ar"
+                    ? "مسار التعلم الشخصي الخاص بك جاهز"
+                    : "Your Personalised Learning Pathway is ready"
+                  : language === "ar"
+                    ? "مرحباً بك في رحلة القدرات الخاصة بك"
+                    : "Welcome to your Capability Journey"}
               </h2>
               <p className="text-white/80 max-w-2xl text-sm leading-relaxed mb-4">
-                {language === "ar" 
-                  ? "يبدأ مسار تطوير الذكاء الاصطناعي الخاص بك بتقييم تشخيصي قصير. سيتعرف مستشار المهارات الذكي على دورك ويبني مسار تعلم شخصياً لك."
-                  : "Your Agentic AI development pathway starts with a short baseline assessment. The AI Skills Advisor will learn about your role and generate your Personalised Learning Pathway."}
+                {assessed
+                  ? language === "ar"
+                    ? `حدد مستشار المهارات الذكي مستواك عند ${result!.levelLabel} بنتيجة ${result!.overall}%، وبنى مسار تعلم يركز على أولوياتك التطويرية.`
+                    : `The AI Skills Advisor placed you at ${result!.levelLabel} on ${result!.overall}% and built a pathway around your development priorities. Pick up where you left off.`
+                  : language === "ar"
+                    ? "يبدأ مسار تطوير الذكاء الاصطناعي الخاص بك بتقييم تشخيصي قصير. سيتعرف مستشار المهارات الذكي على دورك ويبني مسار تعلم شخصياً لك."
+                    : "Your Agentic AI development pathway starts with a short baseline assessment. The AI Skills Advisor will learn about your role and generate your Personalised Learning Pathway."}
               </p>
-              <div className="flex gap-4">
-                <Button 
-                  onClick={() => setLocation("/learner/assessment")}
-                  className="bg-white text-primary hover:bg-white/90 font-semibold"
-                >
-                  {language === "ar" ? "ابدأ التقييم" : "Start Baseline Assessment"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setLocation("/learner/mission")}
-                  className="text-white border-white/30 hover:bg-white/10"
-                >
-                  {language === "ar" ? "متابعة مسار التعلم" : "Continue Learning Pathway"}
-                </Button>
+              <div className="flex flex-wrap gap-4">
+                {assessed ? (
+                  <>
+                    <Button
+                      onClick={() => setLocation("/learner/mission")}
+                      className="bg-white text-primary hover:bg-white/90 font-semibold"
+                      data-testid="button-banner-continue"
+                    >
+                      {language === "ar" ? "متابعة مسار التعلم" : "Continue Learning Pathway"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setLocation("/learner/assessment/report")}
+                      className="text-white border-white/30 hover:bg-white/10"
+                      data-testid="button-banner-report"
+                    >
+                      {language === "ar" ? "عرض تقرير التقييم" : "View assessment report"}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => setLocation("/learner/assessment")}
+                      className="bg-white text-primary hover:bg-white/90 font-semibold"
+                      data-testid="button-banner-assessment"
+                    >
+                      {language === "ar" ? "ابدأ التقييم" : "Start Baseline Assessment"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setLocation("/learner/mission")}
+                      className="text-white border-white/30 hover:bg-white/10"
+                    >
+                      {language === "ar" ? "استعرض مسار التعلم" : "Preview Learning Pathway"}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
             <div className="hidden md:flex shrink-0">
               <div className="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center backdrop-blur-sm">
-                <Target className="w-10 h-10 text-white" />
+                {assessed ? (
+                  <div className="text-center">
+                    <p className="text-2xl font-bold leading-none">{result!.overall}%</p>
+                    <p className="text-[10px] uppercase tracking-wider text-white/70 mt-1">
+                      {language === "ar" ? "الأساس" : "Baseline"}
+                    </p>
+                  </div>
+                ) : (
+                  <Target className="w-10 h-10 text-white" />
+                )}
               </div>
             </div>
           </CardContent>

@@ -31,7 +31,12 @@ const ANALYSIS_STEPS = [
 
 const STEP_MS = 900;
 
-function AnalysisOverlay({ onDone }: { onDone: () => void }) {
+/**
+ * Rendered in place of the question card once the last answer is submitted, so
+ * the learner stays on the same page and watches the analysis happen where
+ * their work was, rather than behind a full-screen takeover.
+ */
+function AnalysisPanel({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -46,16 +51,11 @@ function AnalysisOverlay({ onDone }: { onDone: () => void }) {
   const pct = Math.min(100, Math.round((step / ANALYSIS_STEPS.length) * 100));
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 bg-[#171310]/95 backdrop-blur-sm flex items-center justify-center p-6"
-      data-testid="overlay-analysis"
-    >
-      <div className="w-full max-w-xl">
+    <Card className="mt-5 border-primary/30 bg-primary/[0.03]" data-testid="panel-analysis">
+      <CardContent className="p-6 md:p-8">
         <div className="flex flex-col items-center text-center">
           {/* Pulsing agent orb */}
-          <div className="relative h-24 w-24 mb-7">
+          <div className="relative h-20 w-20 mb-6">
             <motion.span
               className="absolute inset-0 rounded-full bg-primary/25"
               animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
@@ -66,21 +66,24 @@ function AnalysisOverlay({ onDone }: { onDone: () => void }) {
               animate={{ scale: [1, 1.9, 1], opacity: [0.4, 0, 0.4] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
             />
-            <div className="absolute inset-2 rounded-full bg-primary/90 flex items-center justify-center">
-              <Sparkles className="h-9 w-9 text-primary-foreground" />
+            <div className="absolute inset-2 rounded-full bg-primary flex items-center justify-center">
+              <Sparkles className="h-7 w-7 text-primary-foreground" />
             </div>
           </div>
 
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
             {AGENTS.advisor}
           </p>
-          <h2 className="mt-2 text-2xl md:text-3xl font-bold text-white">Analysing your responses</h2>
-          <p className="mt-2 text-sm text-white/60 max-w-sm">
-            Your answers are being mapped to the federal AI capability framework. This takes a few seconds.
+          <h2 className="mt-2 text-xl md:text-2xl font-bold text-foreground">
+            Analysing your responses
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+            Your answers are being mapped to the federal AI capability framework. Your report opens
+            automatically in a few seconds.
           </p>
 
-          <div className="w-full mt-8">
-            <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+          <div className="w-full max-w-md mt-7">
+            <div className="h-1.5 w-full rounded-full bg-primary/15 overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-primary"
                 animate={{ width: `${pct}%` }}
@@ -89,7 +92,7 @@ function AnalysisOverlay({ onDone }: { onDone: () => void }) {
             </div>
           </div>
 
-          <div className="w-full mt-7 space-y-2.5 text-left">
+          <div className="w-full max-w-md mt-6 space-y-2.5 text-left">
             {ANALYSIS_STEPS.map((label, i) => {
               const done = i < step;
               const active = i === step;
@@ -103,23 +106,29 @@ function AnalysisOverlay({ onDone }: { onDone: () => void }) {
                 >
                   <span
                     className={`h-6 w-6 shrink-0 rounded-full flex items-center justify-center ${
-                      done ? "bg-primary" : "bg-white/10"
+                      done ? "bg-primary" : "bg-primary/15"
                     }`}
                   >
                     {done ? (
                       <Check className="h-3.5 w-3.5 text-primary-foreground" />
                     ) : (
-                      <Loader2 className="h-3.5 w-3.5 text-white animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
                     )}
                   </span>
-                  <span className={`text-sm ${active ? "text-white" : "text-white/55"}`}>{label}</span>
+                  <span
+                    className={`text-sm ${
+                      active ? "text-foreground font-medium" : "text-muted-foreground"
+                    }`}
+                  >
+                    {label}
+                  </span>
                 </motion.div>
               );
             })}
           </div>
         </div>
-      </div>
-    </motion.div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -155,8 +164,6 @@ export default function BaselineAssessment() {
 
   return (
     <Layout role="learner">
-      <AnimatePresence>{analysing && <AnalysisOverlay onDone={handleAnalysisDone} />}</AnimatePresence>
-
       <div className="w-full max-w-3xl mx-auto">
         <Link
           href="/learner"
@@ -194,15 +201,25 @@ export default function BaselineAssessment() {
         <div className="mt-7">
           <div className="flex items-center justify-between text-xs font-medium mb-2">
             <span className="text-muted-foreground">
-              Question {index + 1} of {total}
+              {analysing ? `All ${total} questions answered` : `Question ${index + 1} of ${total}`}
             </span>
-            <span className="text-primary font-semibold">{pct}%</span>
+            <span className="text-primary font-semibold">{analysing ? 100 : pct}%</span>
           </div>
-          <Progress value={pct} className="h-2" data-testid="progress-assessment" />
+          <Progress value={analysing ? 100 : pct} className="h-2" data-testid="progress-assessment" />
         </div>
 
-        {/* Question card */}
+        {/* Question card, replaced in place by the analysis panel on submit */}
         <AnimatePresence mode="wait">
+          {analysing ? (
+            <motion.div
+              key="analysis"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AnalysisPanel onDone={handleAnalysisDone} />
+            </motion.div>
+          ) : (
           <motion.div
             key={question.id}
             initial={{ opacity: 0, x: 24 }}
@@ -257,9 +274,11 @@ export default function BaselineAssessment() {
               </CardContent>
             </Card>
           </motion.div>
+          )}
         </AnimatePresence>
 
-        {/* Navigation */}
+        {/* Navigation — hidden once the answers are locked in for analysis */}
+        {!analysing && (
         <div className="mt-6 flex items-center justify-between gap-4">
           <Button
             variant="outline"
@@ -297,6 +316,7 @@ export default function BaselineAssessment() {
             )}
           </Button>
         </div>
+        )}
       </div>
     </Layout>
   );

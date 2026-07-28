@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/lib/LanguageContext";
-import { LayoutDashboard, User, Target, Bot, FlaskConical, Award, ShieldCheck, Globe, Briefcase, Menu, LogOut, Landmark, ClipboardCheck, Rocket, BadgeCheck } from "lucide-react";
+import { LayoutDashboard, User, Target, Bot, FlaskConical, Award, ShieldCheck, Globe, Briefcase, Menu, LogOut, Landmark, Rocket, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AIConcierge } from "@/components/AIConcierge";
@@ -47,8 +47,9 @@ export function Layout({ children, role }: { children: React.ReactNode, role: Ro
     switch (role) {
       case 'learner':
         return [
+          // The baseline assessment is a one-time diagnostic reached from the
+          // dashboard card, not a permanent destination — so it has no nav entry.
           { href: "/learner", label: "Dashboard", icon: LayoutDashboard },
-          { href: "/learner/assessment", label: "Baseline Assessment", icon: ClipboardCheck },
           { href: "/learner/profile", label: t("nav.profile"), icon: User },
           { href: "/learner/mission", label: t("nav.mission"), icon: Target },
           { href: "/learner/agent", label: t("nav.agent"), icon: Bot },
