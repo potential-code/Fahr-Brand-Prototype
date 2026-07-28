@@ -88,7 +88,7 @@ export function AIConcierge() {
         <button
           onClick={() => setOpen(true)}
           aria-label="Open AI Concierge"
-          className="fixed bottom-6 right-6 z-[60] group flex items-center gap-2 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 px-4 py-3 hover:scale-105 transition-transform"
+          className="fixed bottom-6 right-6 z-40 group flex items-center gap-2 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 px-4 py-3 hover:scale-105 transition-transform"
         >
           <span className="relative flex">
             <Bot className="w-6 h-6" />
@@ -100,7 +100,7 @@ export function AIConcierge() {
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-[60] w-[calc(100vw-2rem)] max-w-sm rounded-2xl border border-border bg-card shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-6 right-6 z-40 w-[calc(100vw-2rem)] max-w-sm rounded-2xl border border-border bg-card shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div className="flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">

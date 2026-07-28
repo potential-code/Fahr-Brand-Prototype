@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
   ArrowRight,
+  Bot,
   Check,
   CheckCircle2,
   Clock,
@@ -27,9 +28,12 @@ import {
   COMPETENCY_BY_ID,
   courseLessons,
   type Lesson,
-  type QuizQuestion,
 } from "@/lib/learningData";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
+import { CoachDock } from "@/components/coach/CoachDock";
+import { StepQuiz } from "@/components/learning/StepQuiz";
+import { AGENTS } from "@/lib/constants";
+import type { CoachContext } from "@/lib/coach";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -40,118 +44,6 @@ const LESSON_ICON = {
 } as const;
 
 type ActiveItem = { kind: "pretest" } | { kind: "lesson"; id: string } | { kind: "final" };
-
-function Quiz({
-  questions,
-  submitLabel,
-  onPass,
-  passMark,
-}: {
-  questions: QuizQuestion[];
-  submitLabel: string;
-  onPass: (correct: number) => void;
-  passMark: number;
-}) {
-  const [picked, setPicked] = useState<Record<string, number>>({});
-  const [submitted, setSubmitted] = useState(false);
-
-  const correct = questions.filter((q) => picked[q.id] === q.correctIndex).length;
-  const allAnswered = questions.every((q) => picked[q.id] !== undefined);
-  const passed = correct >= passMark;
-
-  return (
-    <div>
-      <div className="space-y-6">
-        {questions.map((q, qi) => (
-          <div key={q.id}>
-            <p className="text-sm font-semibold text-foreground">
-              {qi + 1}. {q.question}
-            </p>
-            <div className="mt-3 space-y-2">
-              {q.options.map((opt, oi) => {
-                const isPicked = picked[q.id] === oi;
-                const isRight = oi === q.correctIndex;
-                let tone = "border-card-border bg-card hover:border-primary/40 hover:bg-muted/50";
-                if (submitted && isRight) tone = "border-primary bg-primary/5";
-                else if (submitted && isPicked) tone = "border-destructive/50 bg-destructive/5";
-                else if (isPicked) tone = "border-primary bg-primary/5";
-                return (
-                  <button
-                    key={oi}
-                    type="button"
-                    disabled={submitted}
-                    onClick={() => setPicked((p) => ({ ...p, [q.id]: oi }))}
-                    data-testid={`quiz-${q.id}-${oi}`}
-                    className={`w-full text-left rounded-lg border px-4 py-3 text-sm transition-colors flex items-start gap-3 ${tone} ${
-                      submitted ? "cursor-default" : ""
-                    }`}
-                  >
-                    <span
-                      className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 flex items-center justify-center ${
-                        (submitted && isRight) || isPicked ? "border-primary bg-primary" : "border-border"
-                      }`}
-                    >
-                      {((submitted && isRight) || isPicked) && (
-                        <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                      )}
-                    </span>
-                    <span className={isPicked || (submitted && isRight) ? "text-foreground" : "text-muted-foreground"}>
-                      {opt}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {submitted && (
-              <p className="mt-2 text-xs text-muted-foreground leading-relaxed border-l-2 border-primary pl-3">
-                {q.explanation}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {!submitted ? (
-        <Button
-          className="mt-7"
-          disabled={!allAnswered}
-          onClick={() => setSubmitted(true)}
-          data-testid="button-submit-quiz"
-        >
-          Submit answers
-        </Button>
-      ) : (
-        <div className="mt-7 rounded-xl border border-card-border bg-muted/50 p-5">
-          <p className="text-sm font-semibold text-foreground">
-            {correct} of {questions.length} correct
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {passed
-              ? "Strong result. Your pathway has been updated with this evidence."
-              : "Review the explanations above, then try again — repetition is how the capability sticks."}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {!passed && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setPicked({});
-                  setSubmitted(false);
-                }}
-                data-testid="button-retry-quiz"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" /> Try again
-              </Button>
-            )}
-            <Button onClick={() => onPass(correct)} disabled={!passed} data-testid="button-quiz-continue">
-              {submitLabel} <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function LessonBody({
   lesson,
@@ -260,6 +152,23 @@ export default function CoursePlayer() {
   }, [course, getCourseProgress]);
 
   const [active, setActive] = useState<ActiveItem>(initialItem);
+  const [coachOpen, setCoachOpen] = useState(false);
+
+  // The coach always answers about whatever step is open.
+  const coachContext = useMemo<CoachContext>(() => {
+    const lesson = active.kind === "lesson" ? lessons.find((l) => l.id === active.id) : undefined;
+    const subject =
+      active.kind === "pretest"
+        ? course?.pretest.title ?? "this knowledge check"
+        : active.kind === "final"
+          ? course?.finalAssessment.title ?? "this assessment"
+          : lesson?.title ?? course?.title ?? "this course";
+    return {
+      subject,
+      competency: course ? COMPETENCY_BY_ID[course.competencyId] : undefined,
+      detail: lesson ? `${lesson.type} · ${lesson.duration}` : undefined,
+    };
+  }, [active, course, lessons]);
 
   // Reset the open step when the learner navigates to a different course
   // without unmounting this component (e.g. from the report or the mission).
@@ -386,32 +295,44 @@ export default function CoursePlayer() {
                 <Target className="h-3.5 w-3.5" /> Counts towards your Learning Pathway
               </span>
             </div>
+
+            {/* Progress lives on the hero so it is the first thing the learner sees */}
+            <div className="mt-7 flex flex-wrap items-end gap-x-8 gap-y-4">
+              <div className="min-w-[15rem] flex-1 max-w-md">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/70">Your progress</p>
+                  <span className="text-sm font-bold tabular-nums text-white">{percent}%</span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
+                  <motion.div
+                    className="h-full rounded-full bg-primary"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percent}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-white/60">
+                  {lessonsDone} of {lessons.length} lessons complete
+                  {progress.finalDone ? " · final assessment passed" : ""}
+                </p>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20"
+                onClick={() => setCoachOpen(true)}
+                data-testid="button-open-coach-hero"
+              >
+                <Bot className="me-2 h-4 w-4" /> Ask the {AGENTS.coach}
+              </Button>
+            </div>
           </div>
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr] items-start">
           {/* Outline */}
           <div className="space-y-5 lg:sticky lg:top-20">
-            <Card className="border-card-border">
-              <CardContent className="p-5">
-                <div className="flex items-baseline justify-between">
-                  <p className="text-sm font-semibold text-foreground">Your progress</p>
-                  <span className="text-sm font-bold text-primary tabular-nums">{percent}%</span>
-                </div>
-                <div className="mt-2.5 h-2 rounded-full bg-muted overflow-hidden">
-                  <motion.div
-                    className="h-full rounded-full bg-primary"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percent}%` }}
-                    transition={{ duration: 0.7, ease: "easeOut" }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {lessonsDone} of {lessons.length} lessons complete
-                </p>
-              </CardContent>
-            </Card>
-
             <Card className="border-card-border">
               <CardContent className="p-4">
                 <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -493,10 +414,11 @@ export default function CoursePlayer() {
                         {course.pretest.intro}
                       </p>
                       <div className="mt-7">
-                        <Quiz
+                        <StepQuiz
                           questions={course.pretest.questions}
                           passMark={0}
                           submitLabel="Start the lessons"
+                          passNote="Your answers set the depth of each lesson that follows."
                           onPass={(correct) => {
                             setPretestDone(course.id);
                             toast({
@@ -579,10 +501,11 @@ export default function CoursePlayer() {
                             {course.finalAssessment.intro}
                           </p>
                           <div className="mt-7">
-                            <Quiz
+                            <StepQuiz
                               questions={course.finalAssessment.questions}
                               passMark={2}
                               submitLabel="Claim your credential"
+                              passNote="Strong result. Your credential is ready to claim."
                               onPass={() => {
                                 setFinalDone(course.id);
                                 toast({
@@ -617,6 +540,8 @@ export default function CoursePlayer() {
           </CardContent>
         </Card>
       </div>
+
+      <CoachDock context={coachContext} open={coachOpen} onOpenChange={setCoachOpen} />
     </Layout>
   );
 }

@@ -522,10 +522,11 @@ export default function AssessmentReport() {
                 <Button
                   variant="outline"
                   className="mt-6 w-full sm:w-auto"
-                  onClick={() => setLocation("/learner/agent")}
+                  onClick={() => setLocation("/learner/mission")}
                   data-testid="button-open-coach"
                 >
-                  Talk to the {AGENTS.coach} <ArrowRight className="h-4 w-4 ms-2" />
+                  Open my pathway — the {AGENTS.coach} travels with it{" "}
+                  <ArrowRight className="h-4 w-4 ms-2" />
                 </Button>
               </CardContent>
             </Card>

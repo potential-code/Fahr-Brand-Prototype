@@ -204,6 +204,11 @@ const RESOURCES: Record<string, Resource[]> = {
   ],
 };
 
+/** Just-in-time reading the AI Content Assistant can offer for a competency. */
+export function resourcesForCompetency(competencyId: string): Resource[] {
+  return RESOURCES[competencyId] ?? [];
+}
+
 const EVENTS: Record<string, LiveSession> = {
   literacy: {
     title: "AI fundamentals clinic for federal teams",
