@@ -238,6 +238,8 @@ export type FederalDataValue = {
   signOff: (submissionId: string, options?: DecisionOptions) => void;
   requestRevision: (submissionId: string, options?: DecisionOptions) => void;
   endorse: (submissionId: string, options?: DecisionOptions) => void;
+  /** Entity sends a project back to the line manager rather than endorsing it. */
+  returnToManager: (submissionId: string, options?: DecisionOptions) => void;
   escalate: (submissionId: string, options?: DecisionOptions) => void;
   issueCredential: (request: CredentialRequest) => void;
   adjustQuota: (ministryId: string, quotaM: number, options?: DecisionOptions) => void;
@@ -450,6 +452,23 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "Endorsed workplace project",
         "Low",
         "Approved",
+      ),
+    [decide],
+  );
+
+  const returnToManager = useCallback(
+    (submissionId: string, options?: DecisionOptions) =>
+      decide(
+        submissionId,
+        "revision_requested",
+        "ministry",
+        "awaiting_manager",
+        "Line manager",
+        "Entity returned the project to the line manager",
+        options,
+        "Returned workplace project to the line manager",
+        "Medium",
+        "Returned to manager",
       ),
     [decide],
   );
@@ -755,6 +774,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       signOff,
       requestRevision,
       endorse,
+      returnToManager,
       escalate,
       issueCredential,
       adjustQuota,
@@ -785,6 +805,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       signOff,
       requestRevision,
       endorse,
+      returnToManager,
       escalate,
       issueCredential,
       adjustQuota,

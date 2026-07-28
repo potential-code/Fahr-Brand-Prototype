@@ -31,16 +31,19 @@ export function ChartReveal({ children, className, direction = "wipe", delay = 0
       const el = ref.current;
       if (!el || prefersReducedMotion()) return;
 
+      // Every inset component carries a unit: GSAP interpolates the clip-path
+      // string component by component, and a `%`/unitless mismatch leaves the
+      // element stuck at its start value — an invisible chart.
       const from =
         direction === "wipe"
-          ? { clipPath: "inset(0 100% 0 0)", opacity: 0.4 }
-          : { clipPath: "inset(100% 0 0 0)", opacity: 0.4 };
+          ? { clipPath: "inset(0% 100% 0% 0%)", opacity: 0.4 }
+          : { clipPath: "inset(100% 0% 0% 0%)", opacity: 0.4 };
 
       gsap.fromTo(
         el,
         from,
         {
-          clipPath: "inset(0 0% 0 0)",
+          clipPath: "inset(0% 0% 0% 0%)",
           opacity: 1,
           duration: MOTION.duration.slow + 0.3,
           delay,

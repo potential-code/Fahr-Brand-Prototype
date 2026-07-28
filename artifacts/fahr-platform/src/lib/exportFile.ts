@@ -1,13 +1,35 @@
 // Real exports for the admin consoles.
 //
-// Every "Export" control in the platform writes an actual file or opens a
-// print-ready document — no toast standing in for a download. CSV is generated
-// in the browser from the same rows the table renders, so an export can never
+// The demo has no backend, so an export has to be produced in the browser: a
+// CSV the stakeholder actually receives as a file, or a print view they can
+// save as PDF. Every "Export" control in the platform writes an actual file or
+// opens a print-ready document — no toast standing in for a download. CSV is
+// generated from the same rows the table renders, so an export can never
 // disagree with the screen it came from.
 
 export type CsvValue = string | number | boolean | null | undefined;
 
 export type CsvRow = CsvValue[];
+
+/** A row as the report screens build them. */
+export type ExportRow = (string | number)[];
+
+/**
+ * One table in an export. `title` and `notes` are written above the rows, which
+ * is how a report records the filters it was run with.
+ */
+export type ExportSheet = {
+  /** Base name without the extension; a date stamp is appended. */
+  filename: string;
+  title?: string;
+  headers: string[];
+  rows: CsvRow[];
+  /** Lines written above the table, e.g. filters the report was run with. */
+  notes?: string[];
+};
+
+/** Kept for call sites that only ever export a flat table. */
+export type CsvExport = ExportSheet;
 
 /** Escapes one cell for CSV: quotes wrap anything containing a separator. */
 function csvCell(value: CsvValue): string {
@@ -18,6 +40,16 @@ function csvCell(value: CsvValue): string {
 
 export function toCsv(headers: string[], rows: CsvRow[]): string {
   return [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+}
+
+/** A sheet as CSV, with its title and notes as leading lines when present. */
+export function sheetToCsv(sheet: ExportSheet): string {
+  const lines: string[] = [];
+  if (sheet.title) lines.push(csvCell(sheet.title));
+  for (const note of sheet.notes ?? []) lines.push(csvCell(note));
+  if (lines.length > 0) lines.push("");
+  lines.push(toCsv(sheet.headers, sheet.rows));
+  return lines.join("\r\n");
 }
 
 /** Slug-safe filename with a date stamp, e.g. `fahr-audit-log-2026-07-28.csv`. */
@@ -48,17 +80,21 @@ export function downloadTextFile(filename: string, contents: string, mimeType: s
   return filename;
 }
 
-export type CsvExport = {
-  /** Base name; the date stamp and extension are added. */
-  filename: string;
-  headers: string[];
-  rows: CsvRow[];
-};
-
 /** Writes a CSV file from the rows a table is showing. Returns the filename. */
-export function downloadCsv({ filename, headers, rows }: CsvExport): string {
+export function downloadCsv(sheet: ExportSheet): string {
+  const name = stampedFilename(sheet.filename, "csv");
+  downloadTextFile(name, sheetToCsv(sheet), "text/csv");
+  return name;
+}
+
+/**
+ * Downloads several tables as one CSV, each under its own heading — the shape a
+ * reporting pack takes when it has to travel as a single attachment.
+ */
+export function downloadCsvPack(filename: string, sheets: ExportSheet[], title?: string): string {
   const name = stampedFilename(filename, "csv");
-  downloadTextFile(name, toCsv(headers, rows), "text/csv");
+  const body = sheets.map(sheetToCsv).join("\r\n\r\n");
+  downloadTextFile(name, title ? `${csvCell(title)}\r\n\r\n${body}` : body, "text/csv");
   return name;
 }
 
@@ -85,6 +121,14 @@ export type PrintDocument = {
   meta?: string[];
   sections: PrintSection[];
   footnote?: string;
+};
+
+/** The sheet-shaped request the report screens send to `printReport`. */
+export type PrintSheets = {
+  title: string;
+  subtitle?: string;
+  notes?: string[];
+  sheets: ExportSheet[];
 };
 
 const escapeHtml = (value: CsvValue): string =>
@@ -168,13 +212,30 @@ export function printDocumentHtml(doc: PrintDocument): string {
   }</body></html>`;
 }
 
+/** A pack of sheets printed as one document, each sheet its own section. */
+function documentFromSheets(request: PrintSheets): PrintDocument {
+  return {
+    title: request.title,
+    subtitle: request.subtitle,
+    meta: request.notes,
+    sections: request.sheets.map((sheet) => ({
+      heading: sheet.title,
+      paragraphs: sheet.notes,
+      table: { headers: sheet.headers, rows: sheet.rows },
+    })),
+  };
+}
+
 /**
  * Opens a print-ready version of a report in a hidden iframe and calls print,
  * so the operator can send it to a printer or save it as PDF. An iframe rather
  * than a new window: a popup blocker would silently swallow the export.
+ *
+ * Accepts either a composed document or a pack of report sheets.
  */
-export function printReport(doc: PrintDocument): void {
+export function printReport(input: PrintDocument | PrintSheets): void {
   if (typeof document === "undefined") return;
+  const doc = "sheets" in input ? documentFromSheets(input) : input;
   const frame = document.createElement("iframe");
   frame.setAttribute("title", doc.title);
   frame.setAttribute("aria-hidden", "true");

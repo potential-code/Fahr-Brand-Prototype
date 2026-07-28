@@ -947,6 +947,9 @@ export const SESSIONS: ScheduledSession[] = [
   { id: "ev3", title: "Responsible AI Review Workshop", mode: "In person", date: "3 September 2026", time: "09:00 – 15:00", host: "FAHR Governance Office", seats: 60, registered: 44, status: "Open" },
   { id: "ev4", title: "Clinical AI Assistants: Hands-on Lab", mode: "Hybrid", date: "2 June 2026", time: "09:30 – 12:30", host: "Digital Health", ministryId: "mohap", seats: 80, registered: 51, status: "Open" },
   { id: "ev5", title: "Entity Admin Onboarding: Cohorts & Reporting", mode: "Virtual", date: "14 July 2026", time: "11:00 – 12:00", host: "FAHR Programme Team", seats: 40, registered: 40, status: "Completed" },
+  { id: "ev6", title: "Line Manager Briefing: Reading a Capability Profile", mode: "Virtual", date: "10 August 2026", time: "09:00 – 10:00", host: "Noura Al Kaabi", ministryId: "mohap", seats: 60, registered: 37, status: "Open" },
+  { id: "ev7", title: "Customer Happiness Cohort Induction", mode: "Virtual", date: "18 August 2026", time: "13:00 – 14:00", host: "Saeed Al Balushi", ministryId: "mohap", seats: 300, registered: 214, status: "Open" },
+  { id: "ev8", title: "HR Automation Team: Project Showcase", mode: "In person", date: "24 June 2026", time: "10:00 – 13:00", host: "Fatima Al Zaabi", ministryId: "mohap", seats: 90, registered: 74, status: "Completed" },
 ];
 
 /** Catalogue items with competency mapping, version and publish state. */

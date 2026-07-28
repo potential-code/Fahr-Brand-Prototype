@@ -44,6 +44,16 @@ import FAHRCommunications from "@/pages/FAHRCommunications";
 import FAHRReports from "@/pages/FAHRReports";
 
 import LeadershipDashboard from "@/pages/LeadershipDashboard";
+import { EntityAdminProvider } from "@/lib/EntityAdminContext";
+import MinistryCohortDetail from "@/pages/MinistryCohortDetail";
+import MinistryUsers from "@/pages/MinistryUsers";
+import MinistryApprovals from "@/pages/MinistryApprovals";
+import MinistryContent from "@/pages/MinistryContent";
+import MinistryEvents from "@/pages/MinistryEvents";
+import MinistryCommunications from "@/pages/MinistryCommunications";
+import MinistryReports from "@/pages/MinistryReports";
+import MinistryDepartment from "@/pages/MinistryDepartment";
+import MinistryPerson from "@/pages/MinistryPerson";
 
 const queryClient = new QueryClient();
 
@@ -125,93 +135,16 @@ function Router() {
       {/* Ministry Routes */}
       <Route path="/ministry" component={MinistryDashboard} />
       <Route path="/ministry/cohorts" component={MinistryCohorts} />
-      <Route path="/ministry/cohorts/:cohortId">
-        <PlaceholderScreen
-          role="ministry"
-          title="Cohort"
-          description="A single cohort's roster, pathway, progress and completion outlook."
-          willInclude={[
-            "Cohort roster with individual progress",
-            "Assigned pathway and content",
-            "Milestones, completion forecast and at-risk learners",
-          ]}
-          backHref="/ministry/cohorts"
-          backLabel="Back to cohorts"
-        />
-      </Route>
-      <Route path="/ministry/users">
-        <PlaceholderScreen
-          role="ministry"
-          title="Users & Access"
-          description="Accounts, roles and access across the entity."
-          willInclude={[
-            "Entity user directory with role and status",
-            "Invite users and assign roles",
-            "Department and cohort assignment",
-          ]}
-        />
-      </Route>
-      <Route path="/ministry/approvals">
-        <PlaceholderScreen
-          role="ministry"
-          title="Approvals"
-          description="Projects that cleared line manager sign-off and need an entity decision, plus anything escalated to FAHR."
-          willInclude={[
-            "Endorsement queue with the manager's decision attached",
-            "Endorse, return, or escalate to FAHR",
-            "Escalation status and federal responses",
-          ]}
-        />
-      </Route>
+      <Route path="/ministry/cohorts/:cohortId" component={MinistryCohortDetail} />
+      <Route path="/ministry/users" component={MinistryUsers} />
+      <Route path="/ministry/approvals" component={MinistryApprovals} />
       <Route path="/ministry/portfolio" component={MinistryPortfolio} />
-      <Route path="/ministry/content">
-        <PlaceholderScreen
-          role="ministry"
-          title="Content"
-          description="Courses, microlearning and simulations available to the entity, with competency mapping and versions."
-          willInclude={[
-            "Catalogue with competency mapping, language and version",
-            "Publish state and review queue",
-            "Assignment to cohorts and pathways",
-          ]}
-        />
-      </Route>
-      <Route path="/ministry/events">
-        <PlaceholderScreen
-          role="ministry"
-          title="Events"
-          description="Workshops and virtual sessions run by the entity, with seats and registrations."
-          willInclude={[
-            "Scheduled sessions with seats and registrations",
-            "Create a session and open registration",
-            "Attendance follow-up for cohorts",
-          ]}
-        />
-      </Route>
-      <Route path="/ministry/communications">
-        <PlaceholderScreen
-          role="ministry"
-          title="Communications"
-          description="Announcements, nudges and reminders sent to learners and managers in the entity."
-          willInclude={[
-            "Announcements and reminder campaigns",
-            "Audience selection by cohort, department or status",
-            "Delivery history",
-          ]}
-        />
-      </Route>
-      <Route path="/ministry/reports">
-        <PlaceholderScreen
-          role="ministry"
-          title="Reports"
-          description="Entity readiness, department comparison, adoption and applied-AI impact."
-          willInclude={[
-            "Readiness and coverage by department",
-            "Adoption, usage and quota consumption",
-            "Exportable reporting pack for FAHR",
-          ]}
-        />
-      </Route>
+      <Route path="/ministry/content" component={MinistryContent} />
+      <Route path="/ministry/events" component={MinistryEvents} />
+      <Route path="/ministry/communications" component={MinistryCommunications} />
+      <Route path="/ministry/reports" component={MinistryReports} />
+      <Route path="/ministry/departments/:departmentId" component={MinistryDepartment} />
+      <Route path="/ministry/people/:personId" component={MinistryPerson} />
 
       {/* FAHR Routes */}
       <Route path="/fahr" component={FAHRDashboard} />
@@ -277,13 +210,15 @@ function App() {
           <LearnerProgressProvider>
             <FederalDataProvider>
               <FahrConsoleProvider>
-                <WorkplaceProjectProvider>
-                  <WouterRouter
-                    base={import.meta.env.BASE_URL.replace(/\/$/, "")}
-                  >
-                    <Router />
-                  </WouterRouter>
-                </WorkplaceProjectProvider>
+                <EntityAdminProvider>
+                  <WorkplaceProjectProvider>
+                    <WouterRouter
+                      base={import.meta.env.BASE_URL.replace(/\/$/, "")}
+                    >
+                      <Router />
+                    </WouterRouter>
+                  </WorkplaceProjectProvider>
+                </EntityAdminProvider>
               </FahrConsoleProvider>
             </FederalDataProvider>
           </LearnerProgressProvider>
