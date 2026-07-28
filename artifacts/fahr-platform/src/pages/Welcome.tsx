@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, ArrowRight, Brain, Target, Shield, Users, BarChart, GraduationCap, Microscope, CheckCircle2, ChevronRight } from "lucide-react";
+import { ArrowRight, Brain, Target, Shield, Users, BarChart, GraduationCap, Microscope, CheckCircle2, ChevronRight } from "lucide-react";
 import { AGENTS, STAKEHOLDERS } from "@/lib/constants";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -24,7 +24,6 @@ const AGENT_ICONS: Record<string, React.ElementType> = {
 };
 
 export default function Welcome() {
-  const { language, setLanguage } = useLanguage();
   const [, setLocation] = useLocation();
   const heroRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -190,27 +189,29 @@ export default function Welcome() {
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col font-sans overflow-x-clip">
       {/* Header */}
-      <header className="sticky top-0 w-full px-6 py-4 flex justify-between items-center z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm transition-all duration-300">
-        <div className="flex items-center gap-8">
-          <div className="bg-white rounded-md px-2.5 py-1.5 drop-shadow-sm cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} role="button" tabIndex={0} onKeyDown={(e) => { if(e.key==='Enter') window.scrollTo({top: 0, behavior: 'smooth'}); }}>
-            <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-8 md:h-10 object-contain" />
-          </div>
-          <nav className="hidden lg:flex items-center gap-6">
-            <button onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">Pathways</button>
-            <button onClick={() => document.getElementById('ecosystem')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">Ecosystem</button>
-            <button onClick={() => document.getElementById('lab')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">AI Lab</button>
-          </nav>
+      <header className="sticky top-0 w-full px-6 py-4 grid grid-cols-[1fr_auto_1fr] items-center z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm transition-all duration-300">
+        <div className="flex items-center justify-start">
+          <img
+            src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`}
+            alt="FAHR Logo"
+            className="h-8 md:h-10 object-contain cursor-pointer"
+            onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if(e.key==='Enter') window.scrollTo({top: 0, behavior: 'smooth'}); }}
+          />
         </div>
-        <div className="flex items-center gap-4">
+        <nav className="hidden lg:flex items-center justify-center gap-8">
+          <button onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">Pathways</button>
+          <button onClick={() => document.getElementById('ecosystem')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">Ecosystem</button>
+          <button onClick={() => document.getElementById('lab')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">AI Lab</button>
+        </nav>
+        <div className="flex items-center justify-end gap-4">
           <Button variant="ghost" className="hidden md:inline-flex font-medium text-foreground hover:text-primary hover:bg-primary/5" asChild>
             <Link href="/login">Sign In</Link>
           </Button>
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
             Register
-          </Button>
-          <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-accent/50 shadow-sm" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
-            <Globe className="h-4 w-4 mr-2" />
-            {language === 'en' ? 'العربية' : 'English'}
           </Button>
         </div>
       </header>
@@ -336,29 +337,22 @@ export default function Welcome() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Image side */}
-            <div className="stagger-fade relative rounded-2xl overflow-hidden shadow-xl h-full min-h-[400px] lg:min-h-[500px]">
-              <img src={`${import.meta.env.BASE_URL}brand/landing/ecosystem-agents.jpg`} alt="Ecosystem Agents" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent mix-blend-multiply"></div>
-            </div>
-            
-            {/* Agents List */}
-            <div ref={agentsRef} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {Object.entries(AGENTS).map(([key, name]) => {
+          <div className="stagger-fade rounded-3xl overflow-hidden shadow-2xl grid lg:grid-cols-5">
+            {/* Agents editorial list */}
+            <div ref={agentsRef} className="lg:col-span-3 bg-[#2a2825] text-white flex flex-col justify-center">
+              {Object.entries(AGENTS).map(([key, name], i) => {
                 const Icon = AGENT_ICONS[key] || Brain;
                 return (
-                  <motion.div 
+                  <div
                     key={key}
-                    whileHover={{ scale: 1.02 }}
-                    className="stagger-fade bg-background border border-border p-5 rounded-xl shadow-sm flex items-start gap-4 hover:border-primary/30 transition-colors"
+                    className={`stagger-fade group flex items-center gap-6 px-8 md:px-12 py-6 transition-colors hover:bg-white/5 ${i > 0 ? 'border-t border-white/10' : ''}`}
                   >
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary mt-0.5">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-base font-bold text-foreground mb-1">{name}</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
+                    <span className="text-sm font-mono text-primary/80 tracking-widest w-8 shrink-0">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-lg font-bold text-white group-hover:text-primary transition-colors">{name}</h4>
+                      <p className="text-sm text-white/60 leading-relaxed mt-0.5">
                         {key === 'coach' && 'Guides personal development and interprets assessment outcomes.'}
                         {key === 'advisor' && 'Recommends capability pathways based on federal role.'}
                         {key === 'practice' && 'Provides safe, simulated environments for skill application.'}
@@ -367,9 +361,18 @@ export default function Welcome() {
                         {key === 'concierge' && 'Navigates the platform and assists with inquiries.'}
                       </p>
                     </div>
-                  </motion.div>
+                    <div className="w-10 h-10 rounded-full border border-white/15 flex items-center justify-center shrink-0 text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                  </div>
                 )
               })}
+            </div>
+
+            {/* Image side */}
+            <div className="lg:col-span-2 relative min-h-[280px] lg:min-h-0">
+              <img src={`${import.meta.env.BASE_URL}brand/landing/ecosystem-agents.jpg`} alt="Ecosystem Agents" className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#2a2825]/60 via-transparent to-transparent"></div>
             </div>
           </div>
         </div>
@@ -420,8 +423,7 @@ export default function Welcome() {
       <section className="relative py-24 overflow-hidden border-b border-border">
         <div className="absolute inset-0">
           <img src={`${import.meta.env.BASE_URL}brand/landing/cta-band.jpg`} alt="Register Now" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/70 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/30"></div>
         </div>
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Ready to accelerate your AI journey?</h2>
