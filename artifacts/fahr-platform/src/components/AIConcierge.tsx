@@ -19,7 +19,7 @@ type Msg = { from: "agent" | "user"; text: string };
 
 const QUICK_ACTIONS = [
   { label: "Go to my dashboard", icon: LayoutDashboard, href: "/learner" },
-  { label: "Open my Development Mission", icon: Target, href: "/learner/mission" },
+  { label: "Open my Learning Pathway", icon: Target, href: "/learner/mission" },
   { label: "Open the Agentic AI Lab", icon: FlaskConical, href: "/learner/lab/twin" },
   { label: "View my certificates & points", icon: Award, href: "/learner/recognition" },
 ];
@@ -28,7 +28,7 @@ const CANNED: Record<string, string> = {
   default:
     "I can help you navigate the platform, explain how the programme works, or connect you with the FAHR support team. Try one of the quick actions below, or ask me anything.",
   pathway:
-    "Your personalised pathway is built by the AI Skills Advisor from your baseline assessment and role profile. It adapts as you complete missions — you can review it any time under Development Mission.",
+    "Your personalised pathway is built by the AI Skills Advisor from your baseline assessment and role profile. It adapts as you complete each step — you can review it any time under Learning Pathway.",
   certificate:
     "Certificates and badges you earn are stored in your Recognition wallet. Points contribute to your entity leaderboard position.",
   help:

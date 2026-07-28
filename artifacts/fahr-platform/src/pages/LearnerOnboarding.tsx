@@ -199,7 +199,7 @@ export default function LearnerOnboarding() {
                     <div>
                       <h2 className="text-xl font-bold text-foreground">What do you want AI to do for you?</h2>
                       <p className="text-sm text-muted-foreground">
-                        Choose as many as apply. Your mission will be weighted towards these outcomes.
+                        Choose as many as apply. Your learning pathway will be weighted towards these outcomes.
                       </p>
                     </div>
                   </div>

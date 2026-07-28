@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,7 @@ export default function FAHRGovernance() {
   ];
 
   const auditLogs = [
-    { time: "10 mins ago", user: "Aisha Al Mansoori", agent: "AI Skills Advisor", action: "Recommended Outcome Project", risk: "Low", status: "Approved" },
+    { time: "10 mins ago", user: "Aisha Al Mansoori", agent: "AI Skills Advisor", action: "Recommended Workplace Project", risk: "Low", status: "Approved" },
     { time: "1 hour ago", user: "Saeed M. (Admin)", agent: "AI Practice Partner", action: "Reviewed Project", risk: "Medium", status: "Pending Human Review" },
     { time: "2 hours ago", user: "Fatima A. (Admin)", agent: "Analytics Agent", action: "Generated Federal Report", risk: "Low", status: "Approved" },
     { time: "Yesterday", user: "System", agent: "AI Analytics Assistant", action: "Flagged Data Policy Warning (PII)", risk: "High", status: "Blocked" },
@@ -92,16 +93,18 @@ export default function FAHRGovernance() {
     <Layout role="fahr">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
         
-        <div className="mb-6 flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Governance & Infrastructure</h1>
-            <p className="text-muted-foreground">Manage AI guardrails, security policies, and token quotas</p>
-          </div>
-          <Button onClick={handleSavePolicies} disabled={isSaving} className="gap-2">
-            <Save className="w-4 h-4" />
-            {isSaving ? "Applying..." : "Apply Global Policies"}
-          </Button>
-        </div>
+        <PageHeader
+          tone="primary"
+          className="mb-6"
+          title="Governance & Infrastructure"
+          description="Manage AI guardrails, security policies, and token quotas"
+          actions={
+            <Button onClick={handleSavePolicies} disabled={isSaving} className="gap-2">
+              <Save className="w-4 h-4" />
+              {isSaving ? "Applying..." : "Apply Global Policies"}
+            </Button>
+          }
+        />
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* AI Behaviour Configuration */}

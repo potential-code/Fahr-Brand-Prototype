@@ -1,27 +1,29 @@
 import React from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bot, MessageSquare, Mic, User } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { AGENTS } from "@/lib/constants";
 
-export default function MultiInterfaceAgentExperience() {
+export default function AILearningCoach() {
   const { language } = useLanguage();
 
   return (
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full flex flex-col">
         
-        <div className="flex justify-between items-end border-b border-border pb-4">
-          <div>
-            <h1 className="text-2xl font-bold">{AGENTS.coach}</h1>
-            <p className="text-sm text-muted-foreground">Interact with your personal guide</p>
-          </div>
-          <div className="text-right" dir="rtl">
-             <p className="text-sm font-arabic text-primary">يمكنني مساعدتك في تحويل التعلم إلى مشروع عملي قابل للقياس.</p>
-          </div>
-        </div>
+        <PageHeader
+          bordered
+          title={AGENTS.coach}
+          description="Interact with your personal guide"
+          actions={
+            <div className="text-right" dir="rtl">
+              <p className="text-sm font-arabic text-primary">يمكنني مساعدتك في تحويل التعلم إلى مشروع عملي قابل للقياس.</p>
+            </div>
+          }
+        />
 
         <Tabs defaultValue="chat" className="flex-1 flex flex-col">
           <TabsList className="grid w-full grid-cols-3 max-w-md mb-6">
@@ -44,7 +46,7 @@ export default function MultiInterfaceAgentExperience() {
                       <Bot className="w-5 h-5 text-primary" />
                     </div>
                     <div className="bg-muted p-3 rounded-2xl rounded-tl-sm max-w-[80%]">
-                      I can help you turn this into an Outcome Project. Let's identify a campaign process that can be improved using AI.
+                      I can help you turn this into a Workplace Project. Let's identify a campaign process that can be improved using AI.
                     </div>
                   </div>
                 </CardContent>

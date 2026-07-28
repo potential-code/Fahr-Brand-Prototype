@@ -17,9 +17,9 @@ import LearnerDashboard from "@/pages/LearnerDashboard";
 import BaselineAssessment from "@/pages/BaselineAssessment";
 import AssessmentReport from "@/pages/AssessmentReport";
 import CoursePlayer from "@/pages/CoursePlayer";
-import DynamicCapabilityProfile from "@/pages/DynamicCapabilityProfile";
-import PersonalisedDevelopmentMission from "@/pages/PersonalisedDevelopmentMission";
-import MultiInterfaceAgentExperience from "@/pages/MultiInterfaceAgentExperience";
+import CapabilityProfile from "@/pages/CapabilityProfile";
+import PersonalisedLearningPathway from "@/pages/PersonalisedLearningPathway";
+import AILearningCoach from "@/pages/AILearningCoach";
 import AgenticAILabTwin from "@/pages/AgenticAILabTwin";
 import AgenticAILabProject from "@/pages/AgenticAILabProject";
 import AgenticAIEvaluation from "@/pages/AgenticAIEvaluation";
@@ -49,9 +49,9 @@ function Router() {
       <Route path="/learner/assessment/report" component={AssessmentReport} />
       <Route path="/learner/course/:courseId" component={CoursePlayer} />
       <Route path="/learner/community" component={Community} />
-      <Route path="/learner/profile" component={DynamicCapabilityProfile} />
-      <Route path="/learner/mission" component={PersonalisedDevelopmentMission} />
-      <Route path="/learner/agent" component={MultiInterfaceAgentExperience} />
+      <Route path="/learner/profile" component={CapabilityProfile} />
+      <Route path="/learner/mission" component={PersonalisedLearningPathway} />
+      <Route path="/learner/agent" component={AILearningCoach} />
       <Route path="/learner/lab/twin" component={AgenticAILabTwin} />
       <Route path="/learner/lab/project" component={AgenticAILabProject} />
       <Route path="/learner/evaluation" component={AgenticAIEvaluation} />

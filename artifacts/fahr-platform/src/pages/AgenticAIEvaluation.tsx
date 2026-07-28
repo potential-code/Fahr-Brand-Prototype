@@ -1,6 +1,7 @@
 import React from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,15 +21,17 @@ export default function AgenticAIEvaluation() {
   return (
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto w-full pb-12">
-        <div className="flex justify-between items-end mb-8 border-b border-border pb-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Outcome Project Evaluation</h1>
-            <p className="text-lg text-muted-foreground">AI-Assisted Public Health Campaign Brief Generator</p>
-          </div>
-          <Badge className="bg-green-50 text-green-700 border-green-200 text-sm py-1 px-3" variant="outline">
-            Evaluation Complete
-          </Badge>
-        </div>
+        <PageHeader
+          bordered
+          className="mb-8"
+          title="Workplace Project Evaluation"
+          description="AI-Assisted Public Health Campaign Brief Generator"
+          actions={
+            <Badge className="bg-green-50 text-green-700 border-green-200 text-sm py-1 px-3" variant="outline">
+              Evaluation Complete
+            </Badge>
+          }
+        />
 
         <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20 mb-8">
           <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">

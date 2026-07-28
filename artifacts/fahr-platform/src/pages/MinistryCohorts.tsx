@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,12 +46,13 @@ export default function MinistryCohorts() {
     <Layout role="ministry">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Cohorts & Programmes</h1>
-            <p className="text-muted-foreground">Manage learning batches and strategic pathways</p>
-          </div>
-          <div className="flex gap-2">
+        <PageHeader
+          tone="primary"
+          className="mb-2"
+          title="Cohorts & Programmes"
+          description="Manage learning batches and strategic pathways"
+          actions={
+            <>
             <Dialog open={composerOpen} onOpenChange={setComposerOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
@@ -94,8 +96,9 @@ export default function MinistryCohorts() {
             <Button onClick={() => toast({ title: "New Cohort", description: "Navigating to cohort builder..." })}>
               Create Cohort
             </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card>

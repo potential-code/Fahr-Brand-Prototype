@@ -70,8 +70,8 @@ type ChatStep =
 const SCRIPT: ChatStep[] = [
   {
     kind: "agent",
-    en: "Welcome Aisha. To personalise your development mission, I will ask a few quick questions. What does your role focus on day to day?",
-    ar: "مرحباً عائشة. لتخصيص مهمة التطوير الخاصة بك، سأطرح بعض الأسئلة السريعة. ما الذي يركز عليه دورك يومياً؟",
+    en: "Welcome Aisha. To personalise your learning pathway, I will ask a few quick questions. What does your role focus on day to day?",
+    ar: "مرحباً عائشة. لتخصيص مسار التعلم الخاص بك، سأطرح بعض الأسئلة السريعة. ما الذي يركز عليه دورك يومياً؟",
   },
   {
     kind: "user",
@@ -193,8 +193,8 @@ const SCRIPT: ChatStep[] = [
   },
   {
     kind: "agent",
-    en: "Based on this, I have generated your personalised Development Mission. We will close the gaps through applied, outcome-based blocks.",
-    ar: "بناءً على ذلك، أنشأت مهمة التطوير المخصصة لك. سنغلق الفجوات من خلال وحدات تطبيقية قائمة على النتائج.",
+    en: "Based on this, I have generated your Personalised Learning Pathway. We will close the gaps through applied, outcome-based blocks.",
+    ar: "بناءً على ذلك، أنشأت مسار التعلم الشخصي الخاص بك. سنغلق الفجوات من خلال وحدات تطبيقية قائمة على النتائج.",
   },
   {
     kind: "block",
@@ -230,16 +230,16 @@ const SCRIPT: ChatStep[] = [
     kind: "block",
     tag: { en: "OUTCOME", ar: "نتيجة" },
     title: {
-      en: "Ship a Campaign Brief Generator as your Outcome Project",
-      ar: "إطلاق مولّد موجز الحملات كمشروع نتائجك",
+      en: "Ship a Campaign Brief Generator as your Workplace Project",
+      ar: "إطلاق مولّد موجز الحملات كمشروعك التطبيقي",
     },
     icon: "outcome",
     status: "next",
   },
   {
     kind: "agent",
-    en: "Complete these blocks and apply them at work. I estimate this mission can save your team about 42 hours per month.",
-    ar: "أكملي هذه الوحدات وطبّقيها في العمل. أقدّر أن هذه المهمة يمكن أن توفر لفريقك حوالي 42 ساعة شهرياً.",
+    en: "Complete these blocks and apply them at work. I estimate this pathway can save your team about 42 hours per month.",
+    ar: "أكملي هذه الوحدات وطبّقيها في العمل. أقدّر أن هذا المسار يمكن أن يوفر لفريقك حوالي 42 ساعة شهرياً.",
   },
 ];
 
@@ -599,15 +599,15 @@ const JOURNEY: JourneyStage[] = [
   },
   {
     icon: GraduationCap,
-    title: { en: "Personalized Learning & Development Mission", ar: "تعلّم مخصّص ومهمة تطوير" },
+    title: { en: "Personalised Learning Pathway", ar: "مسار التعلم الشخصي" },
     desc: {
-      en: "AI creates a mission that adapts as you make progress.",
-      ar: "ينشئ الذكاء الاصطناعي مهمة تتكيّف مع تقدّمك.",
+      en: "AI creates a pathway that adapts as you make progress.",
+      ar: "ينشئ الذكاء الاصطناعي مساراً يتكيّف مع تقدّمك.",
     },
   },
   {
     icon: FlaskConical,
-    title: { en: "Experiential Learning & Outcome Projects", ar: "تعلّم تطبيقي ومشاريع بنتائج" },
+    title: { en: "Experiential Learning & Workplace Projects", ar: "تعلّم تطبيقي ومشاريع تطبيقية" },
     desc: {
       en: "Learn by doing. Build, experiment and solve real work challenges.",
       ar: "تعلّم بالممارسة. ابنِ وجرّب وحُلّ تحديات عمل حقيقية.",
@@ -623,7 +623,7 @@ const JOURNEY: JourneyStage[] = [
   },
   {
     icon: ClipboardCheck,
-    title: { en: "Assess & Validate", ar: "التقييم والتحقق" },
+    title: { en: "Assessment & Certification", ar: "التقييم والاعتماد" },
     desc: {
       en: "AI + Human evaluation of capabilities and outcomes.",
       ar: "تقييم بالذكاء الاصطناعي والعنصر البشري للقدرات والنتائج.",
@@ -704,8 +704,8 @@ export default function LearnerDashboard() {
               </h2>
               <p className="text-white/80 max-w-2xl text-sm leading-relaxed mb-4">
                 {language === "ar" 
-                  ? "يبدأ مسار تطوير الذكاء الاصطناعي الخاص بك بتقييم تشخيصي قصير. سيتعرف مستشار المهارات الذكي على دورك ويبني خطة تطوير مخصصة لك."
-                  : "Your Agentic AI development pathway starts with a short baseline assessment. The AI Skills Advisor will learn about your role and generate your personalized mission."}
+                  ? "يبدأ مسار تطوير الذكاء الاصطناعي الخاص بك بتقييم تشخيصي قصير. سيتعرف مستشار المهارات الذكي على دورك ويبني مسار تعلم شخصياً لك."
+                  : "Your Agentic AI development pathway starts with a short baseline assessment. The AI Skills Advisor will learn about your role and generate your Personalised Learning Pathway."}
               </p>
               <div className="flex gap-4">
                 <Button 
@@ -719,7 +719,7 @@ export default function LearnerDashboard() {
                   onClick={() => setLocation("/learner/mission")}
                   className="text-white border-white/30 hover:bg-white/10"
                 >
-                  {language === "ar" ? "متابعة المهمة" : "Continue Mission"}
+                  {language === "ar" ? "متابعة مسار التعلم" : "Continue Learning Pathway"}
                 </Button>
               </div>
             </div>
@@ -751,8 +751,8 @@ export default function LearnerDashboard() {
                   </h2>
                   <p className="text-xs text-muted-foreground">
                     {language === "ar"
-                      ? "محادثة مباشرة لتحديد الفجوات وبناء مهمتك"
-                      : "Live diagnostic — identifying your gaps and building your mission"}
+                      ? "محادثة مباشرة لتحديد الفجوات وبناء مسار تعلمك"
+                      : "Live diagnostic — identifying your gaps and building your learning pathway"}
                   </p>
                 </div>
               </div>
@@ -788,7 +788,7 @@ export default function LearnerDashboard() {
 
             <div className="flex justify-end mt-4">
               <Button onClick={() => setLocation("/learner/mission")} className="gap-2">
-                {language === "ar" ? "افتح مهمة التطوير" : "Open full Development Mission"}
+                {language === "ar" ? "افتح مسار التعلم الكامل" : "Open full Learning Pathway"}
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
@@ -831,7 +831,7 @@ export default function LearnerDashboard() {
                     <Target className="w-5 h-5 text-primary" />
                     <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-full">48%</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">Mission Progress</p>
+                  <p className="text-sm text-muted-foreground">Pathway Progress</p>
                   <p className="font-semibold line-clamp-1">AI-Powered Campaigns</p>
                 </div>
                 <Button variant="ghost" className="w-full justify-between mt-4 p-0 h-auto hover:bg-transparent text-primary">
@@ -863,7 +863,7 @@ export default function LearnerDashboard() {
                     <Zap className="w-5 h-5 text-accent" />
                     <span className="text-xs font-medium bg-accent/15 text-accent px-2 py-1 rounded-full">In Progress</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">Outcome Project</p>
+                  <p className="text-sm text-muted-foreground">Workplace Project</p>
                   <p className="font-semibold line-clamp-1">Campaign Brief Generator</p>
                 </div>
                 <Button variant="ghost" className="w-full justify-between mt-4 p-0 h-auto hover:bg-transparent text-accent">

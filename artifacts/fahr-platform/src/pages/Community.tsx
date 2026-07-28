@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -77,18 +78,18 @@ export default function Community() {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto w-full pb-12">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-primary mb-2">Federal AI Community</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl">
-              Connect with peers, share Agentic workflows, and track your ranking across the UAE government.
-            </p>
-          </div>
-          <Button size="lg" className="gap-2 shrink-0">
-            <MessageSquare className="w-5 h-5" />
-            Start a Discussion
-          </Button>
-        </div>
+        <PageHeader
+          tone="primary"
+          className="mb-4"
+          title="Federal AI Community"
+          description="Connect with peers, share Agentic workflows, and track your ranking across the UAE government."
+          actions={
+            <Button className="gap-2 shrink-0">
+              <MessageSquare className="w-4 h-4" />
+              Start a Discussion
+            </Button>
+          }
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           

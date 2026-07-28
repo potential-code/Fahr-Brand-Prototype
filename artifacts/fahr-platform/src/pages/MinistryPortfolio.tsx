@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -98,15 +99,16 @@ export default function MinistryPortfolio() {
     <Layout role="ministry">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Outcome Project Portfolio</h1>
-            <p className="text-muted-foreground">Ministry of Health and Prevention</p>
-          </div>
-          <Button onClick={() => toast({ title: "Challenge Wizard", description: "Opening AI Challenge creation tool..." })}>
-            Launch Ministry Challenge
-          </Button>
-        </div>
+        <PageHeader
+          className="mb-6"
+          title="Workplace Project Portfolio"
+          description="Ministry of Health and Prevention"
+          actions={
+            <Button onClick={() => toast({ title: "Challenge Wizard", description: "Opening AI Challenge creation tool..." })}>
+              Launch Ministry Challenge
+            </Button>
+          }
+        />
 
         <div className="grid grid-cols-1 gap-4">
           {projects.map((proj) => (

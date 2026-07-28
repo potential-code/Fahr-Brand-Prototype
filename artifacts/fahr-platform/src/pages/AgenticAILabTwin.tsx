@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -207,24 +208,23 @@ export default function AgenticAILabTwin() {
   return (
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto pb-12">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2 text-primary">
-              {isAr ? "المرحلة 1: ابنِ توأمك الرقمي الذكي" : "Stage 1: Build Your AI Digital Twin"}
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-3xl">
-              {isAr
-                ? "يفهم التوأم الرقمي لعائشة عملها اليومي، ويلتقط السياق، ويتعلم سير عملها، ويدعمها كمساعد ذكي موثوق."
-                : "Aisha's AI Digital Twin understands her day-to-day work, captures context, learns her workflows, and supports her as a trusted AI assistant."}
-            </p>
-          </div>
-          {done && (
-            <Button variant="outline" size="sm" onClick={replay} className="shrink-0 self-start">
-              <RotateCcw className="w-4 h-4 me-2" />
-              {isAr ? "إعادة البناء" : "Rebuild"}
-            </Button>
-          )}
-        </div>
+        <PageHeader
+          tone="primary"
+          title={isAr ? "المرحلة 1: ابنِ توأمك الرقمي الذكي" : "Stage 1: Build Your AI Digital Twin"}
+          description={
+            isAr
+              ? "يفهم التوأم الرقمي لعائشة عملها اليومي، ويلتقط السياق، ويتعلم سير عملها، ويدعمها كمساعد ذكي موثوق."
+              : "Aisha's AI Digital Twin understands her day-to-day work, captures context, learns her workflows, and supports her as a trusted AI assistant."
+          }
+          actions={
+            done && (
+              <Button variant="outline" size="sm" onClick={replay} className="shrink-0">
+                <RotateCcw className="w-4 h-4 me-2" />
+                {isAr ? "إعادة البناء" : "Rebuild"}
+              </Button>
+            )
+          }
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Build Canvas */}
@@ -454,7 +454,7 @@ export default function AgenticAILabTwin() {
           </Button>
         </div>
 
-        {/* Hand-off to the Outcome Project — the next stage of the journey */}
+        {/* Hand-off to the Workplace Project — the next stage of the journey */}
         {done && (
           <Card className="border-primary/30 bg-primary/5 mt-6">
             <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -464,8 +464,8 @@ export default function AgenticAILabTwin() {
                 </p>
                 <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
                   {isAr
-                    ? "استخدم توأمك الرقمي لتنفيذ مشروع نتائج حقيقي في إدارتك."
-                    : "Put your twin to work on a real Outcome Project in your department. That is what gets evaluated and recognised."}
+                    ? "استخدم توأمك الرقمي لتنفيذ مشروع تطبيقي حقيقي في إدارتك."
+                    : "Put your twin to work on a real Workplace Project in your department. That is what gets evaluated and recognised."}
                 </p>
               </div>
               <Button
@@ -474,7 +474,7 @@ export default function AgenticAILabTwin() {
                 onClick={() => setLocation("/learner/lab/project")}
                 data-testid="button-continue-project"
               >
-                {isAr ? "ابدأ مشروع النتائج" : "Start your Outcome Project"}
+                {isAr ? "ابدأ مشروعك التطبيقي" : "Start your Workplace Project"}
                 <ArrowRight className="ms-2 w-4 h-4" />
               </Button>
             </CardContent>

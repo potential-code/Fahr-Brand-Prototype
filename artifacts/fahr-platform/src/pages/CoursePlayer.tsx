@@ -383,7 +383,7 @@ export default function CoursePlayer() {
                 <FileText className="h-3.5 w-3.5" /> {course.moduleCount} modules
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Target className="h-3.5 w-3.5" /> Counts towards your Development Mission
+                <Target className="h-3.5 w-3.5" /> Counts towards your Learning Pathway
               </span>
             </div>
           </div>
@@ -566,7 +566,7 @@ export default function CoursePlayer() {
                               onClick={() => setLocation("/learner/mission")}
                               data-testid="button-continue-mission"
                             >
-                              Continue your Development Mission <ArrowRight className="h-4 w-4 ml-2" />
+                              Continue your Learning Pathway <ArrowRight className="h-4 w-4 ml-2" />
                             </Button>
                           </div>
                         </div>

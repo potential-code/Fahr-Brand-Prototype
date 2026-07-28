@@ -67,7 +67,7 @@ export default function Login() {
               Welcome back to your <br /><span className="text-primary">Agentic AI workspace</span>
             </h1>
             <p className="text-lg text-white/80 leading-relaxed">
-              Continue your development mission, collaborate with your AI agents, and track your capability progress across the federal ecosystem.
+              Continue your personalised learning pathway, collaborate with your AI agents, and track your capability progress across the federal ecosystem.
             </p>
           </motion.div>
         </div>

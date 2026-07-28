@@ -17,7 +17,7 @@ const NOTIFICATIONS = [
   },
   {
     title: "New adaptive module added",
-    body: "Stakeholder Alignment with AI was added to your mission.",
+    body: "Stakeholder Alignment with AI was added to your learning pathway.",
     time: "Yesterday",
     href: "/learner/mission",
   },
@@ -53,8 +53,8 @@ export function Layout({ children, role }: { children: React.ReactNode, role: Ro
           { href: "/learner/mission", label: t("nav.mission"), icon: Target },
           { href: "/learner/agent", label: t("nav.agent"), icon: Bot },
           { href: "/learner/lab/twin", label: t("nav.lab"), icon: FlaskConical },
-          { href: "/learner/lab/project", label: "Outcome Project", icon: Rocket },
-          { href: "/learner/evaluation", label: "Assess & Validate", icon: BadgeCheck },
+          { href: "/learner/lab/project", label: "Workplace Project", icon: Rocket },
+          { href: "/learner/evaluation", label: "Assessment & Certification", icon: BadgeCheck },
           { href: "/learner/recognition", label: t("nav.recognition"), icon: Award },
           { href: "/learner/community", label: "Community", icon: Users },
         ];

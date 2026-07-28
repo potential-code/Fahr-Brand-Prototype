@@ -1,5 +1,6 @@
 import React from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,21 +60,22 @@ export default function LeadershipDashboard() {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* Page Header */}
-        <div className="flex justify-between items-end border-b border-border pb-6">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">National Workforce Readiness</h1>
-            <p className="text-muted-foreground mt-1">Federal Leadership Consolidated View</p>
-          </div>
-          <Button 
-            variant="outline" 
-            onClick={() => toast({ 
-              title: "Executive Brief Downloading", 
-              description: "Q3 2026 national readiness report prepared." 
-            })}
-          >
-            Download Executive Brief
-          </Button>
-        </div>
+        <PageHeader
+          bordered
+          title="National Workforce Readiness"
+          description="Federal Leadership Consolidated View"
+          actions={
+            <Button
+              variant="outline"
+              onClick={() => toast({
+                title: "Executive Brief Downloading",
+                description: "Q3 2026 national readiness report prepared."
+              })}
+            >
+              Download Executive Brief
+            </Button>
+          }
+        />
 
         {/* Strategic KPI Band */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

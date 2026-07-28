@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,17 +76,17 @@ export default function ManagerDashboard() {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto w-full pb-12">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-primary mb-2">Team Readiness Dashboard</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl">
-              Monitor your team's progression through the federal Agentic AI capability ladder.
-            </p>
-          </div>
-          <Button variant="outline" className="gap-2 shrink-0 bg-background" onClick={() => handleAction("Generate Report", "Team")}>
-            <TrendingUp className="w-4 h-4" /> Generate Department Report
-          </Button>
-        </div>
+        <PageHeader
+          tone="primary"
+          className="mb-4"
+          title="Team Readiness Dashboard"
+          description="Monitor your team's progression through the federal Agentic AI capability ladder."
+          actions={
+            <Button variant="outline" className="gap-2 shrink-0 bg-background" onClick={() => handleAction("Generate Report", "Team")}>
+              <TrendingUp className="w-4 h-4" /> Generate Department Report
+            </Button>
+          }
+        />
 
         {/* Top KPI Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,15 +102,17 @@ export default function FAHRDashboard() {
     <Layout role="fahr">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        <div className="mb-2 flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Federal Executive View</h1>
-            <p className="text-muted-foreground">Workforce Readiness & Drill-Down</p>
-          </div>
-          <Button variant="outline" onClick={() => toast({ title: "Report Exported", description: "Current view data is downloading." })}>
-            Export Current View
-          </Button>
-        </div>
+        <PageHeader
+          tone="primary"
+          className="mb-2"
+          title="Federal Executive View"
+          description="Workforce Readiness & Drill-Down"
+          actions={
+            <Button variant="outline" onClick={() => toast({ title: "Report Exported", description: "Current view data is downloading." })}>
+              Export Current View
+            </Button>
+          }
+        />
 
         {renderBreadcrumbs()}
 
@@ -365,7 +368,7 @@ export default function FAHRDashboard() {
                       <span className="font-bold">{selectedIndividual.score}%</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Outcome Projects</span>
+                      <span className="text-muted-foreground">Workplace Projects</span>
                       <span className="font-bold">{selectedIndividual.projects}</span>
                     </div>
                   </div>

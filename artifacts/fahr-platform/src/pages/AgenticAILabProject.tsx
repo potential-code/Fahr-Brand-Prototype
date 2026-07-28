@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +26,7 @@ export default function AgenticAILabProject() {
     setStatus("Submitted");
     toast({
       title: "Project Submitted",
-      description: "Your outcome project has been submitted for human review and AI evaluation.",
+      description: "Your workplace project has been submitted for human review and AI evaluation.",
     });
   };
 
@@ -42,15 +43,18 @@ export default function AgenticAILabProject() {
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto w-full pb-12">
         
-        <div className="mb-8 flex justify-between items-end border-b border-border pb-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2 text-primary">Stage 2: Build an Outcome Project</h1>
-            <p className="text-lg text-muted-foreground">Apply your new AI capability to a real workplace challenge.</p>
-          </div>
-          <Badge variant="outline" className={`text-sm py-1 px-3 ${status === 'Submitted' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-primary/5 text-primary border-primary/20'}`}>
-            {status} Status
-          </Badge>
-        </div>
+        <PageHeader
+          bordered
+          tone="primary"
+          className="mb-8"
+          title="Stage 2: Build a Workplace Project"
+          description="Apply your new AI capability to a real workplace challenge."
+          actions={
+            <Badge variant="outline" className={`text-sm py-1 px-3 ${status === 'Submitted' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-primary/5 text-primary border-primary/20'}`}>
+              {status} Status
+            </Badge>
+          }
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="md:col-span-2">

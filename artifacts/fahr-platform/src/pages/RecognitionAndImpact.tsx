@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,23 +49,23 @@ export default function RecognitionAndImpact() {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto w-full pb-12">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-primary mb-2">Recognition & Impact</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl">
-              Your verified credentials, capabilities, and the tangible value you've created across the federal government.
-            </p>
-          </div>
-          <div className="flex gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-sm">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-accent/15 text-accent">
-              <Star className="w-6 h-6 fill-current" />
+        <PageHeader
+          tone="primary"
+          className="mb-8"
+          title="Recognition & Impact"
+          description="Your verified credentials, capabilities, and the tangible value you've created across the federal government."
+          actions={
+            <div className="flex gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-sm">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-accent/15 text-accent">
+                <Star className="w-6 h-6 fill-current" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Total Impact Points</p>
+                <p className="text-2xl font-bold text-foreground">13,200</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Total Impact Points</p>
-              <p className="text-2xl font-bold text-foreground">13,200</p>
-            </div>
-          </div>
-        </div>
+          }
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Credentials Wallet */}

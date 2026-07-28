@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ const KNOWLEDGE_CHECK = [
 type StepStatus = "completed" | "in-progress" | "recommended" | "locked";
 type StepType = "Learn" | "Watch" | "Practice" | "Simulate" | "Build" | "Apply" | "Adaptive";
 
-interface MissionStep {
+interface PathwayStep {
   id: string;
   type: StepType;
   title: string;
@@ -50,20 +51,20 @@ interface MissionStep {
   description?: string;
 }
 
-const INITIAL_STEPS: MissionStep[] = [
+const INITIAL_STEPS: PathwayStep[] = [
   { id: "s1", type: "Watch", title: "AI Campaign Planning in Public Sector Context", status: "completed" },
   { id: "s2", type: "Learn", title: "Responsible AI for Government Communications", status: "completed" },
   { id: "s3", type: "Practice", title: "Generate a campaign brief with AI", status: "in-progress" },
   { id: "s4", type: "Simulate", title: "Respond to misinformation in a public health campaign", status: "recommended", description: "Role-play assessment" },
   { id: "s5", type: "Build", title: "Configure your AI Digital Twin", status: "locked" },
-  { id: "s6", type: "Apply", title: "Create an Outcome Project for your department", status: "locked" },
+  { id: "s6", type: "Apply", title: "Create a Workplace Project for your department", status: "locked" },
 ];
 
-export default function PersonalisedDevelopmentMission() {
+export default function PersonalisedLearningPathway() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { result, getCoursePercent } = useLearnerProgress();
-  const [steps, setSteps] = useState<MissionStep[]>(INITIAL_STEPS);
+  const [steps, setSteps] = useState<PathwayStep[]>(INITIAL_STEPS);
   const [activeStep, setActiveStep] = useState<string | null>(null);
   const [hasAdapted, setHasAdapted] = useState(false);
 
@@ -106,7 +107,7 @@ export default function PersonalisedDevelopmentMission() {
     if (stepId === "s4" && !hasAdapted) {
       setHasAdapted(true);
       toast({
-        title: "Mission Adapted",
+        title: "Pathway Adapted",
         description: "Your AI Practice Partner noted a gap in stakeholder communication. A new module has been added to your pathway.",
       });
       // Add adaptive step before build step
@@ -390,7 +391,7 @@ export default function PersonalisedDevelopmentMission() {
           <DialogContent className="sm:max-w-[560px]">
             <DialogHeader>
               <DialogTitle>{step.title}</DialogTitle>
-              <DialogDescription>{isBuild ? "Agentic AI Lab" : "Outcome Project"}</DialogDescription>
+              <DialogDescription>{isBuild ? "Agentic AI Lab" : "Workplace Project"}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
@@ -402,7 +403,7 @@ export default function PersonalisedDevelopmentMission() {
                 <p className="text-sm text-foreground leading-relaxed">
                   {isBuild
                     ? "This step happens in the Agentic AI Lab. You will configure your Digital Twin with your role knowledge, tone and governance guardrails, then test its responses."
-                    : "This step is your Outcome Project: a real deliverable for your department, evaluated by AI and confirmed by your line manager."}
+                    : "This step is your Workplace Project: a real deliverable for your department, evaluated by AI and confirmed by your line manager."}
                 </p>
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground">
@@ -425,7 +426,7 @@ export default function PersonalisedDevelopmentMission() {
                 onClick={() => setLocation(isBuild ? "/learner/lab/twin" : "/learner/lab/project")}
                 data-testid={`button-open-${isBuild ? "twin" : "project"}`}
               >
-                {isBuild ? "Open the Agentic AI Lab" : "Open my Outcome Project"}
+                {isBuild ? "Open the Agentic AI Lab" : "Open my Workplace Project"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </DialogFooter>
@@ -441,10 +442,11 @@ export default function PersonalisedDevelopmentMission() {
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto w-full pb-12">
         
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Your Development Mission</h1>
-          <h2 className="text-xl text-muted-foreground">AI-Powered Public Health Campaigns</h2>
-        </div>
+        <PageHeader
+          className="mb-8"
+          title="Your Personalised Learning Pathway"
+          description="AI-Powered Public Health Campaigns"
+        />
 
         {/* Courses carried in from the baseline assessment */}
         {recommendedCourses.length > 0 && result && (
@@ -455,7 +457,7 @@ export default function PersonalisedDevelopmentMission() {
                   <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" /> From your baseline assessment
                   </p>
-                  <h2 className="text-lg font-bold">Courses feeding this mission</h2>
+                  <h2 className="text-lg font-bold">Courses feeding this pathway</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">
                     Matched to your priority gap: {COMPETENCY_BY_ID[result.gaps[0]].label}
                   </p>

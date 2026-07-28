@@ -366,7 +366,7 @@ export const COURSES: Course[] = [
             duration: "5 min",
             body: [
               "Capability comes from repetition, not from a single course. Pick one recurring task this week, run it through AI, and time both the drafting and the review.",
-              "Log what you saved and what you had to correct. That log becomes the evidence base for your Development Mission and your Outcome Project.",
+              "Log what you saved and what you had to correct. That log becomes the evidence base for your Personalised Learning Pathway and your Workplace Project.",
             ],
           },
         ],

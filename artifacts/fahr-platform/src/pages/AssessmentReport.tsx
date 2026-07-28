@@ -219,7 +219,7 @@ export default function AssessmentReport() {
               <h2 className="text-xl font-bold text-foreground">Your recommended courses</h2>
               <p className="mt-1.5 text-sm text-muted-foreground">
                 Selected for your role, seniority and the gaps above. Completing these feeds directly into your
-                Personalised Development Mission.
+                Personalised Learning Pathway.
               </p>
             </div>
             <Badge variant="secondary" className="rounded-full">
@@ -299,7 +299,7 @@ export default function AssessmentReport() {
           <div>
             <p className="text-sm font-semibold text-foreground">Ready to begin?</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Your Development Mission has been rebuilt around this report.
+              Your Personalised Learning Pathway has been rebuilt around this report.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -310,7 +310,7 @@ export default function AssessmentReport() {
               <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
             </Button>
             <Button onClick={() => setLocation("/learner/mission")} data-testid="button-mission">
-              View Development Mission <ArrowRight className="h-4 w-4 ml-2" />
+              View Learning Pathway <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
         </div>

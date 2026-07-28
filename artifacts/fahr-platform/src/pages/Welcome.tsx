@@ -300,7 +300,7 @@ export default function Welcome() {
             <h2 className="text-sm font-bold text-primary tracking-wider uppercase mb-2">Tailored Pathways</h2>
             <h3 className="text-3xl md:text-5xl font-bold text-foreground">Select Your Federal Role</h3>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experience personalized AI development missions, dashboards, and capabilities customized for your specific mandate within the UAE Government.
+              Experience personalised AI learning pathways, dashboards, and capabilities customized for your specific mandate within the UAE Government.
             </p>
           </div>
 
@@ -382,7 +382,7 @@ export default function Welcome() {
             <div className="rounded-3xl overflow-hidden shadow-xl border border-border/60 bg-white">
               <img
                 src={`${import.meta.env.BASE_URL}brand/learner-journey.png`}
-                alt="The six-stage FAHR learner journey: Onboarding and Profiling, Personalized Learning and Development Mission, Experiential Learning and Outcome Projects, Build and Train Digital Twin, Assess and Validate, and Recognition and Impact."
+                alt="Diagram of the six-stage FAHR learner journey, running from onboarding and profiling through to recognition and measurable impact."
                 className="w-full h-auto block"
                 loading="lazy"
                 data-testid="img-learner-journey"

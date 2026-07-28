@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -51,20 +52,22 @@ export default function MinistryDashboard() {
   return (
     <Layout role="ministry">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Ministry of Health and Prevention</h1>
-            <p className="text-muted-foreground">Ministry Admin Dashboard</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => toast({ title: "Report Generating", description: "Capability gap report is being generated." })}>
-              View Capability Gaps
-            </Button>
-            <Button onClick={() => setLocation('/ministry/portfolio')}>
-              Review Projects (12)
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          tone="primary"
+          className="mb-2"
+          title="Ministry of Health and Prevention"
+          description="Ministry Admin Dashboard"
+          actions={
+            <>
+              <Button variant="outline" onClick={() => toast({ title: "Report Generating", description: "Capability gap report is being generated." })}>
+                View Capability Gaps
+              </Button>
+              <Button onClick={() => setLocation('/ministry/portfolio')}>
+                Review Projects (12)
+              </Button>
+            </>
+          }
+        />
 
         {/* AI Analytics Assistant Panel */}
         <Card className="bg-primary/5 border-primary/20">
@@ -131,7 +134,7 @@ export default function MinistryDashboard() {
                     <span className="font-semibold text-sm">Action Recommended</span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
-                    12 Outcome Projects from Digital Health are pending review. They have High impact potential for Patient Services.
+                    12 Workplace Projects from Digital Health are pending review. They have High impact potential for Patient Services.
                   </p>
                 </div>
                 <Button 

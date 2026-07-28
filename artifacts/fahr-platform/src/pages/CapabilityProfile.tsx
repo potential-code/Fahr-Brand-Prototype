@@ -1,6 +1,7 @@
 import React from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ const PAST_ASSESSMENTS = [
   { id: "a1", label: "First baseline assessment", date: "3 February 2026", score: 28, level: "Aware" },
 ];
 
-export default function DynamicCapabilityProfile() {
+export default function CapabilityProfile() {
   const { language } = useLanguage();
   const [, setLocation] = useLocation();
   const { result } = useLearnerProgress();
@@ -49,19 +50,18 @@ export default function DynamicCapabilityProfile() {
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border pb-4">
-          <div className="flex items-center gap-3">
-            <Bot className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">Dynamic Capability Profile</h1>
-              <p className="text-sm text-muted-foreground">Generated and continuously updated by your {AGENTS.advisor}</p>
+        <PageHeader
+          bordered
+          icon={<Bot className="w-8 h-8 text-primary" />}
+          title="Capability Profile"
+          description={`Generated and continuously updated by your ${AGENTS.advisor}`}
+          actions={
+            <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-2 text-right">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Current Level</p>
+              <p className="text-lg font-bold text-primary">{CAPABILITY_LEVELS[1].label}</p>
             </div>
-          </div>
-          <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-2 text-right">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Current Level</p>
-            <p className="text-lg font-bold text-primary">{CAPABILITY_LEVELS[1].label}</p>
-          </div>
-        </div>
+          }
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -227,7 +227,7 @@ export default function DynamicCapabilityProfile() {
                   <h3 className="font-semibold">{AGENTS.advisor} Explanation</h3>
                 </div>
                 <p className="text-sm leading-relaxed text-foreground/80 mb-4">
-                  Based on your role and current mission, I recommend focusing on AI-assisted campaign planning and reporting automation. These are most likely to create measurable value for your department.
+                  Based on your role and current learning pathway, I recommend focusing on AI-assisted campaign planning and reporting automation. These are most likely to create measurable value for your department.
                 </p>
                 <div className="p-4 bg-white rounded-lg border border-primary/10 shadow-sm relative overflow-hidden" dir="rtl">
                   <div className="absolute top-0 right-0 w-1 h-full bg-accent"></div>
