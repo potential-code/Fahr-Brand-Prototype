@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe, ArrowRight, Brain, Target, Shield, Users, BarChart, GraduationCap, Microscope, CheckCircle2, ChevronRight } from "lucide-react";
-import { AIConcierge } from "@/components/AIConcierge";
 import { AGENTS, STAKEHOLDERS } from "@/lib/constants";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -189,20 +188,27 @@ export default function Welcome() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col font-sans overflow-hidden">
+    <div className="min-h-[100dvh] bg-background flex flex-col font-sans overflow-x-clip">
       {/* Header */}
-      <header className="absolute top-0 w-full p-6 flex justify-between items-center z-50 transition-all duration-300">
-        <div className="bg-white rounded-md px-2.5 py-1.5 drop-shadow-sm">
-          <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-8 md:h-10 object-contain" />
+      <header className="sticky top-0 w-full px-6 py-4 flex justify-between items-center z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm transition-all duration-300">
+        <div className="flex items-center gap-8">
+          <div className="bg-white rounded-md px-2.5 py-1.5 drop-shadow-sm cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} role="button" tabIndex={0} onKeyDown={(e) => { if(e.key==='Enter') window.scrollTo({top: 0, behavior: 'smooth'}); }}>
+            <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-8 md:h-10 object-contain" />
+          </div>
+          <nav className="hidden lg:flex items-center gap-6">
+            <button onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">Pathways</button>
+            <button onClick={() => document.getElementById('ecosystem')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">Ecosystem</button>
+            <button onClick={() => document.getElementById('lab')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-foreground hover:text-primary transition-colors">AI Lab</button>
+          </nav>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" className="text-white hover:bg-white/10 hidden md:inline-flex font-medium" asChild>
+          <Button variant="ghost" className="hidden md:inline-flex font-medium text-foreground hover:text-primary hover:bg-primary/5" asChild>
             <Link href="/login">Sign In</Link>
           </Button>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" asChild>
-            <Link href="/signup">Register</Link>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
+            Register
           </Button>
-          <Button variant="outline" size="sm" className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20 shadow-sm" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
+          <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-accent/50 shadow-sm" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
             <Globe className="h-4 w-4 mr-2" />
             {language === 'en' ? 'العربية' : 'English'}
           </Button>
@@ -210,13 +216,13 @@ export default function Welcome() {
       </header>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative h-[90vh] md:h-screen w-full flex items-center justify-center overflow-hidden">
+      <section ref={heroRef} className="relative h-[90vh] md:h-[calc(100vh-73px)] w-full flex items-center justify-center overflow-hidden">
         <motion.div 
           className="absolute inset-0 w-full h-full"
           style={{ y: heroY }}
         >
           <div className="absolute inset-0 bg-black/45 z-10"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-background z-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/70 z-20"></div>
           <img 
             src={`${import.meta.env.BASE_URL}brand/landing/hero-bg.jpg`} 
             alt="AI Hero" 
@@ -224,7 +230,7 @@ export default function Welcome() {
           />
         </motion.div>
         
-        <div ref={textRef} className="relative z-30 flex flex-col items-center text-center px-6 max-w-5xl mt-16">
+        <div ref={textRef} className="relative z-30 flex flex-col items-center text-center px-6 max-w-5xl">
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -241,7 +247,7 @@ export default function Welcome() {
             Equipping 80,000 federal employees with the practical capability, confidence, and responsible workflows required for an Agentic AI-enabled government.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 h-auto shadow-md hover-elevate" onClick={() => document.getElementById('stakeholders')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 h-auto shadow-md hover-elevate" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
               Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" className="text-white border-white/40 hover:bg-white/10 text-lg px-8 py-6 h-auto bg-white/5 backdrop-blur-sm shadow-sm hover-elevate" asChild>
@@ -252,7 +258,7 @@ export default function Welcome() {
       </section>
 
       {/* Stakeholders Section */}
-      <section id="stakeholders" className="py-24 bg-background relative z-30">
+      <section id="pathways" className="py-24 bg-background relative z-30">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16 stagger-fade">
             <h2 className="text-sm font-bold text-primary tracking-wider uppercase mb-2">Tailored Pathways</h2>
@@ -263,13 +269,20 @@ export default function Welcome() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {STAKEHOLDERS.map((stakeholder, index) => {
+            {STAKEHOLDERS.map((stakeholder) => {
               const imageMap: Record<string, string> = {
                 "learner": "stakeholder-learner.jpg",
                 "manager": "stakeholder-manager.jpg",
                 "entity": "stakeholder-entity.jpg",
                 "fahr-team": "stakeholder-fahr.jpg",
                 "leadership": "stakeholder-leadership.jpg",
+              };
+              const roleDescriptions: Record<string, string> = {
+                "learner": "Master AI tools for daily productivity.",
+                "manager": "Lead AI-driven team transformation.",
+                "entity": "Administer department-wide adoption.",
+                "fahr-team": "Manage national AI program operations.",
+                "leadership": "Drive strategic AI vision and ROI."
               };
               const bgImage = `${import.meta.env.BASE_URL}brand/landing/${imageMap[stakeholder.id]}`;
               
@@ -291,10 +304,17 @@ export default function Welcome() {
                   <div className="absolute inset-0 bg-black/20 group-hover:scale-105 transition-transform duration-700">
                     <img src={bgImage} alt={stakeholder.title} className="w-full h-full object-cover opacity-100" />
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 p-6 w-full flex flex-col items-start text-left z-10">
-                    <h4 className="text-white font-bold text-xl mb-2 leading-snug">{stakeholder.title}</h4>
-                    <span className="inline-flex items-center text-primary text-sm font-semibold opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    <h4 className="text-white font-bold text-xl mb-1 leading-snug">{stakeholder.title}</h4>
+                    <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] group-focus-within:grid-rows-[1fr] focus-visible:grid-rows-[1fr] transition-all duration-300 ease-out w-full opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
+                      <div className="overflow-hidden">
+                        <p className="text-white/80 text-sm pt-1 pb-1">
+                          {roleDescriptions[stakeholder.id as keyof typeof roleDescriptions]}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center text-primary text-sm font-semibold transition-colors mt-2">
                       Access Portal <ChevronRight className="w-4 h-4 ml-1" />
                     </span>
                   </div>
@@ -306,42 +326,47 @@ export default function Welcome() {
       </section>
 
       {/* Agents Ecosystem Section */}
-      <section className="py-24 bg-white border-y border-border">
+      <section id="ecosystem" className="py-24 bg-white border-y border-border">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row gap-16 items-center">
-            <div className="lg:w-1/3 stagger-fade">
-              <h2 className="text-sm font-bold text-primary tracking-wider uppercase mb-2">The Capability Ecosystem</h2>
-              <h3 className="text-3xl md:text-5xl font-bold text-foreground mb-6">Powered by Six AI Agents</h3>
-              <p className="text-lg text-muted-foreground mb-8">
-                Move beyond static courses. Our integrated suite of specialised AI agents provides continuous coaching, dynamic content generation, and real-time evaluation embedded in the flow of work.
-              </p>
-              <Button variant="outline" className="group">
-                Discover the Agents
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
+          <div className="text-center mb-16 stagger-fade">
+            <h2 className="text-sm font-bold text-primary tracking-wider uppercase mb-2">The Capability Ecosystem</h2>
+            <h3 className="text-3xl md:text-5xl font-bold text-foreground">Powered by Six AI Agents</h3>
+            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              Move beyond static courses. Our integrated suite of specialised AI agents provides continuous coaching, dynamic content generation, and real-time evaluation embedded in the flow of work.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Image side */}
+            <div className="stagger-fade relative rounded-2xl overflow-hidden shadow-xl h-full min-h-[400px] lg:min-h-[500px]">
+              <img src={`${import.meta.env.BASE_URL}brand/landing/ecosystem-agents.jpg`} alt="Ecosystem Agents" className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent mix-blend-multiply"></div>
             </div>
             
-            <div ref={agentsRef} className="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.entries(AGENTS).map(([key, name], i) => {
+            {/* Agents List */}
+            <div ref={agentsRef} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Object.entries(AGENTS).map(([key, name]) => {
                 const Icon = AGENT_ICONS[key] || Brain;
                 return (
                   <motion.div 
                     key={key}
                     whileHover={{ scale: 1.02 }}
-                    className="stagger-fade bg-card border border-border p-6 rounded-2xl shadow-sm flex flex-col h-full"
+                    className="stagger-fade bg-background border border-border p-5 rounded-xl shadow-sm flex items-start gap-4 hover:border-primary/30 transition-colors"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
-                      <Icon className="w-6 h-6" />
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary mt-0.5">
+                      <Icon className="w-5 h-5" />
                     </div>
-                    <h4 className="text-lg font-bold text-card-foreground mb-2">{name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {key === 'coach' && 'Guides personal development and interprets assessment outcomes.'}
-                      {key === 'advisor' && 'Recommends capability pathways based on federal role.'}
-                      {key === 'practice' && 'Provides safe, simulated environments for skill application.'}
-                      {key === 'content' && 'Dynamically generates tailored learning scenarios.'}
-                      {key === 'analytics' && 'Delivers workforce intelligence to leadership.'}
-                      {key === 'concierge' && 'Navigates the platform and assists with inquiries.'}
-                    </p>
+                    <div>
+                      <h4 className="text-base font-bold text-foreground mb-1">{name}</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {key === 'coach' && 'Guides personal development and interprets assessment outcomes.'}
+                        {key === 'advisor' && 'Recommends capability pathways based on federal role.'}
+                        {key === 'practice' && 'Provides safe, simulated environments for skill application.'}
+                        {key === 'content' && 'Dynamically generates tailored learning scenarios.'}
+                        {key === 'analytics' && 'Delivers workforce intelligence to leadership.'}
+                        {key === 'concierge' && 'Navigates the platform and assists with inquiries.'}
+                      </p>
+                    </div>
                   </motion.div>
                 )
               })}
@@ -351,7 +376,7 @@ export default function Welcome() {
       </section>
 
       {/* Lab / Digital Twin Section */}
-      <section className="py-24 bg-background text-foreground relative overflow-hidden border-b border-border">
+      <section id="lab" className="py-24 bg-background text-foreground relative overflow-hidden border-b border-border">
         <div className="absolute inset-0 opacity-40">
            <img src={`${import.meta.env.BASE_URL}brand/landing/section-lab.jpg`} alt="Lab Background" className="w-full h-full object-cover mix-blend-overlay" />
            <div className="absolute inset-0 bg-gradient-to-br from-background via-background/90 to-background/50"></div>
@@ -391,23 +416,72 @@ export default function Welcome() {
         </div>
       </section>
 
+      {/* Pre-footer CTA */}
+      <section className="relative py-24 overflow-hidden border-b border-border">
+        <div className="absolute inset-0">
+          <img src={`${import.meta.env.BASE_URL}brand/landing/cta-band.jpg`} alt="Register Now" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/70 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/60"></div>
+        </div>
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Ready to accelerate your AI journey?</h2>
+          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+            Join the UAE's unified platform for artificial intelligence capability building.
+          </p>
+          <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 h-auto shadow-md hover-elevate" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>
+            Register for Access
+          </Button>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="bg-[#2a2825] text-white py-14">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-4">
-             <div className="bg-white rounded-md px-2.5 py-1.5">
-               <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-9 object-contain" />
-             </div>
-             <div className="h-8 w-px bg-white/20"></div>
-             <p className="text-sm text-white/70">Federal Authority for Government Human Resources</p>
+      <footer className="bg-[#2a2825] text-white py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div className="col-span-1 md:col-span-1">
+               <div className="bg-white rounded-md px-2.5 py-1.5 inline-block mb-6">
+                 <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 object-contain" />
+               </div>
+               <p className="text-sm text-white/70 max-w-xs leading-relaxed">
+                 Empowering government employees with the capabilities required for an AI-enabled future.
+               </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-white mb-4">Platform</h4>
+              <ul className="space-y-3 text-sm text-white/70">
+                <li><button onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors">Pathways</button></li>
+                <li><button onClick={() => document.getElementById('ecosystem')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors">AI Agents</button></li>
+                <li><button onClick={() => document.getElementById('lab')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors">AI Lab</button></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-white mb-4">Stakeholders</h4>
+              <ul className="space-y-3 text-sm text-white/70">
+                <li><button className="hover:text-white transition-colors" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>Federal Learners</button></li>
+                <li><button className="hover:text-white transition-colors" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>Department Managers</button></li>
+                <li><button className="hover:text-white transition-colors" onClick={() => document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' })}>Executive Leadership</button></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-white mb-4">Resources</h4>
+              <ul className="space-y-3 text-sm text-white/70">
+                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact Support</a></li>
+              </ul>
+            </div>
           </div>
-          <div className="text-sm text-white/50">
-            &copy; {new Date().getFullYear()} UAE Government. All rights reserved.
+          
+          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-white/50">
+              &copy; {new Date().getFullYear()} UAE Government. All rights reserved.
+            </div>
           </div>
         </div>
       </footer>
-
-      <AIConcierge />
 
       {/* Registration Modal */}
       <Dialog open={isRegModalOpen} onOpenChange={setIsRegModalOpen}>
@@ -454,7 +528,7 @@ export default function Welcome() {
                   {renderRegistrationFields()}
                 </div>
                 <div className="flex justify-end gap-3 pt-4 border-t border-border">
-                  <Button type="button" variant="outline" onClick={() => setIsRegModalOpen(false)} className="hover:bg-black/5 border-border">Cancel</Button>
+                  <Button type="button" variant="outline" onClick={() => setIsRegModalOpen(false)} className="hover:bg-black/5 border-border text-foreground">Cancel</Button>
                   <Button type="submit" disabled={isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[120px] shadow-sm">
                     {isSubmitting ? "Provisioning..." : "Access Platform"}
                   </Button>

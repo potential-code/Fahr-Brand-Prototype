@@ -34,7 +34,7 @@ export default function Signup() {
   return (
     <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background">
       {/* Left side - Visuals */}
-      <div className="hidden md:flex md:w-5/12 lg:w-1/2 relative overflow-hidden bg-background items-end">
+      <div className="hidden md:flex md:w-5/12 lg:w-1/2 relative overflow-hidden bg-background items-end md:sticky md:top-0 md:h-[100dvh]">
         <div className="absolute inset-0">
           <img 
             src={`${import.meta.env.BASE_URL}brand/landing/section-lab.jpg`} 
@@ -68,11 +68,14 @@ export default function Signup() {
 
       {/* Right side - Form */}
       <div className="w-full md:w-7/12 lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-y-auto">
-        <Link href="/" className="absolute top-8 left-8 flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors z-20">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Portal
-        </Link>
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-8 pt-6 z-20">
+          <Link href="/" className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Portal
+          </Link>
+          <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 object-contain" />
+        </div>
         
-        <div className="w-full max-w-md space-y-8 my-auto pt-16 md:pt-0">
+        <div className="w-full max-w-md space-y-8 my-auto pt-24 md:pt-20 pb-8">
           <AnimatePresence mode="wait">
             {!success ? (
               <motion.div
@@ -82,9 +85,6 @@ export default function Signup() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="space-y-8"
               >
-                <div className="flex justify-center md:justify-start">
-                  <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-12 object-contain" />
-                </div>
                 <div className="text-center md:text-left">
                   <h2 className="text-3xl font-bold tracking-tight text-foreground">Create Profile</h2>
                   <p className="text-muted-foreground mt-2">Provision your learning workspace</p>
