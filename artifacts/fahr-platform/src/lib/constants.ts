@@ -22,6 +22,9 @@ export const LEARNER_PROFILE = {
   avatar: "brand/aisha-avatar.png",
 } as const;
 
+/** Impact points shown for the demo learner across dashboard, profile and recognition. */
+export const IMPACT_POINTS = 13200;
+
 export type CapabilityLevel = {
   id: string;
   label: string;

@@ -370,7 +370,8 @@ function weakestAnswer(competencyId: string, answers: Record<string, number>): s
   return `On "${worst.scenario}" you chose "${shorten(worst.label)}"`;
 }
 
-function targetFor(score: number): number {
+/** The realistic next target for a competency: +25 points, rounded to a clean 5. */
+export function targetFor(score: number): number {
   return Math.min(100, Math.round((score + 25) / 5) * 5);
 }
 
