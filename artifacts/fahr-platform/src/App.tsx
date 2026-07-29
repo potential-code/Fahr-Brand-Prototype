@@ -8,7 +8,6 @@ import { FederalDataProvider } from "@/lib/FederalDataContext";
 import { FahrConsoleProvider } from "@/lib/FahrConsoleContext";
 import { WorkplaceProjectProvider } from "@/lib/WorkplaceProjectContext";
 import NotFound from "@/pages/not-found";
-import PlaceholderScreen from "@/pages/PlaceholderScreen";
 
 import Welcome from "@/pages/Welcome";
 import Login from "@/pages/Login";
@@ -16,6 +15,10 @@ import Signup from "@/pages/Signup";
 import LearnerOnboarding from "@/pages/LearnerOnboarding";
 import Community from "@/pages/Community";
 import ManagerDashboard from "@/pages/ManagerDashboard";
+import TeamMembers from "@/pages/TeamMembers";
+import TeamMemberDetail from "@/pages/TeamMemberDetail";
+import ManagerValidations from "@/pages/ManagerValidations";
+import ManagerReports from "@/pages/ManagerReports";
 import MinistryCohorts from "@/pages/MinistryCohorts";
 import LearnerDashboard from "@/pages/LearnerDashboard";
 import BaselineAssessment from "@/pages/BaselineAssessment";
@@ -44,6 +47,9 @@ import FAHRCommunications from "@/pages/FAHRCommunications";
 import FAHRReports from "@/pages/FAHRReports";
 
 import LeadershipDashboard from "@/pages/LeadershipDashboard";
+import LeadershipMinistries from "@/pages/LeadershipMinistries";
+import LeadershipOutcomes from "@/pages/LeadershipOutcomes";
+import LeadershipBriefings from "@/pages/LeadershipBriefings";
 import { EntityAdminProvider } from "@/lib/EntityAdminContext";
 import MinistryCohortDetail from "@/pages/MinistryCohortDetail";
 import MinistryUsers from "@/pages/MinistryUsers";
@@ -81,56 +87,10 @@ function Router() {
 
       {/* Manager Routes */}
       <Route path="/manager" component={ManagerDashboard} />
-      <Route path="/manager/team">
-        <PlaceholderScreen
-          role="manager"
-          title="Team Members"
-          description="Every direct report with their capability level, pathway progress and outstanding actions."
-          willInclude={[
-            "Sortable roster with capability level, progress and last activity",
-            "Filters for at-risk and awaiting-action team members",
-            "Opens a full profile for each team member",
-          ]}
-        />
-      </Route>
-      <Route path="/manager/team/:memberId">
-        <PlaceholderScreen
-          role="manager"
-          title="Team Member"
-          description="A single team member's capability profile, competency gaps, course progress and workplace project history."
-          willInclude={[
-            "Baseline result and competency breakdown",
-            "Pathway and course progress",
-            "Workplace project submissions and your decisions on them",
-          ]}
-          backHref="/manager/team"
-          backLabel="Back to team members"
-        />
-      </Route>
-      <Route path="/manager/validations">
-        <PlaceholderScreen
-          role="manager"
-          title="Validations & Sign-off"
-          description="Workplace projects from your team waiting on your decision, with the evidence to judge them."
-          willInclude={[
-            "Queue of submissions awaiting sign-off",
-            "Sign off, or request a revision with a note back to the learner",
-            "Decisions travel on to the entity admin in the same session",
-          ]}
-        />
-      </Route>
-      <Route path="/manager/reports">
-        <PlaceholderScreen
-          role="manager"
-          title="Team Reports"
-          description="Capability distribution, progress and applied-AI impact across your team."
-          willInclude={[
-            "Capability distribution and gap analysis for the team",
-            "Progress and engagement trend",
-            "Hours saved and value created by signed-off projects",
-          ]}
-        />
-      </Route>
+      <Route path="/manager/team" component={TeamMembers} />
+      <Route path="/manager/team/:memberId" component={TeamMemberDetail} />
+      <Route path="/manager/validations" component={ManagerValidations} />
+      <Route path="/manager/reports" component={ManagerReports} />
 
       {/* Ministry Routes */}
       <Route path="/ministry" component={MinistryDashboard} />
@@ -160,42 +120,9 @@ function Router() {
 
       {/* Federal Leadership Routes */}
       <Route path="/leadership" component={LeadershipDashboard} />
-      <Route path="/leadership/ministries">
-        <PlaceholderScreen
-          role="leadership"
-          title="Ministries"
-          description="Every entity ranked on readiness, coverage and delivered impact."
-          willInclude={[
-            "Entity ranking with readiness, coverage and trend",
-            "On-track and at-risk banding",
-            "Drill-down into an entity's detail",
-          ]}
-        />
-      </Route>
-      <Route path="/leadership/outcomes">
-        <PlaceholderScreen
-          role="leadership"
-          title="Outcomes"
-          description="What the programme has delivered: hours saved, value created and capability built."
-          willInclude={[
-            "Hours saved and value created by entity",
-            "Capability growth against the national target",
-            "Deployed projects and credentials issued",
-          ]}
-        />
-      </Route>
-      <Route path="/leadership/briefings">
-        <PlaceholderScreen
-          role="leadership"
-          title="Briefings"
-          description="Quarterly readiness briefings generated from the live programme data."
-          willInclude={[
-            "Quarterly briefing with the national picture",
-            "Entity highlights and risks",
-            "Downloadable briefing pack",
-          ]}
-        />
-      </Route>
+      <Route path="/leadership/ministries" component={LeadershipMinistries} />
+      <Route path="/leadership/outcomes" component={LeadershipOutcomes} />
+      <Route path="/leadership/briefings" component={LeadershipBriefings} />
 
       <Route component={NotFound} />
     </Switch>

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { Link, useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,17 +10,11 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { useToast } from "@/hooks/use-toast";
 import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
-import {
-  LEVEL_BY_ID,
-  SUBMISSION_STATE_LABEL,
-  competencyLabel,
-  filterSubmissions,
-  type LearnerStatus,
-  type Person,
-} from "@/lib/federal";
+import { LEVEL_BY_ID, SUBMISSION_STATE_LABEL, competencyLabel, filterSubmissions, type LearnerStatus, type Person } from "@/lib/federal";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from "recharts";
 import { Users, TrendingUp, AlertCircle, Send, CheckCircle2, BrainCircuit, Target, Activity, Shield, ChevronRight, UserCircle, ClipboardCheck, RotateCcw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
 
 const LEVEL_FILL = [
   "hsl(var(--muted-foreground))",
@@ -29,7 +24,6 @@ const LEVEL_FILL = [
   "hsl(var(--chart-4))",
 ];
 
-/** Days since a person was last active, from the "N days ago" style the roster uses. */
 function daysSince(lastActive: string): number {
   const match = lastActive.match(/(\d+)\s+day/);
   if (match) return Number(match[1]);
@@ -38,6 +32,7 @@ function daysSince(lastActive: string): number {
 
 export default function ManagerDashboard() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const {
     focus,
     teamOf,
@@ -48,8 +43,11 @@ export default function ManagerDashboard() {
     requestRevision,
     approvalsFor,
     getPerson,
+    issueCredential
   } = useFederalData();
+  
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [actionDialog, setActionDialog] = useState<{action: ManagerActionType, subject: Person} | null>(null);
 
   const manager = getPerson(focus.managerId);
   const team = teamOf(focus.managerId);
@@ -57,7 +55,6 @@ export default function ManagerDashboard() {
 
   const teamIds = useMemo(() => new Set(team.map((p) => p.id)), [team]);
 
-  /** Every workplace project from this team, newest decision first in the queue. */
   const teamSubmissions = useMemo(
     () => submissions.filter((s) => teamIds.has(s.personId)),
     [submissions, teamIds],
@@ -79,10 +76,6 @@ export default function ManagerDashboard() {
     fill: LEVEL_FILL[index],
   }));
 
-  /**
-   * Insights read the team's live signals rather than a fixed script: whoever
-   * is furthest behind, and whoever is furthest ahead.
-   */
   const insights = useMemo(() => {
     const items: {
       id: string;
@@ -90,7 +83,7 @@ export default function ManagerDashboard() {
       message: string;
       context: string;
       urgency: "high" | "low";
-      actionLabel: string;
+      actionLabel: ManagerActionType;
     }[] = [];
     const atRisk = [...team]
       .filter((p) => p.status === "at-risk" || p.status === "needs-attention")
@@ -120,15 +113,22 @@ export default function ManagerDashboard() {
     return items;
   }, [team, avgProgress]);
 
-  const handleAction = (action: string, subject: string) => {
-    toast({ title: `Action: ${action}`, description: `Successfully executed for ${subject}.` });
-  };
-
-  const handleSignOff = (submissionId: string, title: string) => {
+  const handleSignOff = (submissionId: string, title: string, personId: string) => {
+    const owner = getPerson(personId);
     signOff(submissionId, { by: manager?.name ?? "Line Manager" });
+    if (owner) {
+      issueCredential({
+        personId,
+        personName: owner.name,
+        title: "Workplace Project Validated: " + title,
+        levelId: "practitioner",
+        submissionId,
+        by: manager?.name ?? "Line Manager"
+      });
+    }
     toast({
       title: "Signed off",
-      description: `"${title}" now sits with the entity admin for endorsement.`,
+      description: `"${title}" now sits with the entity admin for endorsement. Credential issued.`,
     });
   };
 
@@ -157,20 +157,18 @@ export default function ManagerDashboard() {
     <Layout role="manager">
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto w-full pb-12">
         
-        {/* Header Section */}
         <PageHeader
           tone="primary"
           className="mb-4"
           title="Team Readiness Dashboard"
           description="Monitor your team's progression through the federal Agentic AI capability ladder."
           actions={
-            <Button variant="outline" className="gap-2 shrink-0 bg-background" onClick={() => handleAction("Generate Report", "Team")}>
+            <Button variant="outline" className="gap-2 shrink-0 bg-background" onClick={() => setLocation("/manager/reports")}>
               <TrendingUp className="w-4 h-4" /> Generate Department Report
             </Button>
           }
         />
 
-        {/* Top KPI Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="border-border shadow-sm">
             <CardContent className="p-6 flex flex-col justify-center">
@@ -214,12 +212,9 @@ export default function ManagerDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column: Charts and Insights */}
           <div className="lg:col-span-1 space-y-8">
-            
-            {/* AI Insights Panel */}
             <Card className="border-accent/30 bg-gradient-to-br from-card to-accent/5 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+              <div className="absolute top-0 end-0 p-4 opacity-5 pointer-events-none">
                  <BrainCircuit className="w-32 h-32 text-accent" />
               </div>
               <CardHeader className="pb-3 border-b border-border/50 bg-background/50 backdrop-blur-sm relative z-10">
@@ -243,7 +238,7 @@ export default function ManagerDashboard() {
                        size="sm" 
                        variant={insight.urgency === 'high' ? 'default' : 'secondary'} 
                        className="w-full gap-2 text-xs h-8"
-                       onClick={() => handleAction(insight.actionLabel, insight.person.name)}
+                       onClick={() => setActionDialog({ action: insight.actionLabel, subject: insight.person })}
                      >
                         <Send className="w-3 h-3" /> {insight.actionLabel}
                      </Button>
@@ -252,7 +247,6 @@ export default function ManagerDashboard() {
               </CardContent>
             </Card>
 
-            {/* Distribution Chart */}
             <Card className="border-border shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base font-bold">Team Capability Distribution</CardTitle>
@@ -282,10 +276,7 @@ export default function ManagerDashboard() {
 
           </div>
 
-          {/* Right Column: sign-off queue and direct reports */}
           <div className="lg:col-span-2 space-y-8">
-
-            {/* Workplace projects waiting on this manager */}
             <Card className="border-border shadow-sm">
               <CardHeader className="border-b pb-4">
                 <div className="flex items-center justify-between gap-4">
@@ -340,7 +331,7 @@ export default function ManagerDashboard() {
                             <Button
                               size="sm"
                               className="gap-2"
-                              onClick={() => handleSignOff(s.id, s.title)}
+                              onClick={() => handleSignOff(s.id, s.title, s.personId)}
                               data-testid={`button-sign-off-${s.id}`}
                             >
                               <ClipboardCheck className="w-4 h-4" /> Sign off
@@ -380,7 +371,7 @@ export default function ManagerDashboard() {
                       <TableHead>Current Capability</TableHead>
                       <TableHead>Progress</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
+                      <TableHead className="text-end">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -396,7 +387,7 @@ export default function ManagerDashboard() {
                         <TableCell>
                           <div className="w-[100px] flex flex-col gap-1.5">
                             <Progress value={employee.pathwayProgress} className="h-1.5" />
-                            <span className="text-[10px] text-muted-foreground text-right" data-testid={`text-progress-${employee.id}`}>
+                            <span className="text-[10px] text-muted-foreground text-end" data-testid={`text-progress-${employee.id}`}>
                               {employee.pathwayProgress}%
                             </span>
                           </div>
@@ -404,10 +395,17 @@ export default function ManagerDashboard() {
                         <TableCell>
                           {getStatusBadge(employee.status)}
                         </TableCell>
-                        <TableCell className="text-right">
-                           <Button variant="ghost" size="sm" onClick={() => setSelectedId(employee.id)} data-testid={`button-view-${employee.id}`}>
-                             View <ChevronRight className="w-4 h-4 ml-1" />
-                           </Button>
+                        <TableCell className="text-end">
+                           <div className="flex items-center justify-end gap-1">
+                             <Button variant="ghost" size="sm" onClick={() => setSelectedId(employee.id)} className="h-8 text-xs">
+                               Peek
+                             </Button>
+                             <Link href={`/manager/team/${employee.id}`}>
+                               <Button variant="ghost" size="sm" className="h-8 text-xs" data-testid={`button-view-${employee.id}`}>
+                                 Profile <ChevronRight className="w-3 h-3 ms-1" />
+                               </Button>
+                             </Link>
+                           </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -420,7 +418,6 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      {/* Employee Detail Sheet */}
       <Sheet open={!!selectedEmployee} onOpenChange={(open) => !open && setSelectedId(null)}>
         <SheetContent className="sm:max-w-md overflow-y-auto">
           {selectedEmployee && (
@@ -475,88 +472,26 @@ export default function ManagerDashboard() {
                   )}
                 </div>
 
-                {/* Projects this person has in the review chain */}
-                {teamSubmissions.filter((s) => s.personId === selectedEmployee.id).length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Workplace Projects</h4>
-                    <div className="space-y-3">
-                      {teamSubmissions
-                        .filter((s) => s.personId === selectedEmployee.id)
-                        .map((s) => {
-                          const decisions = approvalsFor(s.id);
-                          return (
-                            <div key={s.id} className="p-4 border border-border rounded-lg space-y-2">
-                              <div className="flex items-start justify-between gap-3">
-                                <p className="font-medium text-sm">{s.title}</p>
-                                <Badge variant="outline" className="shrink-0 font-normal">
-                                  {SUBMISSION_STATE_LABEL[s.state]}
-                                </Badge>
-                              </div>
-                              {decisions.length > 0 && (
-                                <p className="text-xs text-muted-foreground">
-                                  Last decision: {decisions[decisions.length - 1].by} on {decisions[decisions.length - 1].on}
-                                </p>
-                              )}
-                              {s.state === "awaiting_manager" && (
-                                <div className="flex flex-wrap gap-2 pt-1">
-                                  <Button size="sm" className="gap-2" onClick={() => handleSignOff(s.id, s.title)}>
-                                    <ClipboardCheck className="w-4 h-4" /> Sign off
-                                  </Button>
-                                  <Button size="sm" variant="outline" className="gap-2" onClick={() => handleRevision(s.id, s.title)}>
-                                    <RotateCcw className="w-4 h-4" /> Request revision
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
-
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Manager Actions</h4>
                   <div className="grid grid-cols-1 gap-2">
-                    <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => handleAction("Assign New Pathway", selectedEmployee.name)}>
+                    <Link href={`/manager/team/${selectedEmployee.id}`}>
+                      <Button variant="default" className="w-full justify-center gap-3 h-12">
+                        View Full Profile
+                      </Button>
+                    </Link>
+                    <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Assign New Pathway", subject: selectedEmployee })}>
                       <Target className="w-4 h-4 text-primary" /> Assign New Pathway
                     </Button>
-                    <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => handleAction("Send Encouragement Message", selectedEmployee.name)}>
+                    <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Send Encouragement Message", subject: selectedEmployee })}>
                       <Send className="w-4 h-4 text-secondary" /> Send Direct Message
                     </Button>
                     {selectedEmployee.status === 'at-risk' && (
-                      <Button variant="default" className="justify-start gap-3 h-12" onClick={() => handleAction("Schedule Intervention Meeting", selectedEmployee.name)}>
+                      <Button variant="default" className="justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Schedule Intervention Meeting", subject: selectedEmployee })}>
                         <AlertCircle className="w-4 h-4" /> Schedule Intervention
                       </Button>
                     )}
                   </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Competency Map</h4>
-                  <Card className="border-border">
-                    <CardContent className="p-4 space-y-4">
-                      {selectedEmployee.competencyScores ? (
-                        Object.entries(selectedEmployee.competencyScores).map(([competencyId, score]) => (
-                          <div key={competencyId} className="space-y-1.5">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-medium">{competencyLabel(competencyId)}</span>
-                              <span className="text-muted-foreground">{score} / 100</span>
-                            </div>
-                            <Progress value={score} className="h-1.5 opacity-70" />
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No detailed competency breakdown yet — it appears once the baseline assessment is complete.
-                        </p>
-                      )}
-                      {selectedEmployee.gapCompetencyIds && selectedEmployee.gapCompetencyIds.length > 0 && (
-                        <p className="text-xs text-muted-foreground pt-1">
-                          Development priorities: {selectedEmployee.gapCompetencyIds.map(competencyLabel).join(", ")}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
                 </div>
 
               </div>
@@ -564,7 +499,12 @@ export default function ManagerDashboard() {
           )}
         </SheetContent>
       </Sheet>
-
+      
+      <ManagerActionDialogs 
+        action={actionDialog?.action ?? null} 
+        subject={actionDialog?.subject ?? null} 
+        onClose={() => setActionDialog(null)} 
+      />
     </Layout>
   );
 }

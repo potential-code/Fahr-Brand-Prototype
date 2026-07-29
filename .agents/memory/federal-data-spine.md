@@ -28,3 +28,11 @@ Any department can be drilled into, so a department without hand-written people 
 Decisions (sign off, request revision, endorse, escalate, issue credential, adjust quota) are actions on a provider that overlays a mutable slice on the seed and persists it in sessionStorage. Notifications are *derived* from that state, so one role's action clears its own alert and raises the next role's.
 
 **How to apply:** never mutate a page's local copy of a submission — call the action, then let each role's view and notification list recompute.
+
+## Decision actions must be idempotent
+
+Every decision action on the session store guards on the submission's *current* state (e.g. sign-off only applies from `awaiting_manager`) and credential issuance dedupes per submission+person; repeat calls are no-ops.
+
+**Why:** review sheets and dashboards both expose the same action, and a double-click or a second surface calling it again used to duplicate credentials, approvals and audit rows — caught in code review after the manager journey build.
+
+**How to apply:** when adding a new decision action, pass the required prior state(s) into the shared `decide` helper and make any secondary record (escalation, credential) check for an existing row before inserting. Never rely on the UI disabling a button as the only guard.

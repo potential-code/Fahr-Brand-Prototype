@@ -362,6 +362,8 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       auditAction: string,
       risk: AuditEvent["risk"],
       auditStatus: string,
+      /** States the submission must currently be in for the decision to apply — makes decisions idempotent. */
+      requiredStates?: SubmissionState[],
     ) => {
       const submission = SUBMISSIONS.find((s) => s.id === submissionId);
       if (!submission) return;
@@ -369,6 +371,8 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       const on = today();
       update((prev) => {
         const existing = prev.submissions[submissionId];
+        const currentState = existing?.state ?? submission.state;
+        if (requiredStates && !requiredStates.includes(currentState)) return prev;
         return {
           ...prev,
           submissions: {
@@ -418,6 +422,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "Signed off workplace project",
         "Low",
         "Approved",
+        ["awaiting_manager"],
       ),
     [decide],
   );
@@ -435,6 +440,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "Requested revision on workplace project",
         "Medium",
         "Returned to learner",
+        ["awaiting_manager"],
       ),
     [decide],
   );
@@ -452,6 +458,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "Endorsed workplace project",
         "Low",
         "Approved",
+        ["awaiting_entity"],
       ),
     [decide],
   );
@@ -469,6 +476,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "Returned workplace project to the line manager",
         "Medium",
         "Returned to manager",
+        ["awaiting_entity"],
       ),
     [decide],
   );
@@ -487,9 +495,12 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "Escalated workplace project to FAHR",
         "Medium",
         "Open",
+        ["awaiting_entity"],
       );
       if (!submission) return;
-      update((prev) => ({
+      update((prev) => {
+        if (prev.escalations.some((e) => e.submissionId === submissionId)) return prev;
+        return {
         ...prev,
         escalations: [
           {
@@ -505,7 +516,8 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
           },
           ...prev.escalations,
         ],
-      }));
+        };
+      });
     },
     [decide, update],
   );
@@ -523,7 +535,17 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         .join("")
         .toUpperCase();
       const code = `FAHR-${new Date().getFullYear()}-${initials}-${Math.floor(1000 + Math.random() * 9000)}`;
-      update((prev) => ({
+      update((prev) => {
+        // A submission yields at most one credential per person — repeat calls are no-ops.
+        if (
+          request.submissionId &&
+          [...prev.credentials, ...CREDENTIALS].some(
+            (c) => c.submissionId === request.submissionId && c.personId === request.personId,
+          )
+        ) {
+          return prev;
+        }
+        return {
         ...prev,
         credentials: [
           {
@@ -552,7 +574,8 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
           },
           ...prev.audit,
         ],
-      }));
+        };
+      });
     },
     [update],
   );
