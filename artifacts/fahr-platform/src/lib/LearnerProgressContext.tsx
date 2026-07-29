@@ -34,6 +34,10 @@ type State = {
   answers: Record<string, number>;
   result: AssessmentResult | null;
   courseProgress: Record<string, CourseProgress>;
+  /** Pathway activities (everything that is not a catalogue course) completed. */
+  completedActivityIds: string[];
+  /** True once the role-play has caused the pathway to insert its extra module. */
+  adaptiveUnlocked: boolean;
 };
 
 type Ctx = State & {
@@ -45,6 +49,9 @@ type Ctx = State & {
   toggleLessonComplete: (courseId: string, lessonId: string) => void;
   setPretestDone: (courseId: string) => void;
   setFinalDone: (courseId: string) => void;
+  /** Idempotent: completing the same activity twice changes nothing. */
+  completeActivity: (activityId: string) => void;
+  unlockAdaptiveItem: () => void;
 };
 
 const STORAGE_KEY = "fahr.learner.progress.v1";
@@ -56,7 +63,13 @@ const SEED_COURSE_PROGRESS: Record<string, CourseProgress> = {
   "ai-foundations": { completedLessonIds: ["l1", "l2", "l3"], pretestDone: false, finalDone: false },
 };
 
-const INITIAL_STATE: State = { answers: {}, result: null, courseProgress: SEED_COURSE_PROGRESS };
+const INITIAL_STATE: State = {
+  answers: {},
+  result: null,
+  courseProgress: SEED_COURSE_PROGRESS,
+  completedActivityIds: [],
+  adaptiveUnlocked: false,
+};
 
 function readStored(): State {
   if (typeof window === "undefined") return INITIAL_STATE;
@@ -69,6 +82,8 @@ function readStored(): State {
       answers: sanitizeAnswers(parsed.answers),
       result: sanitizeResult(parsed.result),
       courseProgress: sanitizeCourseProgress(parsed.courseProgress),
+      completedActivityIds: sanitizeActivityIds(parsed.completedActivityIds),
+      adaptiveUnlocked: parsed.adaptiveUnlocked === true,
     };
   } catch {
     return INITIAL_STATE;
@@ -80,6 +95,16 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
 
 const isStringArray = (v: unknown): v is string[] =>
   Array.isArray(v) && v.every((x) => typeof x === "string");
+
+/**
+ * Activity ids are authored strings rather than a fixed catalogue, so the guard
+ * is shape-only: strings, deduplicated, and capped so a corrupted store cannot
+ * grow without bound.
+ */
+function sanitizeActivityIds(v: unknown): string[] {
+  if (!isStringArray(v)) return [];
+  return Array.from(new Set(v.filter((id) => id.length > 0 && id.length <= 64))).slice(0, 64);
+}
 
 /** Keep only answers that name a real question and a real option index. */
 function sanitizeAnswers(v: unknown): Record<string, number> {
@@ -221,8 +246,32 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
     return computed;
   }, [scoreAnswers, state.answers, update]);
 
+  // Retaking rebuilds the whole pathway, so activity completion and the
+  // adaptive insertion go with the old result rather than surviving it.
   const resetAssessment = useCallback(
-    () => update((prev) => ({ ...prev, answers: {}, result: null })),
+    () =>
+      update((prev) => ({
+        ...prev,
+        answers: {},
+        result: null,
+        completedActivityIds: [],
+        adaptiveUnlocked: false,
+      })),
+    [update],
+  );
+
+  const completeActivity = useCallback(
+    (activityId: string) =>
+      update((prev) =>
+        prev.completedActivityIds.includes(activityId)
+          ? prev
+          : { ...prev, completedActivityIds: [...prev.completedActivityIds, activityId] },
+      ),
+    [update],
+  );
+
+  const unlockAdaptiveItem = useCallback(
+    () => update((prev) => (prev.adaptiveUnlocked ? prev : { ...prev, adaptiveUnlocked: true })),
     [update],
   );
 
@@ -286,6 +335,8 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       toggleLessonComplete,
       setPretestDone,
       setFinalDone,
+      completeActivity,
+      unlockAdaptiveItem,
     }),
     [
       state,
@@ -297,6 +348,8 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       toggleLessonComplete,
       setPretestDone,
       setFinalDone,
+      completeActivity,
+      unlockAdaptiveItem,
     ],
   );
 

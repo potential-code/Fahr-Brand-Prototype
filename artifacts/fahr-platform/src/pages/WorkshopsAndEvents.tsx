@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
+import { buildRecommendations } from "@/lib/recommendations";
 import {
   FORMAT_LABEL,
   PAST_SESSIONS,
@@ -32,6 +33,7 @@ import {
   Check,
   ChevronDown,
   Clock,
+  FileText,
   Globe,
   Hourglass,
   MapPin,
@@ -323,13 +325,19 @@ function PastSessionCard({ session, index }: { session: PastSession; index: numb
  */
 export default function WorkshopsAndEvents() {
   const { toast } = useToast();
-  const { result } = useLearnerProgress();
+  const { result, answers } = useLearnerProgress();
   const [tab, setTab] = useState<TabId>("upcoming");
   const [registeredIds, setRegisteredIds] = useState<string[]>(SEEDED_REGISTRATIONS);
   const [waitlistedIds, setWaitlistedIds] = useState<string[]>([]);
 
   const gaps = result?.gaps ?? [];
   const sessions = useMemo(() => recommendedFirst(upcomingSessions(), gaps), [gaps]);
+
+  // Just-in-time reading, matched to the same gaps that order the sessions above.
+  const resources = useMemo(
+    () => (result ? buildRecommendations(result, answers).resources : []),
+    [result, answers],
+  );
 
   const holdFor = (session: Session): SeatHold =>
     registeredIds.includes(session.id) ? "registered" : waitlistedIds.includes(session.id) ? "waitlisted" : "none";
@@ -506,6 +514,44 @@ export default function WorkshopsAndEvents() {
             )}
           </motion.div>
         </AnimatePresence>
+
+        {/* Just-in-time reading — the short references to reach for between sessions */}
+        {resources.length > 0 && (
+          <ScrollReveal>
+            <Card className="border-card-border" data-testid="card-resources">
+              <CardContent className="p-5 md:p-6">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <h2 className="text-base font-bold text-foreground">Knowledge articles and references</h2>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Short reads matched to your development priorities, for the moment of need between sessions.
+                </p>
+
+                <ul className="mt-4 divide-y divide-border">
+                  {resources.map((resource) => (
+                    <li key={resource.title} className="py-3.5 first:pt-0 last:pb-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium leading-snug text-foreground">{resource.title}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{resource.summary}</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            <span>{resource.kind}</span>
+                            <span>·</span>
+                            <span>{resource.readTime}</span>
+                            <span>·</span>
+                            <span className="font-medium text-primary">{resource.competency.short}</span>
+                          </div>
+                        </div>
+                        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground rtl:rotate-180" />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </ScrollReveal>
+        )}
 
         <ScrollReveal>
           <Card className="border-card-border">

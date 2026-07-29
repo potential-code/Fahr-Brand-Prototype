@@ -38,3 +38,14 @@ Browsers refuse Basic auth prompts inside cross-origin iframes, so the workspace
 headless screenshot tooling both land on the 401 page. That is expected, not a regression — verify
 with `curl -u` against the dev domain, or open the app in a real browser tab. Do not "fix" it by
 weakening the guard in development.
+
+## Verifying in a browser anyway
+
+The testing subagent is the only working way to drive the UI: tell it explicitly to build its
+browser context with `httpCredentials` taken from the platform's auth env vars, or every navigation
+returns 401 and it reports "unable".
+
+Also tell it the real base path. The web artifact is mounted at the **root**, so learner/manager
+routes are `/learner/...`, not `/<artifact-name>/...`. Guessing the artifact name as a URL prefix
+produces the app's own 404 page, which reads like a broken router and wastes a whole test run.
+Confirm the mount with the running dev server's `BASE_PATH` before writing the plan.

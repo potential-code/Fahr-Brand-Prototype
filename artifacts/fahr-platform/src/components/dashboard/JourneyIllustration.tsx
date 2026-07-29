@@ -28,7 +28,7 @@ export function JourneyIllustration() {
         </div>
 
         <motion.figure
-          className="m-0"
+          className="mx-auto m-0 max-w-xl"
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}

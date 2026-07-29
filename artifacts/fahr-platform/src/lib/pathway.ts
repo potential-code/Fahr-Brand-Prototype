@@ -65,6 +65,11 @@ export type PathwayItem = {
   competency: Competency;
   /** The named agent that assigned this item. */
   agent: string;
+  /**
+   * Why this item was assigned to this learner. Required, so no activity can
+   * ever open without the coach explaining its presence.
+   */
+  coachNote: string;
   /** Present when the item is a catalogue course. */
   courseId?: string;
   /** Present when the item opens a different screen rather than an activity. */
@@ -74,8 +79,19 @@ export type PathwayItem = {
   meta?: string;
   /** Reading body for microlearning items. */
   body?: string[];
+  /** The three points a reading item should leave the learner holding. */
+  takeaways?: string[];
   /** Instruction list for assignments, lab work and projects. */
   steps?: string[];
+  /** A ready-to-use instruction the learner can copy into their AI assistant. */
+  samplePrompt?: string;
+  /** Turns on the mock submission box, with this as its guidance line. */
+  submissionPrompt?: string;
+  /** Running order for a live session. */
+  agenda?: string[];
+  /** Who runs a live session, and where. */
+  host?: string;
+  venue?: string;
   /** Knowledge check that closes a microlearning item. */
   questions?: QuizQuestion[];
   roleplay?: Roleplay;
@@ -283,6 +299,73 @@ function checkQuestionsFor(competencyId: string): QuizQuestion[] {
   return MICRO_CHECKS[competencyId] ?? [];
 }
 
+/** The three points a reading item should leave the learner holding onto. */
+const TAKEAWAYS: Record<string, string[]> = {
+  literacy: [
+    "Fluent output and correct output are different things — the model optimises for the first.",
+    "Reference numbers, dates and quoted policy are the details most likely to be invented.",
+    "Before you forward anything, name the source you checked it against.",
+  ],
+  prompting: [
+    "A weak result is usually a missing constraint, not a weak model.",
+    "Role, context, approved facts, constraint and output format turn a request into a brief.",
+    "Correct one thing per iteration, so you learn which instruction actually moved the output.",
+  ],
+  analytics: [
+    "Reach tells you who was exposed; only an outcome measure tells you whether anything changed.",
+    "Any AI-derived figure must be traceable to the system it came from before it leaves your desk.",
+    "State the comparison as well as the number — a percentage with no baseline answers nothing.",
+  ],
+  agentic: [
+    "Automation earns its setup cost when a task is multi-step, multi-source and repeats.",
+    "Every assistant needs a plan, its tools, a human checkpoint and a feedback route.",
+    "Put the checkpoint where the consequence is, immediately before output leaves the entity.",
+  ],
+  governance: [
+    "Classify the data before you choose the tool, not after.",
+    "A named accountable human is part of the output, not an afterthought.",
+    "Record the oversight decision — it is what makes the work defensible a month later.",
+  ],
+};
+
+/** A concrete instruction the learner can copy straight into their assistant. */
+const SAMPLE_PROMPTS: Record<string, string> = {
+  literacy:
+    "You are reviewing an AI-drafted summary of a federal circular. List every factual claim it makes — reference numbers, dates, entity names and obligations — as a checklist, and mark which ones cannot be confirmed from the text I give you. Do not add any new facts.",
+  prompting:
+    "Act as a federal government communications officer. Rewrite the notice below in 120 words, formal and reassuring, in both English and Arabic, using only the approved facts I provide. Keep the service name exactly as written. Return the two versions side by side.",
+  analytics:
+    "Using only the export below, compare the two audience segments on the service action we asked residents to take. Show the baseline, the change, and the period covered. For every figure, state which column it came from, and flag anything you had to infer.",
+  agentic:
+    "Break our monthly performance report into a sequence of steps. For each step state the input, the tool or system needed, the output, and whether a human must confirm it before the next step runs. Mark the single step where a mistake would reach a decision-maker.",
+  governance:
+    "Review the draft below as a governance officer. Identify the data classification involved, any personal data exposure, the federal responsible-AI expectations that apply, and the human sign-off required before this can be published. Do not rewrite the draft.",
+};
+
+/** A running order for a live session, specific to the capability it targets. */
+function agendaFor(competency: Competency): string[] {
+  return [
+    `What good ${competency.short} practice looks like inside a federal entity`,
+    `Facilitator walkthrough: ${competency.description}`,
+    "Bring-your-own-task clinic — you work on your own material, live",
+    "Common failure modes, and the check that catches each one",
+    "What to practise in the week after, and how it is evidenced",
+  ];
+}
+
+/**
+ * Guaranteed panel content. Any item without a reading body, step list,
+ * role-play or knowledge check still opens with something substantive to read,
+ * so the pathway can never surface an empty activity.
+ */
+export function activityOutline(item: PathwayItem): string[] {
+  return [
+    item.description,
+    `This item builds ${item.competency.label}. ${item.competency.description}`,
+    `Allow ${item.duration}. Completing it records evidence against your Capability Profile and unlocks the next step in your pathway.`,
+  ];
+}
+
 function courseItem(course: Course, index: number): PathwayItem {
   return {
     id: `pw-course-${course.id}`,
@@ -295,6 +378,10 @@ function courseItem(course: Course, index: number): PathwayItem {
     courseId: course.id,
     href: `/learner/course/${course.id}`,
     hrefLabel: index === 0 ? "Continue the course" : "Open the course",
+    coachNote:
+      index === 0
+        ? `This is the first course in your pathway because ${COMPETENCY_BY_ID[course.competencyId].label} is where your assessment showed the largest gain available.`
+        : `Assigned after your earlier courses: it builds ${COMPETENCY_BY_ID[course.competencyId].label}, one of the priorities from your assessment.`,
   };
 }
 
@@ -327,11 +414,13 @@ export function buildPathway(
       competency: micro.competency,
       agent: AGENTS.content,
       meta: micro.kind,
+      coachNote: `You scored ${result.scores[micro.competency.id] ?? 0}% on ${micro.competency.label}, your first priority. This is the shortest read that moves it, which is why it sits before anything longer.`,
       body: [
         micro.summary,
-        `You scored ${result.scores[micro.competency.id] ?? 0}% on ${micro.competency.label} in your baseline assessment, which is why this sits so early in your pathway. It is the shortest route into the gap: read it in one sitting, then answer the two questions at the end.`,
-        micro.competency.description,
+        `In federal work the risk is rarely that AI produces nothing usable — it is that it produces something usable-looking. ${micro.competency.description}`,
+        `Read this in one sitting, hold onto the three points below, then answer the two questions at the end. Both correct completes the item and unlocks the next step in your pathway.`,
       ],
+      takeaways: TAKEAWAYS[micro.competency.id] ?? TAKEAWAYS.governance,
       questions: checkQuestionsFor(micro.competency.id),
     });
   }
@@ -347,12 +436,17 @@ export function buildPathway(
       competency: practice.competency,
       agent: AGENTS.practice,
       meta: practice.format,
+      coachNote: `Reading alone will not move ${practice.competency.short}. This assignment makes you do it once on your own material, which is what the re-check later tests.`,
       steps: [
         "Choose a real task from your own week — not a hypothetical one.",
         practice.scenario,
+        "Run the sample instruction below, then correct it once so it fits your entity's tone and approved facts.",
         "Record what AI produced, what you changed, and how long the review took.",
-        "Save the result: it becomes evidence in your Capability Profile.",
+        "Submit the result: it becomes evidence in your Capability Profile.",
       ],
+      samplePrompt: SAMPLE_PROMPTS[practice.competency.id] ?? SAMPLE_PROMPTS.governance,
+      submissionPrompt:
+        "Paste what you produced, what you changed from the AI's first attempt, and roughly how long the review took.",
     });
   }
 
@@ -369,6 +463,10 @@ export function buildPathway(
       competency: event.competency,
       agent: AGENTS.concierge,
       meta: event.dateLabel,
+      host: event.host,
+      venue: event.format,
+      coachNote: `Your ${event.competency.short} gap is the one most helped by asking questions live. This session is the earliest one in the federal calendar that covers it.`,
+      agenda: agendaFor(event.competency),
       steps: [
         "Reserve your seat — the pathway holds the slot until the day before.",
         "Bring one piece of your own work to use during the session.",
@@ -387,6 +485,7 @@ export function buildPathway(
     competency: simulationCompetency,
     agent: AGENTS.practice,
     meta: "Role-play assessment",
+    coachNote: `Your answers showed you know the rule for ${simulationCompetency.short}. This checks whether you still apply it under a deadline, which is where federal teams usually slip.`,
     roleplay: roleplayFor(simulationCompetency.id),
   });
 
@@ -402,6 +501,7 @@ export function buildPathway(
     agent: AGENTS.practice,
     href: "/learner/lab/twin",
     hrefLabel: "Open the Agentic AI Lab",
+    coachNote: `Every federal learner builds a twin, but yours is configured around ${LEARNER_PROFILE.department}: it is where the governance habits from your reading become settings you have to choose.`,
     steps: [
       "Define your twin's knowledge sources.",
       "Set its tone and its guardrails.",
@@ -420,11 +520,14 @@ export function buildPathway(
     href: "/learner/lab/project",
     hrefLabel: "Open my Workplace Project",
     meta: plan.project.outcome,
+    coachNote: `Chosen because ${plan.project.competency.label} is your first priority. This is the item your line manager signs off, so it is the one that turns your learning into recorded impact.`,
     steps: [
       "Describe the problem and the AI solution you applied.",
       "State the expected time or quality gain.",
       "Submit for evaluation and line manager confirmation.",
     ],
+    submissionPrompt:
+      "Sketch the problem and the AI solution you have in mind. Your full submission and evidence are completed in the Agentic AI Lab.",
   });
 
   items.push({
@@ -438,6 +541,12 @@ export function buildPathway(
     href: "/learner/assessment",
     hrefLabel: "Open the re-check",
     meta: `Scheduled for ${plan.nextAssessment.dueLabel}`,
+    coachNote: `Only the ${plan.nextAssessment.competencies.length} capabilities you were weakest in are re-tested. Your ${result.levelLabel} banding set the ${plan.nextAssessment.weeks}-week interval, and it shortens if you finish the pathway sooner.`,
+    steps: [
+      `Re-tested: ${plan.nextAssessment.competencies.map((c) => c.short).join(", ")}.`,
+      `${plan.nextAssessment.questionCount} scenario questions, in the same format as your baseline.`,
+      "Your Capability Profile and capability level update automatically once it is scored.",
+    ],
   });
 
   return items;
@@ -460,6 +569,12 @@ export function buildAdaptiveItem(result: AssessmentResult): PathwayItem {
     agent: AGENTS.coach,
     adaptive: true,
     meta: "Added by your pathway",
+    coachNote: `This was not in your original pathway. Your role-play answers were sound but solitary, so your ${AGENTS.coach} inserted ten minutes on carrying colleagues with you before you reach the workplace project.`,
+    takeaways: [
+      "Name the accountable human before AI-assisted work leaves your desk.",
+      "One written line explaining why the AI route was appropriate is enough — but it has to exist.",
+      "Store that line with the output, so whoever inherits it can defend it without you.",
+    ],
     body: [
       "In the role-play you reached a defensible answer quickly. What you did not do was bring anyone with you — no holding note to your director, no flag to the policy team, no record of the decision for the people who inherit it.",
       "In federal work the alignment step is not administrative overhead. It is what makes an AI-assisted decision survive scrutiny a month later, when the person answering the question is not you.",
