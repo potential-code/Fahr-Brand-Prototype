@@ -1,5 +1,7 @@
 - [FAHR mockup conventions](fahr-mockup-conventions.md) — mockup-only scope, shared agent/ladder constants, logo & Radix Select gotchas, fahr.gov.ae blocks scraping.
 - [FAHR federal data spine](federal-data-spine.md) — author a figure once and derive the rest; live learner state beats demo numbers; session-store decisions must be idempotent (state-guarded, deduped).
+- [Manager team surfaces](manager-team-surfaces.md) — ladder bands not score tones for gap cells; comparators come from authored rollups; impact counts from manager validation onward.
 - [Deterministic tests for motion-heavy screens](motion-test-determinism.md) — force reduced-motion + stub IntersectionObserver in test setup; never add test-only branches to animated components.
+- [Platform-wide HTTP Basic auth](platform-basic-auth.md) — one shared server-side guard, fail closed with no hard-coded fallback; web artifact must not go back to static serving; preview iframe can't authenticate.
 - [Motion kit gotchas](motion-kit-gotchas.md) — overlay don't unmount (recharts zero-size); GSAP clip-path unit mismatch hides charts; never gate real content on scroll-scrubbed progress; keep hero entrances under ~0.7s.
 - [Sidebar active state and nav motion](sidebar-active-state.md) — deepest-match highlighting, per-surface layout-animation ids, duplicated nav test ids.

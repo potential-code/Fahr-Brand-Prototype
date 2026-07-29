@@ -18,13 +18,27 @@ localPort = 23288
 run = "pnpm --filter @workspace/fahr-platform run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/fahr-platform", "run", "build" ]
-publicDir = "artifacts/fahr-platform/dist/public"
-serve = "static"
 
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+[services.production.build]
+args = [ "pnpm", "--filter", "@workspace/fahr-platform", "run", "build" ]
+
+[services.production.build.env]
+PORT = "23288"
+BASE_PATH = "/"
+NODE_ENV = "production"
+
+# Served by a small Node server instead of a static host so HTTP Basic
+# authentication is enforced server-side on every route and asset.
+[services.production.run]
+args = [ "node", "--enable-source-maps", "artifacts/fahr-platform/server/index.mjs" ]
+
+[services.production.run.env]
+PORT = "23288"
+BASE_PATH = "/"
+NODE_ENV = "production"
+
+[services.production.health.startup]
+path = "/healthz"
 
 [services.env]
 PORT = "23288"

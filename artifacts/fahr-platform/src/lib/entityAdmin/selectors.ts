@@ -544,4 +544,6 @@ export function departmentRoster(departmentId: string, credentials: Credential[]
   }));
 }
 
-export { daysSinceLabel };
+// The manager portal reads the same activity, assessment and certification
+// rules so a team row and a cohort row can never disagree.
+export { daysSinceLabel, outcomeFor, certificationFor };

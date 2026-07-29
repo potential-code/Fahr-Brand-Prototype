@@ -82,6 +82,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@workspace/basic-auth": "workspace:*",
     "gsap": "^3.15.0"
   }
 }

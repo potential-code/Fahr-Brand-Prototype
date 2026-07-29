@@ -1,0 +1,13 @@
+{
+  "name": "@workspace/basic-auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared HTTP Basic authentication guard used by every service in the workspace.",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.mts",
+      "default": "./src/index.mjs"
+    }
+  }
+}

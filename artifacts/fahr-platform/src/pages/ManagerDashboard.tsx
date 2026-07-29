@@ -12,10 +12,13 @@ import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { LEVEL_BY_ID, SUBMISSION_STATE_LABEL, competencyLabel, filterSubmissions, type LearnerStatus, type Person } from "@/lib/federal";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from "recharts";
-import { Users, TrendingUp, AlertCircle, Send, CheckCircle2, BrainCircuit, Target, Activity, Shield, ChevronRight, UserCircle, ClipboardCheck, RotateCcw } from "lucide-react";
+import { Users, TrendingUp, AlertCircle, Send, CheckCircle2, BrainCircuit, Target, Activity, Shield, ChevronRight, UserCircle, ClipboardCheck, RotateCcw, Award } from "lucide-react";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { Progress } from "@/components/ui/progress";
 import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
+import { TeamStatusBadge } from "@/components/manager/TeamStatusBadge";
+import { TeamBenchmarkCard } from "@/components/manager/TeamBenchmark";
+import { teamBenchmark, teamCompetencyMatrix, teamImpact, teamRecognition, teamRoster } from "@/lib/manager/selectors";
 
 const LEVEL_FILL = [
   "hsl(var(--muted-foreground))",
@@ -76,6 +79,29 @@ export default function ManagerDashboard() {
     count: team.filter((p) => p.levelId === level.id).length,
     fill: LEVEL_FILL[index],
   }));
+
+  // Team capability, benchmark and impact all come from the shared manager
+  // layer, so this dashboard states the same figures as Team Reports and the
+  // recognition surface.
+  const matrix = useMemo(() => teamCompetencyMatrix(team), [team]);
+  const roster = useMemo(() => teamRoster(team, credentials), [team, credentials]);
+  const benchmark = useMemo(
+    () => teamBenchmark(matrix, focus.departmentId, focus.ministryId),
+    [matrix, focus.departmentId, focus.ministryId],
+  );
+  const impact = useMemo(() => teamImpact(teamSubmissions), [teamSubmissions]);
+  const recognition = useMemo(
+    () =>
+      teamRecognition({
+        team,
+        roster,
+        matrix,
+        teamSubmissions,
+        credentials,
+        ministryId: focus.ministryId,
+      }),
+    [team, roster, matrix, teamSubmissions, credentials, focus.ministryId],
+  );
 
   const insights = useMemo(() => {
     const items: {
@@ -144,15 +170,7 @@ export default function ManagerDashboard() {
     });
   };
 
-  const getStatusBadge = (status: LearnerStatus) => {
-    switch (status) {
-      case 'on-track': return <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">On Track</Badge>;
-      case 'excelling': return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Excelling</Badge>;
-      case 'needs-attention': return <Badge variant="outline" className="bg-accent/10 text-accent border-accent/25">Needs Attention</Badge>;
-      case 'at-risk': return <Badge variant="destructive" className="shadow-none">At Risk</Badge>;
-      default: return null;
-    }
-  };
+  const getStatusBadge = (status: LearnerStatus) => <TeamStatusBadge status={status} />;
 
   return (
     <Layout role="manager">
@@ -244,6 +262,49 @@ export default function ManagerDashboard() {
                 ))}
               </div>
             </AIAnalysisPanel>
+
+            {benchmark && <TeamBenchmarkCard benchmark={benchmark} className="border-border shadow-sm" />}
+
+            <Card className="border-border shadow-sm" data-testid="card-impact-teaser">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <Award className="w-4 h-4 text-primary" /> Recognition &amp; Impact
+                </CardTitle>
+                <CardDescription>What the team has earned and returned so far</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div>
+                    <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-hours">
+                      {impact.hoursPerMonth}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Hours saved / month</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-credentials">
+                      {recognition.credentials.length}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Credentials earned</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-projects">
+                      {impact.projectsValidated}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Projects validated</p>
+                  </div>
+                </div>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {recognition.standing
+                    ? `${recognition.standing.teamHoursPerPerson} hours returned per person each month against a ${recognition.standing.ministry.shortName} average of ${recognition.standing.ministryHoursPerLearner}.`
+                    : "Impact appears here once a workplace project is signed off."}
+                </p>
+                <Link href="/manager/recognition">
+                  <Button variant="outline" className="w-full gap-2" data-testid="button-view-recognition">
+                    View team recognition <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
             <Card className="border-border shadow-sm">
               <CardHeader className="pb-2">

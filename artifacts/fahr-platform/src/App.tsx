@@ -19,6 +19,7 @@ import TeamMembers from "@/pages/TeamMembers";
 import TeamMemberDetail from "@/pages/TeamMemberDetail";
 import ManagerValidations from "@/pages/ManagerValidations";
 import ManagerReports from "@/pages/ManagerReports";
+import TeamRecognition from "@/pages/TeamRecognition";
 import MinistryCohorts from "@/pages/MinistryCohorts";
 import LearnerDashboard from "@/pages/LearnerDashboard";
 import BaselineAssessment from "@/pages/BaselineAssessment";
@@ -91,6 +92,7 @@ function Router() {
       <Route path="/manager/team/:memberId" component={TeamMemberDetail} />
       <Route path="/manager/validations" component={ManagerValidations} />
       <Route path="/manager/reports" component={ManagerReports} />
+      <Route path="/manager/recognition" component={TeamRecognition} />
 
       {/* Ministry Routes */}
       <Route path="/ministry" component={MinistryDashboard} />

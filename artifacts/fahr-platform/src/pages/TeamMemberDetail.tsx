@@ -11,11 +11,13 @@ import { Separator } from "@/components/ui/separator";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { LEVEL_BY_ID, SUBMISSION_STATE_LABEL } from "@/lib/federal";
 import { COMPETENCIES } from "@/lib/learningData";
-import { ArrowLeft, UserRound, BookOpen, ShieldCheck, FileText, Sparkles, Send, Target, AlertCircle, Clock, Award } from "lucide-react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { AGENTS } from "@/lib/constants";
+import { ArrowLeft, UserRound, BookOpen, ShieldCheck, FileText, Sparkles, Send, Target, AlertCircle, Clock, Award, BadgeCheck } from "lucide-react";
+import { CertificationBadge, TeamStatusBadge } from "@/components/manager/TeamStatusBadge";
+import { teamRosterRow } from "@/lib/manager/selectors";
 
 export default function TeamMemberDetail() {
   const { memberId } = useParams<{ memberId: string }>();
@@ -41,6 +43,9 @@ export default function TeamMemberDetail() {
 
   const level = LEVEL_BY_ID[person.levelId];
   const isLive = Boolean(person.live);
+  // The same roster derivation the team table uses, so a row and this page can
+  // never disagree about a pathway, an assessment outcome or certification.
+  const standing = teamRosterRow(person, credentials);
 
   const scoreFor = (competencyId: string): number =>
     person.competencyScores?.[competencyId] ?? person.assessmentScore;
@@ -104,6 +109,10 @@ export default function TeamMemberDetail() {
                 <CardTitle className="text-lg flex items-center gap-2"><BookOpen className="h-5 w-5 text-primary" /> Learning Pathway Progress</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Assigned pathway: <span className="font-medium text-foreground">{standing.pathway}</span> ·{" "}
+                  {standing.cohortName}
+                </p>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold text-sm">Overall Completion</span>
                   <span className="font-bold">{person.pathwayProgress}%</span>
@@ -201,6 +210,40 @@ export default function TeamMemberDetail() {
                     <AlertCircle className="w-4 h-4" /> Schedule Intervention
                   </Button>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card data-testid="card-member-standing">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BadgeCheck className="h-5 w-5 text-primary" /> Completion &amp; Certification
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Certification standing</span>
+                  <CertificationBadge state={standing.certification} />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Pathway completion</span>
+                  <span className="font-semibold tabular-nums">{standing.pathwayProgress}%</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Assessment outcome</span>
+                  <span className="font-medium">{standing.assessmentOutcome}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Capability average</span>
+                  <span className="font-semibold tabular-nums">{standing.capabilityAverage}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Progress status</span>
+                  <TeamStatusBadge status={person.status} />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Last active {standing.lastActive}
+                  {standing.activeThisWeek ? "" : " — dormant this week"}.
+                </p>
               </CardContent>
             </Card>
 

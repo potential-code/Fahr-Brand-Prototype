@@ -64,6 +64,8 @@ type StaggerItemProps = {
   as?: ItemTag;
   /** Row-sized travel for table rows, card-sized for everything else. */
   variant?: "card" | "row";
+  /** Click-through, for rows that open a detail page. */
+  onClick?: () => void;
   "data-testid"?: string;
 };
 
@@ -72,6 +74,7 @@ export function StaggerItem({
   className,
   as = "div",
   variant = "card",
+  onClick,
   ...rest
 }: StaggerItemProps) {
   const reduceMotion = useReducedMotion();
@@ -88,7 +91,7 @@ export function StaggerItem({
   };
 
   return (
-    <Tag className={className} variants={variants} data-testid={rest["data-testid"]}>
+    <Tag className={className} variants={variants} onClick={onClick} data-testid={rest["data-testid"]}>
       {children}
     </Tag>
   );

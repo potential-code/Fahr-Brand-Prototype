@@ -124,6 +124,7 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
           { href: "/manager/team", label: "Team Members", icon: Users },
           { href: "/manager/validations", label: "Validations", icon: ClipboardCheck },
           { href: "/manager/reports", label: "Team Reports", icon: BarChart3 },
+          { href: "/manager/recognition", label: "Recognition & Impact", icon: Award },
         ];
       case "ministry":
         return [

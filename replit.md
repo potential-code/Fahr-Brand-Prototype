@@ -10,6 +10,7 @@ A clickable, bilingual (English/Arabic, RTL-ready) front-end prototype for a UAE
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
+- Required secrets: `PLATFORM_AUTH_USERNAME`, `PLATFORM_AUTH_PASSWORD` — the HTTP Basic credentials that gate the whole platform. Without both set, every service answers `503` (fail closed).
 
 ## Stack
 
@@ -26,7 +27,9 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **Platform-wide HTTP Basic auth is enforced server-side**, not in React. One shared guard (`lib/basic-auth`) is mounted by the Vite dev/preview server, the platform's production Node server and the Express API server, so the landing page, every route and every asset need credentials. There is no login UI — the browser prompts once and re-sends the credentials for the rest of the session.
+- **The web artifact is served by a small Node server in production** (`artifacts/fahr-platform/server/index.mjs`) instead of Replit's static hosting, because a static host cannot check credentials. It serves `dist/public`, falls back to `index.html` for SPA routes, and keeps `/healthz` open for the deployment health check.
+- Credentials come from `PLATFORM_AUTH_USERNAME` / `PLATFORM_AUTH_PASSWORD` (Replit Secrets, so they apply to both the dev URL and the published app) and are compared in constant time. Nothing is hard coded and the guard fails closed when they are missing.
 
 ## Product
 
@@ -41,7 +44,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The workspace **preview pane cannot pass Basic auth** — browsers refuse credential prompts inside a cross-origin iframe, so the preview shows the 401 page. Open the app in its own browser tab (or the published URL) and sign in there.
+- Automated screenshots and headless browsers hit the same wall; give them the credentials explicitly or point them at `/healthz`.
+- After changing the auth secrets, restart the workflows (dev) and republish (production) so the servers pick them up.
 
 ## Pointers
 
