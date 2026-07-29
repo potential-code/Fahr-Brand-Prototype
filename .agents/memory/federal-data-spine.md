@@ -17,6 +17,14 @@ The learner the demo just played as appears in her manager's team with her *actu
 
 **Why:** the demo's whole claim is "one platform, one data model". A manager screen showing a nicer number than the learner just saw breaks it in the most noticeable possible place.
 
+## Never verify the learner pathway from a seeded assessment result
+
+To check anything on the pathway or its activity dialogs, drive the real flow (onboarding → every assessment question → advisor report → pathway). Hand-seeding an assessment result into sessionStorage produces a *different pathway*: every item's title, body, sample prompt, knowledge check and role-play is looked up per-competency from pools keyed off the ranked gaps, and pool coverage is uneven — so a seeded run can silently skip the exact branch the user is hitting.
+
+**Why:** a "cannot reproduce" verdict on a blank activity dialog was wrong for exactly this reason; the seeded gaps never rendered the branch that failed.
+
+**How to apply:** for pathway work, exercise several full answer profiles (all-low, all-high, mixed, one competency perfect), not one seeded state. Treat per-competency pool coverage as something to assert in a test, not to assume.
+
 ## Departments with no authored roster synthesise one
 
 Any department can be drilled into, so a department without hand-written people generates a deterministic roster (seeded PRNG, centred on that department's readiness) rather than showing an empty table.
