@@ -13,6 +13,7 @@ import { useFederalData } from "@/lib/FederalDataContext";
 import { LEVEL_BY_ID, SUBMISSION_STATE_LABEL, competencyLabel, filterSubmissions, type LearnerStatus, type Person } from "@/lib/federal";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from "recharts";
 import { Users, TrendingUp, AlertCircle, Send, CheckCircle2, BrainCircuit, Target, Activity, Shield, ChevronRight, UserCircle, ClipboardCheck, RotateCcw } from "lucide-react";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { Progress } from "@/components/ui/progress";
 import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
 
@@ -213,17 +214,14 @@ export default function ManagerDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <div className="lg:col-span-1 space-y-8">
-            <Card className="border-accent/30 bg-gradient-to-br from-card to-accent/5 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 end-0 p-4 opacity-5 pointer-events-none">
-                 <BrainCircuit className="w-32 h-32 text-accent" />
-              </div>
-              <CardHeader className="pb-3 border-b border-border/50 bg-background/50 backdrop-blur-sm relative z-10">
-                <div className="flex items-center gap-2 text-foreground font-semibold">
-                   <BrainCircuit className="w-5 h-5 text-accent" />
-                   {AGENTS.analytics} Insights
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 space-y-3 relative z-10">
+            <AIAnalysisPanel
+              agent={AGENTS.analytics}
+              title="Team risk and intervention analysis"
+              sources={`${team.length} team records`}
+              steps={["Reading activity logs", "Scoring competency gaps against ladder", "Ranking interventions by impact"]}
+              runKey={team.length}
+            >
+              <div className="space-y-3">
                 {insights.map(insight => (
                   <div key={insight.id} className="flex flex-col p-4 bg-background border border-border/50 rounded-lg shadow-sm hover-elevate transition-all">
                      <div className="flex items-start gap-3 mb-3">
@@ -244,8 +242,8 @@ export default function ManagerDashboard() {
                      </Button>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </AIAnalysisPanel>
 
             <Card className="border-border shadow-sm">
               <CardHeader className="pb-2">

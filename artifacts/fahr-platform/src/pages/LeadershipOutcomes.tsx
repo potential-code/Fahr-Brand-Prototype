@@ -8,6 +8,8 @@ import { PageEnter, Stagger, StaggerItem, CountUp, ChartReveal } from "@/compone
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Rocket, Clock, Coins, Award } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
+import { AGENTS } from "@/lib/constants";
 
 export default function LeadershipOutcomes() {
   const { ministries } = useFederalData();
@@ -49,12 +51,21 @@ export default function LeadershipOutcomes() {
         </Stagger>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Est. Value Created by Entity</CardTitle>
+          <AIAnalysisPanel
+            agent={AGENTS.analytics}
+            title="Est. Value Created by Entity"
+            steps={[
+              "Evaluating deployed project ROI models",
+              "Aggregating entity-level impact metrics",
+              "Isolating top contributors"
+            ]}
+            className="h-full"
+          >
+          <Card className="h-full border-0 shadow-none bg-transparent">
+            <CardHeader className="px-0 pt-0">
               <CardDescription>Top 5 contributors to the AED {FEDERAL.valueCreatedAedM}M national total</CardDescription>
             </CardHeader>
-            <CardContent className="h-[300px]">
+            <CardContent className="px-0 pb-0 h-[300px]">
               <ChartReveal className="h-full" direction="wipe">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={topValueEntities} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -81,14 +92,23 @@ export default function LeadershipOutcomes() {
               </ChartReveal>
             </CardContent>
           </Card>
+          </AIAnalysisPanel>
 
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Capability Lift</CardTitle>
+            <AIAnalysisPanel
+              agent={AGENTS.analytics}
+              title="Capability Lift"
+              steps={[
+                "Benchmarking current readiness against target",
+                "Evaluating entity tracking thresholds",
+                "Projecting pathway momentum"
+              ]}
+            >
+            <Card className="border-0 shadow-none bg-transparent">
+              <CardHeader className="px-0 pt-0">
                 <CardDescription>Progress toward the {NATIONAL_TARGET.by} target</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="px-0 pb-0 space-y-6">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium text-foreground">Current Federal Readiness</span>
@@ -114,14 +134,23 @@ export default function LeadershipOutcomes() {
                 </div>
               </CardContent>
             </Card>
+            </AIAnalysisPanel>
 
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="p-6 text-sm space-y-3">
-                <p className="font-semibold text-primary text-base">Strategic Outcome Analysis</p>
+            <AIAnalysisPanel
+              agent={AGENTS.analytics}
+              title="Strategic Outcome Analysis"
+              steps={[
+                "Auditing deployed project outcomes",
+                "Aggregating monthly capacity recapture",
+                "Modelling annualised economic value"
+              ]}
+              className="bg-primary/5 border-primary/20"
+            >
+              <div className="text-sm space-y-3">
                 <p>The deployed {FEDERAL.projectsSubmitted.toLocaleString()} projects are currently returning an estimated <strong>AED {FEDERAL.valueCreatedAedM}M</strong> in annualised value.</p>
                 <p>Process automation alone has recaptured <strong>{FEDERAL.hoursSavedPerMonth.toLocaleString()} hours</strong> of capacity per month across the federal workforce, primarily concentrated in policy analysis and customer service delivery.</p>
-              </CardContent>
-            </Card>
+              </div>
+            </AIAnalysisPanel>
           </div>
         </div>
 

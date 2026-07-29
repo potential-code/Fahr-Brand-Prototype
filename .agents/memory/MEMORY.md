@@ -1,5 +1,5 @@
 - [FAHR mockup conventions](fahr-mockup-conventions.md) — mockup-only scope, shared agent/ladder constants, logo & Radix Select gotchas, fahr.gov.ae blocks scraping.
 - [FAHR federal data spine](federal-data-spine.md) — author a figure once and derive the rest; live learner state beats demo numbers; session-store decisions must be idempotent (state-guarded, deduped).
 - [Deterministic tests for motion-heavy screens](motion-test-determinism.md) — force reduced-motion + stub IntersectionObserver in test setup; never add test-only branches to animated components.
-- [Motion kit gotchas](motion-kit-gotchas.md) — GSAP clip-path unit mismatch hides charts silently; no divs in PageHeader descriptions; counters tween from their last value.
+- [Motion kit gotchas](motion-kit-gotchas.md) — gate content with a stacked overlay, never by unmounting (recharts zero-size); GSAP clip-path unit mismatch hides charts; counters tween from last value.
 - [Sidebar active state and nav motion](sidebar-active-state.md) — deepest-match highlighting, per-surface layout-animation ids, duplicated nav test ids.

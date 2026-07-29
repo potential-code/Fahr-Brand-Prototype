@@ -50,7 +50,8 @@ import {
   PanelEnter,
   MOTION,
 } from "@/components/motion";
-import { CAPABILITY_LEVELS } from "@/lib/constants";
+import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { COMPETENCY_BY_ID } from "@/lib/learningData";
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import {
@@ -663,6 +664,18 @@ export default function FAHRFramework() {
                   </div>
                 </div>
 
+                <AIAnalysisPanel
+                  bare
+                  agent={AGENTS.advisor}
+                  title="Mapping learner pathway"
+                  steps={[
+                    "Evaluating baseline score against capability ladder",
+                    "Checking competency threshold rules",
+                    "Retrieving mapped catalogue items",
+                    "Structuring workplace project assignment"
+                  ]}
+                  runKey={`${traceCompetency}-${traceScore}`}
+                >
                 <motion.div
                   key={`${traceCompetency}-${traceFires}-${traceContent.length}`}
                   initial={reduceMotion ? false : { opacity: 0, y: 6 }}
@@ -711,6 +724,7 @@ export default function FAHRFramework() {
                     </p>
                   )}
                 </motion.div>
+                </AIAnalysisPanel>
               </CardContent>
             </Card>
           </TabsContent>

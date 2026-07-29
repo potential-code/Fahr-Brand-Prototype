@@ -75,6 +75,8 @@ import {
 import { COMPETENCIES } from "@/lib/learningData";
 import { downloadCsv, downloadCsvPack, printReport, type ExportSheet } from "@/lib/exportFile";
 import { ReportKpi, scoreTone, ReportPill } from "@/components/ministry/ReportShared";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
+import { AGENTS } from "@/lib/constants";
 
 type ReportView =
   | "engagement"
@@ -847,8 +849,12 @@ function GapsReport({
     <div className="space-y-6">
       {/* Top gap call-out with next actions */}
       {topGap && (
-        <Card className="border-accent/30 bg-accent/5">
-          <CardContent className="p-6 flex flex-col md:flex-row md:items-center gap-6">
+        <AIAnalysisPanel
+          agent={AGENTS.analytics}
+          title="Capability Gap Analysis"
+          steps={["Identifying largest readiness gap", "Calculating distance to national target", "Formulating intervention options"]}
+        >
+          <div className="p-6 bg-accent/5 rounded-lg border border-accent/20 flex flex-col md:flex-row md:items-center gap-6">
             <div className="flex-1 space-y-2">
               <div className="flex items-center gap-2 text-accent">
                 <Lightbulb className="w-5 h-5" />
@@ -880,8 +886,8 @@ function GapsReport({
                 </Button>
               </Link>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </AIAnalysisPanel>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -178,3 +178,12 @@
   .hover-elevate { position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease; }
   .hover-elevate:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 }
+
+/* A brief or report printed while an AI panel is still analysing must carry the
+   settled content, not the dimmed/blurred in-progress state. */
+@media print {
+  [data-ai-phase="running"] [data-ai-content] {
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}

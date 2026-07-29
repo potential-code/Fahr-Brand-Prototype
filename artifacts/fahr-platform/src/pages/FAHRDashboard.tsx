@@ -39,6 +39,7 @@ import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { CountUp, ChartReveal, MOTION, PageEnter, Stagger, StaggerItem } from "@/components/motion";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { downloadCsv, printReport, stampedFilename, type CsvRow } from "@/lib/exportFile";
 import {
   DEPARTMENT_BY_ID,
@@ -350,38 +351,44 @@ export default function FAHRDashboard() {
       return (
         <div className="space-y-6">
           {/* Analytics agent insight, read from the live entity records. */}
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-center">
-              <div className="bg-primary text-primary-foreground p-3 rounded-lg shrink-0 flex items-center justify-center">
-                <Bot className="w-6 h-6" />
-              </div>
-              <div className="space-y-2 text-sm">
-                <p>
-                  <span className="font-semibold text-primary">{AGENTS.analytics}:</span> “Adoption is strongest in{" "}
-                  {strongest.map((m) => m.shortName).join(", ")}, all at or above{" "}
-                  {strongest[strongest.length - 1]?.readiness}% readiness.”
-                </p>
-                <p>
-                  <span className="font-semibold text-primary">{AGENTS.analytics}:</span> “The biggest capability gap
-                  across entities is {gaps[0] ? competencyLabel(gaps[0].competency.id) : "—"}, reported by{" "}
-                  {gaps[0]?.ministries ?? 0} of {national.ofEntities}.”
-                </p>
-                <p className="flex flex-wrap items-center gap-2">
-                  <span>
-                    <span className="font-semibold text-primary">Recommendation:</span> “Run a federal challenge on{" "}
-                    {gaps[0] ? competencyLabel(gaps[0].competency.id) : "capability transfer"} next quarter.”
-                  </span>
-                  <Link
-                    href="/fahr/communications"
-                    className="text-xs font-medium text-primary underline-offset-4 hover:underline"
-                    data-testid="link-launch-campaign"
-                  >
-                    Compose the campaign
-                  </Link>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <AIAnalysisPanel
+            agent={AGENTS.analytics}
+            title="Federal Adoption Insights"
+            sources={`${national.ofEntities} entities · ${national.activeLearners.toLocaleString()} learners`}
+            steps={[
+              "Aggregating entity readiness scores",
+              "Identifying common capability gaps across the federal workforce",
+              "Evaluating momentum trends",
+              "Synthesising intervention recommendations"
+            ]}
+            className="bg-primary/5 border-primary/20"
+          >
+            <div className="space-y-2 text-sm">
+              <p>
+                <span className="font-semibold text-foreground">Insight 1:</span> Adoption is strongest in{" "}
+                {strongest.map((m) => m.shortName).join(", ")}, all at or above{" "}
+                {strongest[strongest.length - 1]?.readiness}% readiness.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">Insight 2:</span> The biggest capability gap
+                across entities is {gaps[0] ? competencyLabel(gaps[0].competency.id) : "—"}, reported by{" "}
+                {gaps[0]?.ministries ?? 0} of {national.ofEntities}.
+              </p>
+              <p className="flex flex-wrap items-center gap-2">
+                <span>
+                  <span className="font-semibold text-primary">Recommendation:</span> Run a federal challenge on{" "}
+                  {gaps[0] ? competencyLabel(gaps[0].competency.id) : "capability transfer"} next quarter.
+                </span>
+                <Link
+                  href="/fahr/communications"
+                  className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                  data-testid="link-launch-campaign"
+                >
+                  Compose the campaign
+                </Link>
+              </p>
+            </div>
+          </AIAnalysisPanel>
 
           <Stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {kpis.map((kpi, i) => (
@@ -405,14 +412,23 @@ export default function FAHRDashboard() {
           </Stagger>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Federal AI readiness by entity</CardTitle>
-                <CardDescription>Click a bar to drill into the entity.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartReveal className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
+            <AIAnalysisPanel
+              agent={AGENTS.analytics}
+              title="Federal AI readiness by entity"
+              steps={[
+                "Processing entity readiness scores",
+                "Ranking by overall capability adoption",
+                "Generating comparative visualization"
+              ]}
+              className="h-full"
+            >
+              <Card className="h-full border-0 shadow-none bg-transparent">
+                <CardHeader className="px-0 pt-0">
+                  <CardDescription>Click a bar to drill into the entity.</CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 pb-0">
+                  <ChartReveal className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={federalChartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} />
                       <XAxis type="number" domain={[0, 100]} hide />
@@ -434,6 +450,7 @@ export default function FAHRDashboard() {
                 </ChartReveal>
               </CardContent>
             </Card>
+            </AIAnalysisPanel>
 
             <Card>
               <CardHeader>

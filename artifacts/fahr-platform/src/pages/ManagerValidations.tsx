@@ -11,6 +11,8 @@ import { useFederalData } from "@/lib/FederalDataContext";
 import { filterSubmissions } from "@/lib/federal";
 import { ClipboardCheck, RotateCcw, AlertCircle, BrainCircuit, CheckCircle2 } from "lucide-react";
 import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
+import { AIAnalysisInline } from "@/components/ai/AIAnalysis";
+import { AGENTS } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -229,15 +231,24 @@ export default function ManagerValidations() {
                     <BrainCircuit className="w-5 h-5 text-primary" />
                     <CardTitle className="text-sm uppercase tracking-wider text-primary">AI Evaluation</CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-4 space-y-4">
-                    <p className="text-sm text-foreground leading-relaxed">
-                      This project demonstrates strong practical application of <strong>{selectedSubmission.competencyIds.join(", ")}</strong> competencies. 
-                      The estimated value of {selectedSubmission.estimatedValueAed.toLocaleString()} AED and {selectedSubmission.hoursSavedPerMonth} hours saved per month is realistic based on similar federal implementations.
-                    </p>
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      <Badge variant="outline" className="bg-background text-primary border-primary/30">Governance: {selectedSubmission.governanceStatus}</Badge>
-                      <Badge variant="outline" className="bg-background text-primary border-primary/30">Impact: {selectedSubmission.impact}</Badge>
-                    </div>
+                  <CardContent className="pt-4">
+                    <AIAnalysisInline
+                      agent={AGENTS.analytics}
+                      label="Evaluating project submission"
+                      steps={["Analysing project metrics", "Verifying federal application", "Validating projected impact"]}
+                      runKey={selectedSubmission.id}
+                    >
+                      <div className="space-y-4">
+                        <p className="text-sm text-foreground leading-relaxed">
+                          This project demonstrates strong practical application of <strong>{selectedSubmission.competencyIds.join(", ")}</strong> competencies. 
+                          The estimated value of {selectedSubmission.estimatedValueAed.toLocaleString()} AED and {selectedSubmission.hoursSavedPerMonth} hours saved per month is realistic based on similar federal implementations.
+                        </p>
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <Badge variant="outline" className="bg-background text-primary border-primary/30">Governance: {selectedSubmission.governanceStatus}</Badge>
+                          <Badge variant="outline" className="bg-background text-primary border-primary/30">Impact: {selectedSubmission.impact}</Badge>
+                        </div>
+                      </div>
+                    </AIAnalysisInline>
                   </CardContent>
                 </Card>
               </div>

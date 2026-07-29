@@ -24,6 +24,7 @@ import {
   Menu,
   Plug,
   Rocket,
+  Search,
   ShieldCheck,
   Target,
   TrendingUp,
@@ -43,6 +44,14 @@ import {
 } from "@/components/ui/sheet";
 import { AIConcierge } from "@/components/AIConcierge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+} from "@/components/ui/select";
 import { MOTION } from "@/components/motion";
 
 type Role = "learner" | "manager" | "ministry" | "fahr" | "leadership";
@@ -65,6 +74,25 @@ const ROLE_LABELS: Record<Role, string> = {
   fahr: "FAHR Programme Team",
   leadership: "Federal Leadership",
 };
+
+/** Short names for the portal switcher, where the trigger has little room. */
+const ROLE_SHORT_LABELS: Record<Role, string> = {
+  learner: "Learner",
+  manager: "Manager",
+  ministry: "Ministry Admin",
+  fahr: "FAHR Admin",
+  leadership: "Leadership",
+};
+
+const ROLE_HOME: Record<Role, string> = {
+  learner: "/learner",
+  manager: "/manager",
+  ministry: "/ministry",
+  fahr: "/fahr",
+  leadership: "/leadership",
+};
+
+const ROLE_ORDER: Role[] = ["learner", "manager", "ministry", "fahr", "leadership"];
 
 export function Layout({ children, role }: { children: React.ReactNode; role: Role }) {
   const { language, t } = useLanguage();
@@ -304,8 +332,21 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
               </Link>
             </div>
 
-            <div className="hidden md:block text-sm text-muted-foreground font-medium">
-              Federal Agentic AI Learning & Skilling Platform
+            {/* Platform search — presentational only in the mockup. */}
+            <div className="hidden md:flex min-w-0 flex-1 max-w-md items-center">
+              <div className="group relative w-full">
+                <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                <input
+                  type="search"
+                  aria-label="Search the platform"
+                  placeholder="Search people, entities, courses, projects"
+                  className="h-9 w-full rounded-full border border-border bg-muted/60 ps-9 pe-16 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/40 focus:bg-white focus:ring-2 focus:ring-primary/15"
+                  data-testid="input-platform-search"
+                />
+                <kbd className="pointer-events-none absolute end-2.5 top-1/2 hidden -translate-y-1/2 select-none items-center gap-0.5 rounded border border-border bg-white px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground lg:flex">
+                  <span className="text-xs leading-none">⌘</span>K
+                </kbd>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 min-w-0 ms-auto">
@@ -386,14 +427,33 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
               </PopoverContent>
             </Popover>
 
-            {/* Demo role switcher */}
-            <div className="flex items-center overflow-x-auto bg-muted rounded-full p-1 border border-border">
-              <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'learner' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/learner')}>{t('nav.learner')}</Button>
-              <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'manager' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/manager')}>Manager</Button>
-              <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'ministry' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/ministry')}>{t('nav.ministry')}</Button>
-              <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'fahr' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/fahr')}>{t('nav.fahr')}</Button>
-              <Button variant="ghost" size="sm" className={`rounded-full px-3 md:px-4 h-8 whitespace-nowrap ${role === 'leadership' ? 'bg-white shadow-sm' : ''}`} onClick={() => setLocation('/leadership')}>Leadership</Button>
-            </div>
+            {/* Demo portal switcher — one dropdown rather than a row of pills. */}
+            <Select value={role} onValueChange={(next) => setLocation(ROLE_HOME[next as Role])}>
+              <SelectTrigger
+                className="h-9 w-auto min-w-0 gap-2 rounded-full border-border bg-muted/70 ps-3 pe-2.5 text-sm font-medium shadow-none focus:ring-2 focus:ring-primary/20"
+                aria-label="Switch portal"
+                data-testid="select-role"
+              >
+                {/* The trigger shows the short name; the list carries the full role title. */}
+                <span className="flex min-w-0 items-center gap-2">
+                  <UserCog className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="truncate">{ROLE_SHORT_LABELS[role]}</span>
+                </span>
+              </SelectTrigger>
+              <SelectContent align="end" className="min-w-[15rem]">
+                <SelectGroup>
+                  <SelectLabel className="text-[11px] uppercase tracking-wider">Demo portal</SelectLabel>
+                  {ROLE_ORDER.map((r) => (
+                    <SelectItem key={r} value={r} data-testid={`select-role-${r}`}>
+                      <span className="flex flex-col">
+                        <span className="font-medium">{ROLE_SHORT_LABELS[r]}</span>
+                        <span className="text-[11px] text-muted-foreground">{ROLE_LABELS[r]}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             </div>
           </div>
         </header>

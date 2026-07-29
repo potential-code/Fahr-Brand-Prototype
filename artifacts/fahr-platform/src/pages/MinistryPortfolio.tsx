@@ -39,6 +39,8 @@ import {
 import type { Submission } from "@/lib/federal/model";
 import { ENTITY_ADMIN } from "@/lib/entityAdmin/seed";
 import { downloadCsv } from "@/lib/exportFile";
+import { AIAnalysisInline } from "@/components/ai/AIAnalysis";
+import { AGENTS } from "@/lib/constants";
 
 const impactBadge = (impact: Submission["impact"]): string =>
   impact === "High"
@@ -308,14 +310,21 @@ export default function MinistryPortfolio() {
                   <h4 className="flex items-center gap-2 font-semibold">
                     <Activity className="h-5 w-5 text-primary" /> Impact Evidence
                   </h4>
-                  <div className="space-y-2 rounded-lg border border-border bg-muted p-4 text-sm">
-                    <p>{selectedProject.metrics}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Estimated annual value AED {selectedProject.estimatedValueAed.toLocaleString()} ·{" "}
-                      {selectedProject.hoursSavedPerMonth} hours saved per month · Competencies evidenced:{" "}
-                      {selectedProject.competencyIds.map(competencyLabel).join(", ")}
-                    </p>
-                  </div>
+                  <AIAnalysisInline
+                    agent={AGENTS.analytics}
+                    label="Validating projected impact"
+                    steps={["Analysing project metrics", "Verifying federal application", "Extracting impact figures"]}
+                    runKey={selectedProject.id}
+                  >
+                    <div className="space-y-2 rounded-lg border border-border bg-muted p-4 text-sm">
+                      <p>{selectedProject.metrics}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Estimated annual value AED {selectedProject.estimatedValueAed.toLocaleString()} ·{" "}
+                        {selectedProject.hoursSavedPerMonth} hours saved per month · Competencies evidenced:{" "}
+                        {selectedProject.competencyIds.map(competencyLabel).join(", ")}
+                      </p>
+                    </div>
+                  </AIAnalysisInline>
                 </div>
 
                 <div className="space-y-4">

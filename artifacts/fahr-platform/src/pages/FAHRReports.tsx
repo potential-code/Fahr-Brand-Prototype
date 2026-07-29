@@ -42,6 +42,8 @@ import {
   ChartReveal,
   CountUp,
 } from "@/components/motion";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
+import { AGENTS } from "@/lib/constants";
 import {
   REPORT_TYPES,
   REPORT_PERIODS,
@@ -490,9 +492,22 @@ export default function FAHRReports() {
             </CardContent>
           </Card>
         ) : (
-          <>
-            {/* KPI row */}
-            <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4" as="div">
+          <AIAnalysisPanel
+            bare
+            autoRun
+            agent={AGENTS.analytics}
+            title={`${reportMeta.label} analysis`}
+            sources={`${scopedMinistries.length} entities`}
+            steps={[
+              "Aggregating entity metrics for the selected period",
+              "Calculating federal totals and weighted averages",
+              "Synthesising insights into the report format"
+            ]}
+            runKey={`${reportType}-${periodId}-${selectedEntityIds.join(",")}`}
+          >
+            <div className="space-y-6">
+              {/* KPI row */}
+              <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4" as="div">
               {kpis.map((kpi, i) => (
                 <StaggerItem key={kpi.key}>
                   <Card>
@@ -760,7 +775,8 @@ export default function FAHRReports() {
                 </p>
               </CardContent>
             </Card>
-          </>
+            </div>
+          </AIAnalysisPanel>
         )}
       </PageEnter>
     </Layout>

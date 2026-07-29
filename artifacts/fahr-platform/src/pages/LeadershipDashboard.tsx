@@ -14,6 +14,7 @@ import { AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { printReport } from "@/lib/exportFile";
 import { PageEnter, Stagger, StaggerItem, CountUp, ChartReveal } from "@/components/motion";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import {
   CAPABILITY_BANDS,
   FEDERAL,
@@ -431,37 +432,43 @@ export default function LeadershipDashboard() {
           </Card>
         </div>
 
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-6 flex flex-col md:flex-row gap-4 items-start">
-            <div className="bg-primary text-primary-foreground p-3 rounded-lg shrink-0 flex items-center justify-center">
-              <Bot className="w-7 h-7" />
-            </div>
-            <div className="space-y-3 text-sm">
-              <p className="font-semibold text-primary text-base">{AGENTS.analytics} — National-Level Insights</p>
-              <p>
-                <span className="font-semibold text-foreground">Insight 1:</span> Readiness is strongest in{" "}
-                {strongest.map((m) => m.shortName).join(", ")} ({strongest[0]?.readiness}% at the top), with momentum
-                concentrated in policy-heavy functions.
-              </p>
-              <p>
-                <span className="font-semibold text-foreground">Insight 2:</span> The largest capability gap is{" "}
-                {topGap ? competencyLabel(topGap.competency.id) : "—"}, named as the top gap by{" "}
-                {topGap?.ministries ?? 0} of {FEDERAL.ministriesTotal} entities.
-              </p>
-              <p>
-                <span className="font-semibold text-foreground">Insight 3:</span> Credentialing is uneven —{" "}
-                {championShare}% of all issued credentials sit in the three strongest entities, limiting cross-entity
-                knowledge transfer.
-              </p>
-              <p>
-                <span className="font-semibold text-primary">Recommendation:</span> Launch a federal challenge on{" "}
-                {topGap ? competencyLabel(topGap.competency.id) : "capability transfer"}, pairing high-performing
-                ministries with the {FEDERAL.ministriesTotal - FEDERAL.ministriesOnTrack} entities below the{" "}
-                {ON_TRACK_READINESS}% threshold.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <AIAnalysisPanel
+          agent={AGENTS.analytics}
+          title="National-Level Insights"
+          sources={`${FEDERAL.ministriesTotal} entities`}
+          steps={[
+            "Compiling cross-ministry readiness data",
+            "Identifying primary capability gaps",
+            "Analysing credential distribution",
+            "Formulating strategic recommendation"
+          ]}
+          runKey={`${period}-${grouping}-${showTarget}`}
+          className="bg-primary/5 border-primary/20"
+        >
+          <div className="space-y-3 text-sm">
+            <p>
+              <span className="font-semibold text-foreground">Insight 1:</span> Readiness is strongest in{" "}
+              {strongest.map((m) => m.shortName).join(", ")} ({strongest[0]?.readiness}% at the top), with momentum
+              concentrated in policy-heavy functions.
+            </p>
+            <p>
+              <span className="font-semibold text-foreground">Insight 2:</span> The largest capability gap is{" "}
+              {topGap ? competencyLabel(topGap.competency.id) : "—"}, named as the top gap by{" "}
+              {topGap?.ministries ?? 0} of {FEDERAL.ministriesTotal} entities.
+            </p>
+            <p>
+              <span className="font-semibold text-foreground">Insight 3:</span> Credentialing is uneven —{" "}
+              {championShare}% of all issued credentials sit in the three strongest entities, limiting cross-entity
+              knowledge transfer.
+            </p>
+            <p>
+              <span className="font-semibold text-primary">Recommendation:</span> Launch a federal challenge on{" "}
+              {topGap ? competencyLabel(topGap.competency.id) : "capability transfer"}, pairing high-performing
+              ministries with the {FEDERAL.ministriesTotal - FEDERAL.ministriesOnTrack} entities below the{" "}
+              {ON_TRACK_READINESS}% threshold.
+            </p>
+          </div>
+        </AIAnalysisPanel>
 
         <Card>
           <CardHeader>

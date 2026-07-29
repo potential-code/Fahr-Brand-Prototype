@@ -45,6 +45,8 @@ import {
   departmentRoster,
 } from "@/lib/entityAdmin/selectors";
 import { useEntityAdmin } from "@/lib/EntityAdminContext";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
+import { AGENTS } from "@/lib/constants";
 
 const LEVEL_LABEL: Record<string, string> = Object.fromEntries(
   CAPABILITY_LEVELS.map((l) => [l.id, l.label]),
@@ -178,14 +180,18 @@ export default function MinistryDepartment() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Competency profile */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-lg">Competency profile</CardTitle>
-              <CardDescription>
+          <AIAnalysisPanel
+            agent={AGENTS.analytics}
+            title="Competency profile"
+            sources={`${authoredCount > 0 ? authoredCount : roster.length} staff records`}
+            steps={["Reading baseline assessments", "Averaging capability across framework", "Identifying largest gaps"]}
+            runKey={department.id}
+            className="lg:col-span-2"
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
                 Average capability across the five framework competencies for this department.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              </p>
               <ChartReveal direction="rise" className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData} outerRadius="72%">
@@ -204,8 +210,8 @@ export default function MinistryDepartment() {
                   {gapRow.scores[gapRow.weakestCompetencyId]}%.
                 </p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </AIAnalysisPanel>
 
           {/* Cohorts */}
           <Card>

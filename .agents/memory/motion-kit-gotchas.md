@@ -1,7 +1,27 @@
 ---
 name: Motion kit gotchas (FAHR platform)
-description: Two non-obvious traps in the shared admin motion primitives — GSAP clip-path unit mismatches that silently hide charts, and shadcn Badge being a div inside PageHeader's description paragraph.
+description: Non-obvious traps in the shared admin motion primitives — GSAP clip-path unit mismatches that silently hide charts, shadcn Badge inside PageHeader's description paragraph, counters restarting from zero, and gating content by swap vs. overlay.
 ---
+
+# Gate content with an overlay, never by unmounting it
+
+Any "loading / analysing / generating" state that hides its result with an
+`AnimatePresence` swap remounts whatever is inside. A remounted recharts
+`ResponsiveContainer` measures itself before the new layout settles, logs
+`The width(0) and height(0) of chart should be greater than 0`, and the panel
+jumps height when the result lands.
+
+**Why:** the simulated AI-analysis panels originally swapped result for spinner
+and produced exactly that on every dashboard carrying a chart.
+
+**How to apply:** keep the result mounted, dim/blur it, and stack the working
+overlay in the *same CSS grid cell* (`grid` + both children on
+`col-start-1 row-start-1`) rather than `absolute inset-0` — the wrapper then
+takes the height of the taller layer, so a short result cannot clip the overlay.
+Mark the dimmed layer `inert` while working (React 19 supports the boolean prop)
+so it is neither clickable nor tabbable, and add a `@media print` rule that
+resets the dimming: framer-motion writes opacity/filter as inline styles, so a
+`print:` utility class cannot override them.
 
 # GSAP clip-path tweens: every inset component needs a unit
 

@@ -14,6 +14,8 @@ import { COMPETENCIES } from "@/lib/learningData";
 import { ArrowLeft, UserRound, BookOpen, ShieldCheck, FileText, Sparkles, Send, Target, AlertCircle, Clock, Award } from "lucide-react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
+import { AGENTS } from "@/lib/constants";
 
 export default function TeamMemberDetail() {
   const { memberId } = useParams<{ memberId: string }>();
@@ -74,12 +76,15 @@ export default function TeamMemberDetail() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Capability Profile & Competency Map</CardTitle>
-                <CardDescription>Baseline assessment: {person.assessmentScore}%</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <AIAnalysisPanel
+              agent={AGENTS.analytics}
+              title="Capability Profile & Competency Map"
+              sources="Baseline assessment & recent activity"
+              steps={["Reading baseline assessment", "Mapping to Agentic AI framework", "Identifying development areas"]}
+              runKey={person.id}
+            >
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground mb-4">Baseline assessment: {person.assessmentScore}%</p>
                 <ChartReveal direction="rise" className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={radarData} outerRadius="72%">
@@ -91,8 +96,8 @@ export default function TeamMemberDetail() {
                     </RadarChart>
                   </ResponsiveContainer>
                 </ChartReveal>
-              </CardContent>
-            </Card>
+              </div>
+            </AIAnalysisPanel>
 
             <Card>
               <CardHeader>

@@ -44,6 +44,7 @@ import {
   ScrollReveal,
   CountUp,
 } from "@/components/motion";
+import { AIAnalysisPanel, AIAnalysisInline } from "@/components/ai/AIAnalysis";
 import { downloadCsvPack } from "@/lib/exportFile";
 
 export default function MinistryDashboard() {
@@ -210,95 +211,85 @@ export default function MinistryDashboard() {
         </Stagger>
 
         {/* AI Analytics Assistant Panel */}
-        <Card className="bg-primary/5 border-primary/20">
-          <CardHeader className="pb-3 flex flex-row items-start gap-4 space-y-0">
-            <div className="bg-primary text-primary-foreground p-3 rounded-lg shrink-0">
-              <Bot className="w-6 h-6" />
+        <AIAnalysisPanel
+          agent={AGENTS.analytics}
+          title="Entity Insights & Interventions"
+          sources={`${peopleOfMinistry(focus.ministryId).length} staff records · ${cohorts.length} cohorts`}
+          steps={["Monitoring workforce adoption", "Identifying risk patterns", "Deriving systemic recommendations"]}
+          runKey={focus.ministryId}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2 text-destructive">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="font-semibold text-sm">At-Risk Learners</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {atRiskCount} tracked staff in {weakestDepartment?.name ?? "the entity"} are behind the pathway
+                  baseline — the department sits at {weakestDepartment?.readiness ?? 0}% readiness, the lowest here.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={appliedRecommendations.includes("rec-1")}
+                onClick={() => handleApplyRecommendation("rec-1", "Send automated check-in via AI Learning Coach")}
+                data-testid="button-rec-1"
+              >
+                {appliedRecommendations.includes("rec-1") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Triggered</> : "Send Coach Check-in"}
+              </Button>
             </div>
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                {AGENTS.analytics} Insights
-                <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">Live Analysis</Badge>
-              </CardTitle>
-              <CardDescription className="text-sm mt-1">
-                Continuous monitoring of workforce adoption and performance.
-              </CardDescription>
+
+            <div className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2 text-primary">
+                  <TrendingUp className="w-4 h-4" />
+                  <span className="font-semibold text-sm">Cohort Comparison</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {fastestCohort
+                    ? `${fastestCohort.name} is at ${fastestCohort.progress}% completion${
+                        slowestCohort && slowestCohort.id !== fastestCohort.id
+                          ? `, ahead of ${slowestCohort.name} on ${slowestCohort.progress}%`
+                          : ""
+                      }. Recommend sharing their templates.`
+                    : "No active cohorts to compare yet."}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={appliedRecommendations.includes("rec-2")}
+                onClick={() => handleApplyRecommendation("rec-2", `Publish ${fastestCohort?.name ?? "cohort"} templates to internal marketplace`)}
+                data-testid="button-rec-2"
+              >
+                {appliedRecommendations.includes("rec-2") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Published</> : "Publish Templates"}
+              </Button>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Stagger className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StaggerItem className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2 text-destructive">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="font-semibold text-sm">At-Risk Learners</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {atRiskCount} tracked staff in {weakestDepartment?.name ?? "the entity"} are behind the pathway
-                    baseline — the department sits at {weakestDepartment?.readiness ?? 0}% readiness, the lowest here.
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={appliedRecommendations.includes("rec-1")}
-                  onClick={() => handleApplyRecommendation("rec-1", "Send automated check-in via AI Learning Coach")}
-                  data-testid="button-rec-1"
-                >
-                  {appliedRecommendations.includes("rec-1") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Triggered</> : "Send Coach Check-in"}
-                </Button>
-              </StaggerItem>
 
-              <StaggerItem className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2 text-primary">
-                    <TrendingUp className="w-4 h-4" />
-                    <span className="font-semibold text-sm">Cohort Comparison</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {fastestCohort
-                      ? `${fastestCohort.name} is at ${fastestCohort.progress}% completion${
-                          slowestCohort && slowestCohort.id !== fastestCohort.id
-                            ? `, ahead of ${slowestCohort.name} on ${slowestCohort.progress}%`
-                            : ""
-                        }. Recommend sharing their templates.`
-                      : "No active cohorts to compare yet."}
-                  </p>
+            <div className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2 text-accent">
+                  <Zap className="w-4 h-4" />
+                  <span className="font-semibold text-sm">Action Recommended</span>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={appliedRecommendations.includes("rec-2")}
-                  onClick={() => handleApplyRecommendation("rec-2", `Publish ${fastestCohort?.name ?? "cohort"} templates to internal marketplace`)}
-                  data-testid="button-rec-2"
-                >
-                  {appliedRecommendations.includes("rec-2") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Published</> : "Publish Templates"}
-                </Button>
-              </StaggerItem>
-
-              <StaggerItem className="bg-background rounded-md p-4 border border-border flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2 text-accent">
-                    <Zap className="w-4 h-4" />
-                    <span className="font-semibold text-sm">Action Recommended</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {pendingEntityReview.length} workplace projects are awaiting a decision. The entity's biggest gap
-                    remains {competencyLabel(ministry.topGapCompetencyId)}.
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setLocation("/ministry/reports?view=gaps")}
-                  data-testid="button-rec-3"
-                >
-                  Review Capability Gaps
-                </Button>
-              </StaggerItem>
-            </Stagger>
-          </CardContent>
-        </Card>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {pendingEntityReview.length} workplace projects are awaiting a decision. The entity's biggest gap
+                  remains {competencyLabel(ministry.topGapCompetencyId)}.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setLocation("/ministry/reports?view=gaps")}
+                data-testid="button-rec-3"
+              >
+                Review Capability Gaps
+              </Button>
+            </div>
+          </div>
+        </AIAnalysisPanel>
 
         <Stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {kpis.map((kpi, i) => (
@@ -323,11 +314,13 @@ export default function MinistryDashboard() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">AI Readiness by Department</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[300px]">
+          <AIAnalysisPanel
+            agent={AGENTS.analytics}
+            title="AI Readiness by Department"
+            steps={["Compiling department rosters", "Averaging capability scores", "Rendering readiness index distribution"]}
+            runKey={focus.ministryId}
+          >
+            <div className="h-[300px]">
               <ChartReveal className="h-full" direction="rise">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={readinessChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -339,8 +332,8 @@ export default function MinistryDashboard() {
                   </BarChart>
                 </ResponsiveContainer>
               </ChartReveal>
-            </CardContent>
-          </Card>
+            </div>
+          </AIAnalysisPanel>
 
           <Card>
             <CardHeader>

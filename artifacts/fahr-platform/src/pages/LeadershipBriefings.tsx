@@ -8,9 +8,10 @@ import { PageEnter, PanelEnter } from "@/components/motion";
 import { FileText, Download, Loader2, Calendar, Users, Eye } from "lucide-react";
 import { FEDERAL, NATIONAL_TARGET, ON_TRACK_READINESS } from "@/lib/federal";
 import { printReport } from "@/lib/exportFile";
+import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
+import { AGENTS } from "@/lib/constants";
 
 export default function LeadershipBriefings() {
-  const [generating, setGenerating] = useState(false);
   const [period, setPeriod] = useState("q3-2026");
   const [audience, setAudience] = useState("cabinet");
   
@@ -22,22 +23,17 @@ export default function LeadershipBriefings() {
   ]);
 
   const handleGenerate = () => {
-    setGenerating(true);
-    setActiveBrief(null);
-    setTimeout(() => {
-      setGenerating(false);
-      setActiveBrief({ period, audience });
-      setPastBriefs(prev => [
-        { 
-          id: Date.now(), 
-          title: audience === 'cabinet' ? 'Cabinet Status Brief' : 'Federal AI Programme Brief', 
-          period: period.toUpperCase().replace('-', ' '), 
-          audience: audience.charAt(0).toUpperCase() + audience.slice(1), 
-          date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-        },
-        ...prev
-      ]);
-    }, 1200);
+    setActiveBrief({ period, audience });
+    setPastBriefs(prev => [
+      { 
+        id: Date.now(), 
+        title: audience === 'cabinet' ? 'Cabinet Status Brief' : 'Federal AI Programme Brief', 
+        period: period.toUpperCase().replace('-', ' '), 
+        audience: audience.charAt(0).toUpperCase() + audience.slice(1), 
+        date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+      },
+      ...prev
+    ]);
   };
 
   const handlePrint = () => {
@@ -112,9 +108,9 @@ export default function LeadershipBriefings() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" onClick={handleGenerate} disabled={generating}>
-                  {generating ? <Loader2 className="w-4 h-4 me-2 animate-spin" /> : <FileText className="w-4 h-4 me-2" />}
-                  {generating ? "Synthesising Data..." : "Generate Brief"}
+                <Button className="w-full" onClick={handleGenerate}>
+                  <FileText className="w-4 h-4 me-2" />
+                  Generate Brief
                 </Button>
               </CardFooter>
             </Card>
@@ -142,8 +138,21 @@ export default function LeadershipBriefings() {
           <div className="lg:col-span-2">
             {activeBrief ? (
               <PanelEnter>
-                <Card className="border-primary/20 shadow-md">
-                  <CardHeader className="border-b border-border bg-muted/20 pb-5">
+                <AIAnalysisPanel
+                  agent={AGENTS.analytics}
+                  title="Generating Executive Brief"
+                  sources={`${FEDERAL.ministriesTotal} entity records · latest federal position`}
+                  steps={[
+                    "Reading the federal readiness record",
+                    "Pulling economic impact figures",
+                    "Setting the emphasis for this audience",
+                    "Drafting the executive summary"
+                  ]}
+                  runKey={`${activeBrief.period}-${activeBrief.audience}`}
+                  className="shadow-md"
+                >
+                <Card className="border-0 shadow-none bg-transparent">
+                  <CardHeader className="border-b border-border bg-muted/20 pb-5 rounded-t-xl">
                     <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-start">
                       <div>
                         <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
@@ -199,6 +208,7 @@ export default function LeadershipBriefings() {
                     </section>
                   </CardContent>
                 </Card>
+                </AIAnalysisPanel>
               </PanelEnter>
             ) : (
               <div className="h-full min-h-[400px] rounded-xl border border-dashed border-border bg-muted/20 flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
