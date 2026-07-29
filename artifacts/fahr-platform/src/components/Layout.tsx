@@ -322,14 +322,20 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
     <div className="min-h-[100dvh] bg-background flex">
       {/* Desktop full-height sidebar */}
       <aside className="hidden md:flex w-64 shrink-0 flex-col fixed inset-y-0 left-0 z-40 bg-sidebar border-r border-sidebar-border">
-        <div className="px-5 pt-6 pb-4 border-b border-sidebar-border">
-          <Link href="/">
-            <img
-              src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`}
-              alt="FAHR Logo"
-              className="h-11 cursor-pointer object-contain"
-            />
-          </Link>
+        {/*
+          Same height as the top bar (h-14) so the sidebar's first divider lines
+          up exactly with the header's bottom border across the whole shell.
+        */}
+        <div className="shrink-0 border-b border-sidebar-border">
+          <div className="flex h-14 items-center px-5">
+            <Link href="/">
+              <img
+                src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`}
+                alt="FAHR Logo"
+                className="h-9 cursor-pointer object-contain"
+              />
+            </Link>
+          </div>
         </div>
         <div className="px-5 pt-5 pb-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Current Role</p>

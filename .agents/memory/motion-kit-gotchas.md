@@ -74,6 +74,32 @@ intermediate value (parallax layers, light sweeps, background drift). For
 anything a reader must see, use a viewport-triggered animation that runs to
 completion once (`whileInView` + `viewport={{ once: true }}`).
 
+# A fully clipped element never enters view — mask a child, not the observer
+
+`whileInView` is IntersectionObserver-driven, and an element whose own
+`clip-path` hides all of it reports no intersection. So an initial state of
+`clip-path: inset(0% 0% 100% 0%)` on the observed node deadlocks: the reveal can
+never trigger, and the content stays hidden forever — image loaded, opacity 1,
+no console error, nothing to see.
+
+**Why:** the learner-journey diagram on the landing page was invisible for this
+reason; the asset and the network request were both fine.
+
+**How to apply:** keep the observed element unclipped (travel/opacity only) and
+move the mask to an inner `motion.div` driven by the parent's variant labels
+(`initial="hidden"` / `whileInView="shown"` on the parent, matching `variants`
+on the child, no `initial` on the child). A partial clip such as
+`inset(14% 0% 14% 0%)` is safe to animate in place because the element still
+intersects. If a reveal never fires, check for a self-clipping start state before
+suspecting the trigger threshold.
+
+# No pointer-following ("magnetic") wrappers on buttons
+
+Buttons that drift toward the cursor read as a glitch to this client, not as
+polish — the landing CTAs shipped with a spring-driven `x`/`y` follow and it was
+the first thing flagged. Hover feedback stays colour, shadow and the arrow
+nudge. Don't reintroduce a pointer-tracking wrapper around a CTA.
+
 # Above-the-fold entrance chains must finish fast
 
 An entrance sequence whose last step lands ~1s after mount means CTAs and stat

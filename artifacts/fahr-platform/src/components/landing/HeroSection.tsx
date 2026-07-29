@@ -10,7 +10,7 @@ import { CountUp } from "@/components/CountUp";
 import { STAKEHOLDERS } from "@/lib/constants";
 import { FEDERAL } from "@/lib/federal";
 import { LANDING_AGENTS } from "./agents";
-import { LANDING_MOTION, LightSweep, Magnetic, Parallax, RevealHeading } from "./motion";
+import { LANDING_MOTION, LightSweep, Parallax, RevealHeading } from "./motion";
 import { TYPE } from "./typography";
 
 const HERO_STATS: { value: number; suffix?: string; label: string }[] = [
@@ -86,29 +86,25 @@ export function HeroSection({ onPrimary }: { onPrimary: () => void }) {
             transition={{ duration: 0.5, delay: 0.42, ease: LANDING_MOTION.ease }}
             className="flex flex-col gap-3 sm:flex-row"
           >
-            <Magnetic strength={5}>
-              <Button
-                size="lg"
-                onClick={onPrimary}
-                data-testid="button-hero-start"
-                className="group h-auto w-full rounded-full bg-primary px-7 py-4 text-sm text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 sm:w-auto md:text-base"
-              >
-                Start Your Journey
-                <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
-              </Button>
-            </Magnetic>
-            <Magnetic strength={5}>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="h-auto w-full rounded-full border-white/40 bg-white/5 px-7 py-4 text-sm text-white backdrop-blur-sm hover:bg-white/15 hover:text-white sm:w-auto md:text-base"
-              >
-                <Link href="/login" data-testid="link-hero-login">
-                  Platform Login
-                </Link>
-              </Button>
-            </Magnetic>
+            <Button
+              size="lg"
+              onClick={onPrimary}
+              data-testid="button-hero-start"
+              className="group h-auto w-full rounded-full bg-primary px-7 py-4 text-sm text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 sm:w-auto md:text-base"
+            >
+              Start Your Journey
+              <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              asChild
+              className="h-auto w-full rounded-full border-white/40 bg-white/5 px-7 py-4 text-sm text-white backdrop-blur-sm hover:bg-white/15 hover:text-white sm:w-auto md:text-base"
+            >
+              <Link href="/login" data-testid="link-hero-login">
+                Platform Login
+              </Link>
+            </Button>
           </motion.div>
 
           <motion.dl

@@ -7,7 +7,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, BadgeCheck, Briefcase, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { LANDING_MOTION, LightSweep, Magnetic, RevealGroup, RevealItem } from "./motion";
+import { LANDING_MOTION, LightSweep, RevealGroup, RevealItem } from "./motion";
 import { SectionHeading, TYPE } from "./typography";
 
 const OUTCOMES = [
@@ -46,25 +46,36 @@ export function JourneySection() {
         />
 
         <div className="relative mx-auto max-w-5xl">
+          {/*
+            The mask lives on the inner wrapper, never on the observed element.
+            A fully clipped element reports no intersection, so putting
+            `clip-path: inset(... 100% ...)` on the `whileInView` target itself
+            deadlocks: the reveal never fires and the diagram stays hidden.
+          */}
           <motion.figure
             className="relative overflow-hidden rounded-2xl border border-border/60 bg-white shadow-lg md:rounded-3xl"
-            initial={
-              reduced ? undefined : { clipPath: "inset(0% 0% 100% 0%)", y: 26, opacity: 0.4 }
-            }
-            whileInView={
-              reduced ? undefined : { clipPath: "inset(0% 0% 0% 0%)", y: 0, opacity: 1 }
-            }
+            initial={reduced ? undefined : "hidden"}
+            whileInView={reduced ? undefined : "shown"}
             viewport={{ once: true, amount: 0.15 }}
+            variants={{ hidden: { y: 26, opacity: 0.4 }, shown: { y: 0, opacity: 1 } }}
             transition={{ duration: 1.1, ease: LANDING_MOTION.ease }}
           >
-            <img
-              src={`${import.meta.env.BASE_URL}brand/learner-journey.png`}
-              alt="Diagram of the six-stage FAHR learner journey, running from onboarding and profiling through to recognition and measurable impact."
-              className="block h-auto w-full"
-              loading="lazy"
-              decoding="async"
-              data-testid="img-learner-journey"
-            />
+            <motion.div
+              variants={{
+                hidden: { clipPath: "inset(0% 0% 100% 0%)" },
+                shown: { clipPath: "inset(0% 0% 0% 0%)" },
+              }}
+              transition={{ duration: 1.1, ease: LANDING_MOTION.ease }}
+            >
+              <img
+                src={`${import.meta.env.BASE_URL}brand/learner-journey.png`}
+                alt="Diagram of the six-stage FAHR learner journey, running from onboarding and profiling through to recognition and measurable impact."
+                className="block h-auto w-full"
+                loading="lazy"
+                decoding="async"
+                data-testid="img-learner-journey"
+              />
+            </motion.div>
             <LightSweep delay={0.5} />
           </motion.figure>
           <span
@@ -90,17 +101,15 @@ export function JourneySection() {
         </RevealGroup>
 
         <div className="mt-9 flex justify-center md:mt-12">
-          <Magnetic strength={5}>
-            <Button
-              size="lg"
-              onClick={() => setLocation("/learner")}
-              data-testid="button-explore-journey"
-              className="group h-auto rounded-full bg-primary px-7 py-4 text-sm text-primary-foreground shadow-md hover:bg-primary/90 md:text-base"
-            >
-              Walk through the journey
-              <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
-            </Button>
-          </Magnetic>
+          <Button
+            size="lg"
+            onClick={() => setLocation("/learner")}
+            data-testid="button-explore-journey"
+            className="group h-auto rounded-full bg-primary px-7 py-4 text-sm text-primary-foreground shadow-md hover:bg-primary/90 md:text-base"
+          >
+            Walk through the journey
+            <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
+          </Button>
         </div>
       </div>
     </section>

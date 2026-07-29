@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { LANDING_MOTION, Magnetic, ScrollProgressBar, useActiveSection, useScrolledPast } from "./motion";
+import { LANDING_MOTION, ScrollProgressBar, useActiveSection, useScrolledPast } from "./motion";
 
 const NAV_LINKS = [
   { id: "pathways", label: "Pathways" },
@@ -88,15 +88,13 @@ export function LandingHeader({ onRegister }: { onRegister: () => void }) {
               Sign In
             </Link>
           </Button>
-          <Magnetic strength={4} className="hidden sm:inline-block">
-            <Button
-              onClick={onRegister}
-              data-testid="button-register-header"
-              className="rounded-full bg-primary px-5 text-primary-foreground shadow-sm hover:bg-primary/90"
-            >
-              Register
-            </Button>
-          </Magnetic>
+          <Button
+            onClick={onRegister}
+            data-testid="button-register-header"
+            className="hidden rounded-full bg-primary px-5 text-primary-foreground shadow-sm hover:bg-primary/90 sm:inline-flex"
+          >
+            Register
+          </Button>
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}

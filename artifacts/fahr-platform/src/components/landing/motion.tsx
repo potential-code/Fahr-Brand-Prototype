@@ -327,45 +327,11 @@ export function Parallax({
 
 /* ------------------------------------------------- Pointer micro-interaction */
 
-/**
- * Pointer-following lift for a CTA or card. The travel is deliberately small
- * (a few pixels) so it reads as responsive rather than playful.
+/*
+ * There is deliberately no pointer-following ("magnetic") wrapper for buttons.
+ * A CTA that drifts under the cursor reads as a glitch rather than as polish —
+ * buttons here respond with colour, shadow and the arrow nudge only.
  */
-export function Magnetic({
-  children,
-  className,
-  strength = 7,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  strength?: number;
-}) {
-  const reduced = useReducedMotion();
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 260, damping: 18, mass: 0.35 });
-  const sy = useSpring(y, { stiffness: 260, damping: 18, mass: 0.35 });
-
-  if (reduced) return <span className={className}>{children}</span>;
-
-  return (
-    <motion.span
-      className={cn("inline-block", className)}
-      style={{ x: sx, y: sy }}
-      onPointerMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        x.set(((e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * strength);
-        y.set(((e.clientY - (r.top + r.height / 2)) / (r.height / 2)) * strength);
-      }}
-      onPointerLeave={() => {
-        x.set(0);
-        y.set(0);
-      }}
-    >
-      {children}
-    </motion.span>
-  );
-}
 
 /**
  * Card that tilts a few degrees towards the pointer and lifts on hover.

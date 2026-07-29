@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import { ArrowRight, Lock, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { LANDING_MOTION, LightSweep, Magnetic, Parallax, Reveal, RevealHeading } from "./motion";
+import { LANDING_MOTION, LightSweep, Parallax, Reveal, RevealHeading } from "./motion";
 import { TYPE } from "./typography";
 
 const ASSURANCES = [
@@ -43,17 +43,15 @@ export function CtaSection({ onRegister }: { onRegister: () => void }) {
         </Reveal>
 
         <Reveal variant="up" delay={0.18} className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Magnetic strength={5}>
-            <Button
-              size="lg"
-              onClick={onRegister}
-              data-testid="button-cta-register"
-              className="group h-auto rounded-full bg-primary px-7 py-4 text-sm text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 md:text-base"
-            >
-              Register for access
-              <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
-            </Button>
-          </Magnetic>
+          <Button
+            size="lg"
+            onClick={onRegister}
+            data-testid="button-cta-register"
+            className="group h-auto rounded-full bg-primary px-7 py-4 text-sm text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 md:text-base"
+          >
+            Register for access
+            <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
+          </Button>
           <Button
             size="lg"
             variant="outline"
