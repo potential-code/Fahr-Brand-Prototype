@@ -16,7 +16,6 @@ import {
   ClipboardCheck,
   FileText,
   FlaskConical,
-  Globe,
   Landmark,
   LayoutDashboard,
   LogOut,
@@ -53,6 +52,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { MOTION } from "@/components/motion";
+import { ACCOUNT_PROFILES, PROFILE_ROUTES, profileInitials } from "@/lib/accountProfiles";
 
 type Role = "learner" | "manager" | "ministry" | "fahr" | "leadership";
 
@@ -95,7 +95,7 @@ const ROLE_HOME: Record<Role, string> = {
 const ROLE_ORDER: Role[] = ["learner", "manager", "ministry", "fahr", "leadership"];
 
 export function Layout({ children, role }: { children: React.ReactNode; role: Role }) {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const [location, setLocation] = useLocation();
   const reduceMotion = useReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -121,14 +121,15 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
       case "manager":
         return [
           { href: "/manager", label: "Team Dashboard", icon: LayoutDashboard, exact: true },
+          { href: "/manager/reports", label: "Team Reports", icon: BarChart3 },
           { href: "/manager/team", label: "Team Members", icon: Users },
           { href: "/manager/validations", label: "Validations", icon: ClipboardCheck },
-          { href: "/manager/reports", label: "Team Reports", icon: BarChart3 },
           { href: "/manager/recognition", label: "Recognition & Impact", icon: Award },
         ];
       case "ministry":
         return [
           { href: "/ministry", label: "Dashboard", icon: LayoutDashboard, exact: true },
+          { href: "/ministry/reports", label: "Reports", icon: BarChart3 },
           { href: "/ministry/users", label: "Users & Access", icon: UserCog },
           { href: "/ministry/cohorts", label: "Cohorts & Programmes", icon: Users },
           { href: "/ministry/approvals", label: "Approvals", icon: ClipboardCheck },
@@ -136,11 +137,11 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
           { href: "/ministry/content", label: "Content", icon: BookOpen },
           { href: "/ministry/events", label: "Events", icon: CalendarDays },
           { href: "/ministry/communications", label: "Communications", icon: Megaphone },
-          { href: "/ministry/reports", label: "Reports", icon: BarChart3 },
         ];
       case "fahr":
         return [
           { href: "/fahr", label: "Dashboard", icon: LayoutDashboard, exact: true },
+          { href: "/fahr/reports", label: "Reports", icon: BarChart3 },
           { href: "/fahr/entities", label: "Entities", icon: Landmark },
           { href: "/fahr/users", label: "Users", icon: UserCog },
           { href: "/fahr/framework", label: "Framework & Catalogue", icon: BookOpen },
@@ -149,7 +150,6 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
           { href: "/fahr/credentials", label: "Credential Registry", icon: BadgeCheck },
           { href: "/fahr/integrations", label: "Integrations", icon: Plug },
           { href: "/fahr/communications", label: "Communications", icon: Megaphone },
-          { href: "/fahr/reports", label: "Reports", icon: BarChart3 },
         ];
       case "leadership":
         return [
@@ -198,6 +198,70 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
     markNotificationRead(id);
     setLocation(href);
   };
+
+  const account = ACCOUNT_PROFILES[role];
+  const profileHref = PROFILE_ROUTES[role];
+  const profileActive = location === profileHref;
+
+  /**
+   * Sidebar footer: who is signed in, their profile, then sign out — in that
+   * order on desktop and mobile. Test ids carry the surface so the two copies
+   * of this block never collide in a query.
+   */
+  const renderAccountFooter = (surface: "desktop" | "mobile", onNavigate?: () => void) => (
+    <div className="space-y-1 border-t border-sidebar-border px-3 py-4">
+      <div
+        className="flex items-center gap-3 px-3 pb-2"
+        data-testid={`sidebar-account-${surface}`}
+      >
+        {account.avatar ? (
+          <img
+            src={`${import.meta.env.BASE_URL}${account.avatar}`}
+            alt=""
+            className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-primary/25"
+          />
+        ) : (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            {profileInitials(account.name)}
+          </span>
+        )}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-sidebar-foreground">{account.name}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{account.email}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          setLocation(profileHref);
+          onNavigate?.();
+        }}
+        data-testid={`nav-link-profile-${surface}`}
+        data-active={profileActive}
+        aria-current={profileActive ? "page" : undefined}
+        className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm font-medium transition-colors ${
+          profileActive
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "text-sidebar-foreground hover:bg-sidebar-accent"
+        }`}
+      >
+        <User className="h-4 w-4 shrink-0" />
+        <span>Profile</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setLocation("/");
+          onNavigate?.();
+        }}
+        data-testid={`button-sign-out-${surface}`}
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+      >
+        <LogOut className="h-4 w-4 shrink-0" />
+        <span>Sign Out</span>
+      </button>
+    </div>
+  );
 
   const renderNavItems = (pillId: string, onNavigate?: () => void) => (
     <nav className="flex flex-col gap-1" data-testid={`nav-${pillId}`}>
@@ -275,20 +339,7 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
           <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Menu</p>
           {renderNavItems("desktop")}
         </div>
-        <div className="px-3 py-4 border-t border-sidebar-border space-y-1">
-          {/* Language toggle — visual placeholder (platform is English-only for now) */}
-          <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left" title="Arabic coming soon">
-            <Globe className="h-4 w-4 shrink-0" />
-            <span>{language === 'en' ? 'العربية' : 'English'}</span>
-          </button>
-          <button
-            onClick={() => setLocation("/")}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span>Sign Out</span>
-          </button>
-        </div>
+        {renderAccountFooter("desktop")}
       </aside>
 
       {/* Main column */}
@@ -317,15 +368,7 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
                   <div className="flex-1 overflow-y-auto px-3 pt-4">
                     {renderNavItems("mobile", () => setMobileOpen(false))}
                   </div>
-                  <div className="px-3 py-4 border-t border-sidebar-border">
-                    <button
-                      onClick={() => setLocation("/")}
-                      className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left"
-                    >
-                      <LogOut className="h-4 w-4 shrink-0" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
+                  {renderAccountFooter("mobile", () => setMobileOpen(false))}
                 </SheetContent>
               </Sheet>
               <Link href="/">
@@ -341,12 +384,9 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
                   type="search"
                   aria-label="Search the platform"
                   placeholder="Search people, entities, courses, projects"
-                  className="h-9 w-full rounded-full border border-border bg-muted/60 ps-9 pe-16 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/40 focus:bg-white focus:ring-2 focus:ring-primary/15"
+                  className="h-9 w-full rounded-full border border-border bg-muted/60 ps-9 pe-4 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary/40 focus:bg-white focus:ring-2 focus:ring-primary/15"
                   data-testid="input-platform-search"
                 />
-                <kbd className="pointer-events-none absolute end-2.5 top-1/2 hidden -translate-y-1/2 select-none items-center gap-0.5 rounded border border-border bg-white px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground lg:flex">
-                  <span className="text-xs leading-none">⌘</span>K
-                </kbd>
               </div>
             </div>
 
@@ -431,7 +471,7 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
             {/* Demo portal switcher — one dropdown rather than a row of pills. */}
             <Select value={role} onValueChange={(next) => setLocation(ROLE_HOME[next as Role])}>
               <SelectTrigger
-                className="h-9 w-auto min-w-0 gap-2 rounded-full border-border bg-muted/70 ps-3 pe-2.5 text-sm font-medium shadow-none focus:ring-2 focus:ring-primary/20"
+                className="h-auto w-auto min-w-0 gap-2 rounded-full border-border bg-muted/70 px-3 py-2 text-sm font-medium shadow-none focus:ring-2 focus:ring-primary/20 sm:px-4"
                 aria-label="Switch portal"
                 data-testid="select-role"
               >
@@ -445,10 +485,20 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
                 <SelectGroup>
                   <SelectLabel className="text-[11px] uppercase tracking-wider">Demo portal</SelectLabel>
                   {ROLE_ORDER.map((r) => (
-                    <SelectItem key={r} value={r} data-testid={`select-role-${r}`}>
+                    <SelectItem
+                      key={r}
+                      value={r}
+                      // `group` lets the secondary line follow the item's
+                      // highlight — on hover the row turns bronze, where
+                      // muted-foreground grey would disappear.
+                      className="group py-2"
+                      data-testid={`select-role-${r}`}
+                    >
                       <span className="flex flex-col">
                         <span className="font-medium">{ROLE_SHORT_LABELS[r]}</span>
-                        <span className="text-[11px] text-muted-foreground">{ROLE_LABELS[r]}</span>
+                        <span className="text-[11px] text-muted-foreground group-focus:text-accent-foreground/80">
+                          {ROLE_LABELS[r]}
+                        </span>
                       </span>
                     </SelectItem>
                   ))}

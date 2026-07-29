@@ -26,6 +26,7 @@ import BaselineAssessment from "@/pages/BaselineAssessment";
 import AssessmentReport from "@/pages/AssessmentReport";
 import CoursePlayer from "@/pages/CoursePlayer";
 import CapabilityProfile from "@/pages/CapabilityProfile";
+import AccountProfile from "@/pages/AccountProfile";
 import PersonalisedLearningPathway from "@/pages/PersonalisedLearningPathway";
 import AgenticAILabTwin from "@/pages/AgenticAILabTwin";
 import AgenticAILabProject from "@/pages/AgenticAILabProject";
@@ -79,6 +80,9 @@ function Router() {
       <Route path="/learner/course/:courseId" component={CoursePlayer} />
       <Route path="/learner/community" component={Community} />
       <Route path="/learner/profile" component={CapabilityProfile} />
+      {/* Account profile, one page per role — the learner's capability profile
+          keeps `/learner/profile`, so their account sits at `/learner/account`. */}
+      <Route path="/learner/account">{() => <AccountProfile role="learner" />}</Route>
       <Route path="/learner/mission" component={PersonalisedLearningPathway} />
       <Route path="/learner/lab/twin" component={AgenticAILabTwin} />
       <Route path="/learner/lab/project" component={AgenticAILabProject} />
@@ -93,6 +97,7 @@ function Router() {
       <Route path="/manager/validations" component={ManagerValidations} />
       <Route path="/manager/reports" component={ManagerReports} />
       <Route path="/manager/recognition" component={TeamRecognition} />
+      <Route path="/manager/profile">{() => <AccountProfile role="manager" />}</Route>
 
       {/* Ministry Routes */}
       <Route path="/ministry" component={MinistryDashboard} />
@@ -107,6 +112,7 @@ function Router() {
       <Route path="/ministry/reports" component={MinistryReports} />
       <Route path="/ministry/departments/:departmentId" component={MinistryDepartment} />
       <Route path="/ministry/people/:personId" component={MinistryPerson} />
+      <Route path="/ministry/profile">{() => <AccountProfile role="ministry" />}</Route>
 
       {/* FAHR Routes */}
       <Route path="/fahr" component={FAHRDashboard} />
@@ -119,12 +125,14 @@ function Router() {
       <Route path="/fahr/integrations" component={FAHRIntegrations} />
       <Route path="/fahr/communications" component={FAHRCommunications} />
       <Route path="/fahr/reports" component={FAHRReports} />
+      <Route path="/fahr/profile">{() => <AccountProfile role="fahr" />}</Route>
 
       {/* Federal Leadership Routes */}
       <Route path="/leadership" component={LeadershipDashboard} />
       <Route path="/leadership/ministries" component={LeadershipMinistries} />
       <Route path="/leadership/outcomes" component={LeadershipOutcomes} />
       <Route path="/leadership/briefings" component={LeadershipBriefings} />
+      <Route path="/leadership/profile">{() => <AccountProfile role="leadership" />}</Route>
 
       <Route component={NotFound} />
     </Switch>
