@@ -1,11 +1,23 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowLeft,
+  Building2,
+  Landmark,
+  Loader2,
+  Lock,
+  Settings2,
+  ShieldCheck,
+  User,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LANDING_MOTION, Reveal, RevealHeading, SandGrid } from "@/components/landing/motion";
 import { STAKEHOLDERS } from "@/lib/constants";
-import { ArrowLeft, Loader2, User, Users, Building2, Settings2, Landmark } from "lucide-react";
-import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export const PERSONA_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   learner: User,
@@ -15,13 +27,19 @@ export const PERSONA_ICONS: Record<string, React.ComponentType<{ className?: str
   leadership: Landmark,
 };
 
-// Roving-focus arrow-key handler for the persona radiogroup cards
+// Roving-focus arrow-key handler for the persona radiogroup cards.
+// Horizontal keys follow the reading direction, so they stay intuitive in Arabic.
 export function personaKeyNav(e: React.KeyboardEvent<HTMLDivElement>, role: string, setRole: (id: string) => void) {
   const ids = STAKEHOLDERS.map((s) => s.id as string);
   let next: number | null = null;
   const current = Math.max(0, ids.indexOf(role));
-  if (e.key === "ArrowRight" || e.key === "ArrowDown") next = (current + 1) % ids.length;
-  else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = (current - 1 + ids.length) % ids.length;
+  const rtl =
+    typeof document !== "undefined" &&
+    getComputedStyle(e.currentTarget).direction === "rtl";
+  const forward = rtl ? "ArrowLeft" : "ArrowRight";
+  const back = rtl ? "ArrowRight" : "ArrowLeft";
+  if (e.key === forward || e.key === "ArrowDown") next = (current + 1) % ids.length;
+  else if (e.key === back || e.key === "ArrowUp") next = (current - 1 + ids.length) % ids.length;
   else if (e.key === "Home") next = 0;
   else if (e.key === "End") next = ids.length - 1;
   if (next !== null) {
@@ -30,6 +48,185 @@ export function personaKeyNav(e: React.KeyboardEvent<HTMLDivElement>, role: stri
     const target = e.currentTarget.querySelector<HTMLButtonElement>(`[data-persona-id="${ids[next]}"]`);
     target?.focus();
   }
+}
+
+/** Shared shell for the two public auth screens. */
+export function AuthLayout({
+  image,
+  eyebrow,
+  heading,
+  blurb,
+  aside,
+  children,
+}: {
+  image: string;
+  eyebrow?: React.ReactNode;
+  heading: React.ComponentProps<typeof RevealHeading>["segments"];
+  blurb: string;
+  aside?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const reduced = useReducedMotion();
+
+  return (
+    <div className="flex min-h-[100dvh] flex-col bg-background md:flex-row">
+      {/* Visual side */}
+      <div className="relative hidden overflow-hidden bg-background md:sticky md:top-0 md:flex md:h-[100dvh] md:w-1/2 md:items-end">
+        {/* Slow push-in on the photograph; still on request. */}
+        <motion.img
+          src={image}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          initial={{ scale: 1.04 }}
+          animate={reduced ? { scale: 1.04 } : { scale: 1.12 }}
+          transition={
+            reduced
+              ? { duration: 0 }
+              : { duration: 26, ease: "linear", repeat: Infinity, repeatType: "reverse" }
+          }
+        />
+        <span
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/20"
+        />
+        <SandGrid className="opacity-[0.18]" />
+
+        <div className="relative z-10 max-w-lg p-10 pb-14 lg:p-12">
+          {eyebrow}
+          <RevealHeading
+            as="h1"
+            onMount
+            delay={0.1}
+            segments={heading}
+            className="text-[1.75rem] font-bold leading-[1.14] tracking-tight text-white md:text-4xl"
+          />
+          <Reveal variant="up" delay={0.35}>
+            <p className="mt-4 text-sm leading-relaxed text-white/75 md:text-base">{blurb}</p>
+          </Reveal>
+          {aside}
+        </div>
+      </div>
+
+      {/* Form side */}
+      <div className="relative flex w-full items-center justify-center p-6 sm:p-12 md:w-1/2 lg:p-16">
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 pt-6 sm:px-8">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="me-2 h-4 w-4 rtl:-scale-x-100" /> Back to portal
+          </Link>
+          <img
+            src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`}
+            alt="FAHR"
+            className="h-9 object-contain"
+          />
+        </div>
+
+        <div className="w-full max-w-md pt-20 md:pt-0">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/** Staggered entrance for a stack of form rows. */
+export function FormStack({ children, className }: { children: React.ReactNode; className?: string }) {
+  const reduced = useReducedMotion();
+
+  if (reduced) return <div className={className}>{children}</div>;
+
+  return (
+    <motion.div
+      className={className}
+      initial="hidden"
+      animate="shown"
+      variants={{ hidden: {}, shown: { transition: { staggerChildren: 0.07, delayChildren: 0.12 } } }}
+    >
+      {React.Children.map(children, (child, i) => (
+        <motion.div
+          key={i}
+          variants={{ hidden: { opacity: 0, y: 14 }, shown: { opacity: 1, y: 0 } }}
+          transition={{ duration: 0.45, ease: LANDING_MOTION.ease }}
+        >
+          {child}
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
+/** Demo-persona radiogroup shared by sign in and register. */
+export function PersonaPicker({
+  role,
+  setRole,
+  label,
+  hint,
+  ariaLabel,
+}: {
+  role: string;
+  setRole: (id: string) => void;
+  label: string;
+  hint: string;
+  ariaLabel: string;
+}) {
+  const reduced = useReducedMotion();
+
+  return (
+    <div className="space-y-2 border-t border-border pt-4">
+      <Label htmlFor="role" className="font-semibold text-primary">
+        {label}
+      </Label>
+      <p className="mb-2 text-xs text-muted-foreground">{hint}</p>
+      <div
+        className="grid grid-cols-2 gap-2.5"
+        role="radiogroup"
+        aria-label={ariaLabel}
+        onKeyDown={(e) => personaKeyNav(e, role, setRole)}
+      >
+        {STAKEHOLDERS.map((s, i) => {
+          const Icon = PERSONA_ICONS[s.id] ?? User;
+          const selected = role === s.id;
+          return (
+            <motion.button
+              key={s.id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              data-persona-id={s.id}
+              tabIndex={selected || (!role && i === 0) ? 0 : -1}
+              onClick={() => setRole(s.id)}
+              whileHover={reduced ? undefined : { y: -2 }}
+              whileTap={reduced ? undefined : { scale: 0.985 }}
+              transition={{ duration: 0.2, ease: LANDING_MOTION.ease }}
+              className={cn(
+                "flex items-center gap-3 rounded-xl border p-3 text-start transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                selected
+                  ? "border-primary bg-primary/10 shadow-sm"
+                  : "border-border bg-card hover:border-primary/40",
+              )}
+            >
+              <span
+                className={cn(
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200",
+                  selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+              </span>
+              <span
+                className={cn(
+                  "text-[0.8125rem] font-medium leading-tight",
+                  selected ? "text-foreground" : "text-muted-foreground",
+                )}
+              >
+                {s.title}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default function Login() {
@@ -50,111 +247,76 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background">
-      {/* Left side - Visuals */}
-      <div className="hidden md:flex md:w-1/2 relative overflow-hidden bg-background items-end md:sticky md:top-0 md:h-[100dvh]">
-        <div className="absolute inset-0">
-          <img 
-            src={`${import.meta.env.BASE_URL}brand/landing/hero-bg.jpg`} 
-            alt="Federal Building" 
-            className="w-full h-full object-cover opacity-90"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/30"></div>
+    <AuthLayout
+      image={`${import.meta.env.BASE_URL}brand/landing/hero-bg.jpg`}
+      heading={["Welcome back to your", { t: "Agentic AI workspace", accent: true }]}
+      blurb="Continue your personalised learning pathway, collaborate with your AI agents, and track your capability progress across the federal ecosystem."
+      aside={
+        <Reveal variant="fade" delay={0.5}>
+          <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2 border-t border-white/15 pt-5">
+            {[
+              { icon: ShieldCheck, label: "Federal single sign-on" },
+              { icon: Lock, label: "UAE data residency" },
+            ].map(({ icon: Icon, label }) => (
+              <li key={label} className="inline-flex items-center gap-2 text-xs text-white/70">
+                <Icon className="h-3.5 w-3.5 text-primary" />
+                {label}
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      }
+    >
+      <div className="space-y-7">
+        <div className="text-center md:text-start">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Sign in</h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Access your government AI learning profile
+          </p>
         </div>
-        <div className="relative z-10 p-12 pb-16 max-w-lg">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
-              Welcome back to your <br /><span className="text-primary">Agentic AI workspace</span>
-            </h1>
-            <p className="text-lg text-white/80 leading-relaxed">
-              Continue your personalised learning pathway, collaborate with your AI agents, and track your capability progress across the federal ecosystem.
-            </p>
-          </motion.div>
-        </div>
-      </div>
 
-      {/* Right side - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-24 relative">
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-8 pt-6">
-          <Link href="/" className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Portal
-          </Link>
-          <img src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`} alt="FAHR Logo" className="h-10 object-contain" />
-        </div>
-        
-        <div className="w-full max-w-md space-y-8 pt-20 md:pt-0">
-          <div className="text-center md:text-left">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">Sign In</h2>
-            <p className="text-muted-foreground mt-2">Access your government AI learning profile</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Government Email</Label>
-                <Input id="email" name="email" type="email" autoComplete="username" placeholder="name@entity.gov.ae" required defaultValue="demo@mohap.gov.ae" />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a href="#" className="text-xs text-primary hover:underline font-medium">Forgot password?</a>
-                </div>
-                <Input id="password" name="password" type="password" autoComplete="current-password" required defaultValue="password123" />
-              </div>
-
-              <div className="space-y-2 pt-4 border-t border-border">
-                <Label htmlFor="role" className="text-primary font-semibold">Select Demo Persona</Label>
-                <p className="text-xs text-muted-foreground mb-2">For demonstration purposes, select which view you want to explore.</p>
-                <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Select demo persona" onKeyDown={(e) => personaKeyNav(e, role, setRole)}>
-                  {STAKEHOLDERS.map((s, i) => {
-                    const Icon = PERSONA_ICONS[s.id] ?? User;
-                    const selected = role === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        data-persona-id={s.id}
-                        tabIndex={selected || (!role && i === 0) ? 0 : -1}
-                        onClick={() => setRole(s.id)}
-                        className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                          selected
-                            ? "border-primary bg-primary/10 shadow-sm"
-                            : "border-border bg-card hover:border-primary/40"
-                        }`}
-                      >
-                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <span className={`text-sm font-medium leading-tight ${selected ? "text-foreground" : "text-muted-foreground"}`}>{s.title}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+        <form onSubmit={handleLogin} className="space-y-6">
+          <FormStack className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Government Email</Label>
+              <Input id="email" name="email" type="email" autoComplete="username" placeholder="name@entity.gov.ae" required defaultValue="demo@mohap.gov.ae" />
             </div>
 
-            <Button type="submit" className="w-full h-12 text-base" disabled={loading || !role}>
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Authenticating...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-          </form>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <a href="#" className="text-xs font-medium text-primary hover:underline">Forgot password?</a>
+              </div>
+              <Input id="password" name="password" type="password" autoComplete="current-password" required defaultValue="password123" />
+            </div>
 
-          <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link href="/signup" className="text-primary font-semibold hover:underline">
-              Register here
-            </Link>
-          </div>
+            <PersonaPicker
+              role={role}
+              setRole={setRole}
+              label="Select demo persona"
+              hint="For demonstration purposes, select which view you want to explore."
+              ariaLabel="Select demo persona"
+            />
+          </FormStack>
+
+          <Button type="submit" className="h-12 w-full text-base" disabled={loading || !role}>
+            {loading ? (
+              <>
+                <Loader2 className="me-2 h-5 w-5 animate-spin" /> Authenticating…
+              </>
+            ) : (
+              "Sign In"
+            )}
+          </Button>
+        </form>
+
+        <div className="text-center text-sm text-muted-foreground">
+          Don't have an account?{" "}
+          <Link href="/signup" className="font-semibold text-primary hover:underline">
+            Register here
+          </Link>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

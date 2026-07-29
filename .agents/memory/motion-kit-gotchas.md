@@ -57,3 +57,27 @@ demo, and it makes screenshots and e2e assertions read mid-flight numbers.
 the last landed value with a shorter duration. When an automated test reports a
 "wrong" KPI, check whether it sampled a counter mid-animation before believing
 the state is wrong.
+
+# Never gate marketing content on a scroll-scrubbed progress value
+
+A reveal driven by `useScroll({ target, offset })` — a mask, clip-path or
+opacity tied to `scrollYProgress` — only finishes if the visitor actually
+scrolls that range. On a tall viewport, a short page, or a deep link that lands
+below the section, progress stalls part-way and the content stays permanently
+half-masked. It looks like a cropped image, not a stuck animation.
+
+**Why:** the learner-journey illustration shipped visibly cut in half on a tall
+window because its clip-path was scroll-scrubbed.
+
+**How to apply:** use scroll scrubbing only for *decoration* that is fine at any
+intermediate value (parallax layers, light sweeps, background drift). For
+anything a reader must see, use a viewport-triggered animation that runs to
+completion once (`whileInView` + `viewport={{ once: true }}`).
+
+# Above-the-fold entrance chains must finish fast
+
+An entrance sequence whose last step lands ~1s after mount means CTAs and stat
+strips are still invisible in automated screenshots — and to anyone who scrolls
+immediately. Keep the whole hero chain inside roughly 0.7s. If a screenshot
+shows blank space where content should be, suspect entrance delay before
+suspecting a layout or data bug.
