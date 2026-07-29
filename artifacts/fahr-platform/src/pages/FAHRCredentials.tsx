@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Layout } from "@/components/Layout";
-import { PageHeader } from "@/components/PageHeader";
+import { StatCard } from "@/components/StatCard";
+import { RecognitionBand, RecognitionItemCard } from "@/components/recognition/RecognitionSurface";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -374,16 +375,27 @@ export default function FAHRCredentials() {
   return (
     <Layout role="fahr">
       <PageEnter className="space-y-6 pb-12">
-        <PageHeader
-          tone="primary"
+        <RecognitionBand
+          testId="band-credential-registry"
+          eyebrow="National credential register"
           title="Credential registry"
           description="Every credential issued nationally, with the project and validation behind it."
           actions={
             <>
-              <Button variant="outline" onClick={registerCsv} data-testid="button-export-csv">
+              <Button
+                variant="outline"
+                className="border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                onClick={registerCsv}
+                data-testid="button-export-csv"
+              >
                 <Download className="w-4 h-4 mr-2" /> Export CSV
               </Button>
-              <Button variant="outline" onClick={registerPrint} data-testid="button-print-register">
+              <Button
+                variant="outline"
+                className="border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                onClick={registerPrint}
+                data-testid="button-print-register"
+              >
                 <Printer className="w-4 h-4 mr-2" /> Print register
               </Button>
               <Button onClick={() => setIssueOpen(true)} data-testid="button-issue-credential">
@@ -396,7 +408,7 @@ export default function FAHRCredentials() {
         {/* KPI row */}
         <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StaggerItem>
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 flex flex-col items-center text-center">
                 <Award className="w-6 h-6 mb-2 text-primary" />
                 <p className="text-2xl font-bold" data-testid="kpi-total">
@@ -404,10 +416,10 @@ export default function FAHRCredentials() {
                 </p>
                 <p className="text-xs text-muted-foreground">Credentials on the register</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
           <StaggerItem>
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 flex flex-col items-center text-center">
                 <Stamp className="w-6 h-6 mb-2 text-primary" />
                 <p className="text-2xl font-bold" data-testid="kpi-period">
@@ -415,10 +427,10 @@ export default function FAHRCredentials() {
                 </p>
                 <p className="text-xs text-muted-foreground">Issued nationally this period</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
           <StaggerItem>
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 flex flex-col items-center text-center">
                 <Building2 className="w-6 h-6 mb-2 text-primary" />
                 <p className="text-2xl font-bold" data-testid="kpi-entities">
@@ -426,10 +438,10 @@ export default function FAHRCredentials() {
                 </p>
                 <p className="text-xs text-muted-foreground">Entities represented</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
           <StaggerItem>
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 flex flex-col items-center text-center">
                 <AwardIcon className="w-6 h-6 mb-2 text-primary" />
                 <p className="text-2xl font-bold" data-testid="kpi-top-level">
@@ -439,7 +451,7 @@ export default function FAHRCredentials() {
                   {topLevel ? `at ${levelLabel(topLevel[0])}` : "By capability level"}
                 </p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
         </Stagger>
 
@@ -721,15 +733,19 @@ export default function FAHRCredentials() {
         <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           {selected && (
             <PanelEnter>
-              <SheetHeader className="text-left space-y-3">
-                <Badge variant="outline" className={`${levelClass(selected.levelId)} w-fit`}>
-                  {levelLabel(selected.levelId)}
-                </Badge>
-                <SheetTitle className="text-2xl">{selected.title}</SheetTitle>
-                <SheetDescription className="text-base">
-                  {selected.personName} · {entityName(selected.ministryId)} · issued {selected.issuedOn}
-                </SheetDescription>
-              </SheetHeader>
+              {/* The credential itself is the record, so it gets the dark plaque
+                  treatment the learner wallet uses; the lineage below stays light. */}
+              <RecognitionItemCard className="p-5">
+                <SheetHeader className="text-left space-y-3">
+                  <span className="inline-flex w-fit items-center rounded-full border border-primary/40 bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
+                    {levelLabel(selected.levelId)}
+                  </span>
+                  <SheetTitle className="text-2xl text-white">{selected.title}</SheetTitle>
+                  <SheetDescription className="text-base text-white/65">
+                    {selected.personName} · {entityName(selected.ministryId)} · issued {selected.issuedOn}
+                  </SheetDescription>
+                </SheetHeader>
+              </RecognitionItemCard>
 
               {/* Verification code + verify control */}
               <div className="mt-6 rounded-md border border-border p-4 space-y-3">

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -311,7 +312,7 @@ export default function FAHREscalations() {
         <Stagger className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {kpis.map((kpi) => (
             <StaggerItem key={kpi.label}>
-              <Card>
+              <StatCard className="h-full">
                 <CardContent className="p-4 flex flex-col items-center text-center">
                   <kpi.icon className={`w-6 h-6 mb-2 ${kpi.tone}`} />
                   <p className="text-2xl font-bold" data-testid={kpi.testid}>
@@ -319,7 +320,7 @@ export default function FAHREscalations() {
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

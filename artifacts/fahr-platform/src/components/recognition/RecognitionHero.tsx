@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
 import { LEARNER_PROFILE } from "@/lib/constants";
 import type { RecognitionRecord } from "@/lib/recognitionRecord";
+import {
+  RECOGNITION_PANEL_CLASS,
+  RECOGNITION_SURFACE_ATTRS,
+  RECOGNITION_SURFACE_CLASS,
+  RecognitionTexture,
+} from "@/components/recognition/RecognitionSurface";
 import { ArrowUpRight, BadgeCheck, Building2, ShieldCheck, Star, TrendingUp } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL;
@@ -34,18 +40,11 @@ export function RecognitionHero({
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: "easeOut" }}
-      className="relative overflow-hidden rounded-2xl bg-[#171310]"
+      {...RECOGNITION_SURFACE_ATTRS}
+      className={`relative overflow-hidden rounded-2xl ${RECOGNITION_SURFACE_CLASS}`}
       data-testid="hero-recognition"
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-[0.35]"
-        style={{
-          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.16) 1px, transparent 0)",
-          backgroundSize: "22px 22px",
-        }}
-      />
-      <div aria-hidden="true" className="absolute -end-24 -top-24 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
+      <RecognitionTexture />
 
       <div className="relative p-6 md:p-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1">
@@ -88,7 +87,7 @@ export function RecognitionHero({
                 : "Your ladder position is not measured yet. Credentials and badges below reflect real activity; take the baseline assessment to place yourself on the ladder."}
             </p>
 
-            <div className="mt-6 max-w-xl rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            <div className={`mt-6 max-w-xl rounded-xl p-4 ${RECOGNITION_PANEL_CLASS}`}>
               <div className="flex items-baseline justify-between gap-3">
                 <p className="text-xs font-medium text-white/70">
                   {nextLevel ? `Progress to ${nextLevel.label}` : "Top of the capability ladder"}
@@ -142,7 +141,7 @@ export function RecognitionHero({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.25 + i * 0.08 }}
-                className="rounded-xl border border-white/10 bg-white/[0.04] p-3.5"
+                className={`rounded-xl p-3.5 ${RECOGNITION_PANEL_CLASS}`}
                 data-testid={`hero-stat-${stat.id}`}
               >
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">{stat.label}</p>

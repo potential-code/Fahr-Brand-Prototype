@@ -2,8 +2,9 @@ import React, { useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/Layout";
-import { PageHeader } from "@/components/PageHeader";
+import { RecognitionBand } from "@/components/recognition/RecognitionSurface";
 import { Card, CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,6 @@ import {
   Undo2,
   Megaphone,
   Download,
-  FolderKanban,
   ExternalLink,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -140,14 +140,19 @@ export default function MinistryPortfolio() {
   return (
     <Layout role="ministry">
       <PageEnter className="space-y-6">
-        <PageHeader
-          tone="primary"
-          icon={<FolderKanban className="h-7 w-7 text-primary" />}
+        <RecognitionBand
+          testId="band-portfolio"
+          eyebrow="Verified entity record"
           title="Workplace Project Portfolio"
           description={`${ministry.name} — every AI workplace project this entity has in flight, from sign-off to deployment.`}
           actions={
             <>
-              <Button variant="outline" onClick={exportPortfolio} data-testid="button-export-portfolio">
+              <Button
+                variant="outline"
+                className="border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                onClick={exportPortfolio}
+                data-testid="button-export-portfolio"
+              >
                 <Download className="mr-2 h-4 w-4" /> Export portfolio
               </Button>
               <Button onClick={() => setLocation("/ministry/approvals")} data-testid="button-goto-approvals">
@@ -159,46 +164,46 @@ export default function MinistryPortfolio() {
 
         <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           <StaggerItem as="div">
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold"><CountUp to={kpis.total} /></p>
                 <p className="text-xs text-muted-foreground">Projects</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
           <StaggerItem as="div">
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold text-green-600"><CountUp to={kpis.deployed} /></p>
                 <p className="text-xs text-muted-foreground">Deployed</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
           <StaggerItem as="div">
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold text-primary"><CountUp to={kpis.endorsed} /></p>
                 <p className="text-xs text-muted-foreground">Endorsed</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
           <StaggerItem as="div">
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold text-amber-600"><CountUp to={kpis.awaiting} /></p>
                 <p className="text-xs text-muted-foreground">Awaiting a decision</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
           <StaggerItem as="div">
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold text-accent">
                   <CountUp to={Math.round(kpis.value / 1000)} prefix="AED " suffix="k" />
                 </p>
                 <p className="text-xs text-muted-foreground">Est. annual value</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
         </Stagger>
 

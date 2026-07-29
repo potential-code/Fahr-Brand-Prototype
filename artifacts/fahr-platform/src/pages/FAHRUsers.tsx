@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -313,7 +314,7 @@ export default function FAHRUsers() {
         <Stagger className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {kpis.map((kpi) => (
             <StaggerItem key={kpi.label}>
-              <Card className="h-full">
+              <StatCard className="h-full">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <kpi.icon className="h-4 w-4" />
@@ -323,7 +324,7 @@ export default function FAHRUsers() {
                     {kpi.node}
                   </p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

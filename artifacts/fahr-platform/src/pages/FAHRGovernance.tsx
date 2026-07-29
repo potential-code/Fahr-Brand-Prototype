@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -355,14 +356,14 @@ export default function FAHRGovernance() {
             },
           ].map((kpi) => (
             <StaggerItem key={kpi.label}>
-              <Card className="h-full">
+              <StatCard className="h-full">
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                   <p className="text-2xl font-bold">
                     <CountUp to={kpi.value} decimals={kpi.decimals ?? 0} suffix={kpi.suffix} />
                   </p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

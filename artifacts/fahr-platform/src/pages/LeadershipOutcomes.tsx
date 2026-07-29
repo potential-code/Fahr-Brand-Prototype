@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { Layout } from "@/components/Layout";
-import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { RecognitionBand } from "@/components/recognition/RecognitionSurface";
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { FEDERAL, NATIONAL_TARGET } from "@/lib/federal";
 import { PageEnter, Stagger, StaggerItem, CountUp, ChartReveal } from "@/components/motion";
@@ -28,16 +29,17 @@ export default function LeadershipOutcomes() {
   return (
     <Layout role="leadership">
       <PageEnter className="space-y-8 pb-12">
-        <PageHeader 
-          bordered
-          title="National Outcomes" 
+        <RecognitionBand
+          testId="band-national-outcomes"
+          eyebrow="Verified national record"
+          title="National Outcomes"
           description="Measurable impact driven by the federal AI capability programme."
         />
 
         <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {kpis.map((kpi, i) => (
             <StaggerItem key={i}>
-              <Card className="h-full border-border">
+              <StatCard className="h-full">
                 <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
                   <kpi.icon className="w-6 h-6 mb-3 text-primary" />
                   <p className="text-3xl font-bold text-foreground">
@@ -45,7 +47,7 @@ export default function LeadershipOutcomes() {
                   </p>
                   <p className="text-xs text-muted-foreground mt-1.5">{kpi.label}</p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

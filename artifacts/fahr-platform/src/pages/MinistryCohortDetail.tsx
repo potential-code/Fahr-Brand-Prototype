@@ -13,6 +13,7 @@ import {
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -322,7 +323,7 @@ export default function MinistryCohortDetail() {
         <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-8">
           {kpis.map((kpi) => (
             <StaggerItem key={kpi.label}>
-              <Card className="hover-elevate transition-all">
+              <StatCard className="h-full hover-elevate transition-all">
                 <CardContent className="flex flex-col items-center gap-2 p-4 text-center">
                   <span className={`rounded-full p-2 ${kpi.tint}`}>
                     <kpi.icon className="h-5 w-5" />
@@ -332,7 +333,7 @@ export default function MinistryCohortDetail() {
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

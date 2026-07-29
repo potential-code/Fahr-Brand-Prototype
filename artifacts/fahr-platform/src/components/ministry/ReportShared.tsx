@@ -1,5 +1,6 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { CountUp } from "@/components/motion";
 import type { LucideIcon } from "lucide-react";
 
@@ -24,7 +25,7 @@ export function ReportKpi({
   testId?: string;
 }) {
   return (
-    <Card data-testid={testId}>
+    <StatCard className="h-full" data-testid={testId}>
       <CardContent className="p-4 flex flex-col gap-1">
         <div className="flex items-center gap-2">
           {Icon && <Icon className={`w-4 h-4 ${tone}`} />}
@@ -34,7 +35,7 @@ export function ReportKpi({
           <CountUp to={value} suffix={suffix} prefix={prefix} decimals={decimals} />
         </p>
       </CardContent>
-    </Card>
+    </StatCard>
   );
 }
 

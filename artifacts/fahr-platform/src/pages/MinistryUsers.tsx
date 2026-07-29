@@ -5,6 +5,7 @@ import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { PageEnter, Stagger, StaggerItem, CountUp } from "@/components/motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -185,7 +186,7 @@ export default function MinistryUsers() {
         <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {kpis.map((kpi) => (
             <StaggerItem key={kpi.label}>
-              <Card className="h-full">
+              <StatCard className="h-full">
                 <CardContent className="flex flex-col items-center p-4 text-center">
                   <kpi.icon className={`mb-2 h-6 w-6 ${kpi.color}`} />
                   <p className="text-2xl font-bold">
@@ -193,7 +194,7 @@ export default function MinistryUsers() {
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

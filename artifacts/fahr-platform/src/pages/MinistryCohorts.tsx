@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -184,7 +185,7 @@ export default function MinistryCohorts() {
         <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {kpis.map((kpi) => (
             <StaggerItem key={kpi.label}>
-              <Card className="hover-elevate transition-all">
+              <StatCard className="h-full hover-elevate transition-all">
                 <CardContent className="flex items-center gap-4 p-5">
                   <div className={`rounded-full p-3 ${kpi.tint}`}>
                     <kpi.icon className="h-6 w-6" />
@@ -196,7 +197,7 @@ export default function MinistryCohorts() {
                     </p>
                   </div>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

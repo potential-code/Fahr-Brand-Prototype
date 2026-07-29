@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
@@ -294,7 +295,7 @@ export default function MinistryDashboard() {
         <Stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {kpis.map((kpi, i) => (
             <StaggerItem key={i}>
-              <Card>
+              <StatCard className="h-full">
                 <CardContent className="p-4 flex flex-col items-center text-center">
                   <kpi.icon className={`w-6 h-6 mb-2 ${kpi.color}`} />
                   <p className="text-2xl font-bold">
@@ -302,7 +303,7 @@ export default function MinistryDashboard() {
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

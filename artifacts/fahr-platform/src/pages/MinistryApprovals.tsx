@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -231,7 +232,7 @@ export default function MinistryApprovals() {
         <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           {kpis.map((kpi) => (
             <StaggerItem as="div" key={kpi.label}>
-              <Card>
+              <StatCard className="h-full">
                 <CardContent className="flex flex-col items-center p-4 text-center">
                   <kpi.icon className={`mb-2 h-5 w-5 ${kpi.color}`} />
                   <p className="text-2xl font-bold">
@@ -239,11 +240,11 @@ export default function MinistryApprovals() {
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
           <StaggerItem as="div">
-            <Card>
+            <StatCard className="h-full">
               <CardContent className="flex flex-col items-center p-4 text-center">
                 <Timer className="mb-2 h-5 w-5 text-[hsl(var(--chart-4))]" />
                 <p className="text-2xl font-bold">
@@ -251,7 +252,7 @@ export default function MinistryApprovals() {
                 </p>
                 <p className="text-xs text-muted-foreground">Avg days in queue</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </StaggerItem>
         </Stagger>
 

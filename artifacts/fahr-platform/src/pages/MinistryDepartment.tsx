@@ -13,6 +13,7 @@ import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { PageEnter, Stagger, StaggerItem, ChartReveal, CountUp } from "@/components/motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -167,13 +168,13 @@ export default function MinistryDepartment() {
         <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
           {kpis.map((kpi) => (
             <StaggerItem key={kpi.label}>
-              <Card className="h-full">
+              <StatCard className="h-full">
                 <CardContent className="flex flex-col items-center p-4 text-center">
                   <kpi.icon className={`mb-2 h-5 w-5 ${kpi.color}`} />
                   <p className="text-xl font-bold"><CountUp to={kpi.value} suffix={kpi.suffix} /></p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

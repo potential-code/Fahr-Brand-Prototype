@@ -13,6 +13,7 @@ import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { PageEnter, ChartReveal, CountUp } from "@/components/motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { STAT_SURFACE_ATTRS, STAT_SURFACE_CLASS } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -240,15 +241,15 @@ export default function MinistryPerson() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="rounded-lg border border-border p-4 text-center">
+              <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-4 text-center ${STAT_SURFACE_CLASS}`}>
                 <p className="text-2xl font-bold"><CountUp to={person.pathwayProgress} suffix="%" /></p>
                 <p className="text-xs text-muted-foreground">Pathway progress</p>
               </div>
-              <div className="rounded-lg border border-border p-4 text-center">
+              <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-4 text-center ${STAT_SURFACE_CLASS}`}>
                 <p className="text-2xl font-bold"><CountUp to={person.assessmentScore} suffix="%" /></p>
                 <p className="text-xs text-muted-foreground">Baseline assessment</p>
               </div>
-              <div className="rounded-lg border border-border p-4 text-center">
+              <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-4 text-center ${STAT_SURFACE_CLASS}`}>
                 <p className="text-2xl font-bold">{personCredentials.length}</p>
                 <p className="text-xs text-muted-foreground">Credentials held</p>
               </div>

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { Card, CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
@@ -49,7 +50,7 @@ function ProfileStats({
   return (
     <>
       {stats.map((stat) => (
-        <Card key={stat.id} className="border-card-border" data-testid={`stat-${stat.id}`}>
+        <StatCard key={stat.id} data-testid={`stat-${stat.id}`}>
           <CardContent className="p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {stat.label}
@@ -58,7 +59,7 @@ function ProfileStats({
               <CountUp to={stat.value} suffix={stat.suffix} />
             </p>
           </CardContent>
-        </Card>
+        </StatCard>
       ))}
     </>
   );

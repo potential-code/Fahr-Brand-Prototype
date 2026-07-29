@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -393,7 +394,7 @@ export default function FAHRDashboard() {
           <Stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {kpis.map((kpi, i) => (
               <StaggerItem key={kpi.label}>
-                <Card className="h-full transition-shadow hover:shadow-md">
+                <StatCard className="h-full transition-shadow hover:shadow-md">
                   <CardContent className="p-4 flex flex-col items-center text-center">
                     <kpi.icon className="w-6 h-6 mb-2 text-primary" />
                     <p className="text-2xl font-bold" data-testid={`kpi-fahr-${i}`}>
@@ -406,7 +407,7 @@ export default function FAHRDashboard() {
                     </p>
                     <p className="text-xs text-muted-foreground">{kpi.label}</p>
                   </CardContent>
-                </Card>
+                </StatCard>
               </StaggerItem>
             ))}
           </Stagger>
@@ -568,14 +569,14 @@ export default function FAHRDashboard() {
               { label: "Credentials issued", value: selectedMinistry.credentialsIssued },
             ].map((kpi) => (
               <StaggerItem key={kpi.label}>
-                <Card className="h-full">
+                <StatCard className="h-full">
                   <CardContent className="p-4">
                     <p className="text-xs text-muted-foreground">{kpi.label}</p>
                     <p className="text-2xl font-bold">
                       <CountUp to={kpi.value} suffix={kpi.suffix} />
                     </p>
                   </CardContent>
-                </Card>
+                </StatCard>
               </StaggerItem>
             ))}
           </Stagger>

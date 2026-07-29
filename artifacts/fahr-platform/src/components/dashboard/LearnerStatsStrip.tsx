@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { CountUp } from "@/components/CountUp";
 import { Clock, ListChecks, Sparkles, TrendingUp, type LucideIcon } from "lucide-react";
 import { CAPABILITY_LEVELS } from "@/lib/constants";
@@ -88,7 +89,7 @@ export function LearnerStatsStrip() {
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, ease: "easeOut", delay: i * 0.07 }}
           >
-            <Card className="h-full border-card-border" data-testid={`stat-${stat.id}`}>
+            <StatCard className="h-full" data-testid={`stat-${stat.id}`}>
               <CardContent className="p-4">
                 <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
                   <Icon className="h-4.5 w-4.5 text-primary" />
@@ -102,7 +103,7 @@ export function LearnerStatsStrip() {
                 <p className="mt-2 text-sm font-medium text-foreground">{stat.label}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{stat.caption}</p>
               </CardContent>
-            </Card>
+            </StatCard>
           </motion.div>
         );
       })}

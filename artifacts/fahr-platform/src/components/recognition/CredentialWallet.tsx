@@ -11,6 +11,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { WalletCredential } from "@/lib/recognitionRecord";
+import {
+  RECOGNITION_RAISED_CLASS,
+  RECOGNITION_SURFACE_ATTRS,
+  RECOGNITION_SURFACE_CLASS,
+  RecognitionTexture,
+} from "@/components/recognition/RecognitionSurface";
 import { ArrowRight, Download, Loader, Lock, Share2, ShieldCheck, Sparkles } from "lucide-react";
 
 /** Dark credential card — the wallet is the one dark surface below the hero. */
@@ -35,21 +41,19 @@ function CredentialCard({
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.4, delay: index * 0.07 }}
       whileHover={{ y: -4 }}
+      {...(earned || inProgress ? RECOGNITION_SURFACE_ATTRS : {})}
       className={`group relative flex w-full flex-col overflow-hidden rounded-2xl p-5 text-start transition-shadow hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-        earned ? "bg-[#171310]" : inProgress ? "bg-[#221c17]" : "border border-dashed border-border bg-muted/40"
+        earned
+          ? RECOGNITION_SURFACE_CLASS
+          : inProgress
+            ? RECOGNITION_RAISED_CLASS
+            : "border border-dashed border-border bg-muted/40"
       }`}
       data-testid={`credential-card-${credential.id}`}
     >
       {earned && (
         <>
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 opacity-[0.3]"
-            style={{
-              backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.14) 1px, transparent 0)",
-              backgroundSize: "20px 20px",
-            }}
-          />
+          <RecognitionTexture glow={false} dotSize={20} className="opacity-[0.3]" />
           <div
             aria-hidden="true"
             className="absolute -end-16 -top-16 h-48 w-48 rounded-full bg-primary/20 blur-2xl transition-opacity group-hover:opacity-80"
@@ -198,7 +202,10 @@ export function CredentialWallet({
               </DialogHeader>
 
               <div className="space-y-5 py-2">
-                <div className="relative overflow-hidden rounded-xl bg-[#171310] p-5">
+                <div
+                  {...RECOGNITION_SURFACE_ATTRS}
+                  className={`relative overflow-hidden rounded-xl p-5 ${RECOGNITION_SURFACE_CLASS}`}
+                >
                   <div aria-hidden="true" className="absolute -end-12 -top-12 h-40 w-40 rounded-full bg-primary/25 blur-2xl" />
                   <div className="relative flex items-center gap-4">
                     <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-primary/40 bg-primary/15">

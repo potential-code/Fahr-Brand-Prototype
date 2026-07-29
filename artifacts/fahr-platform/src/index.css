@@ -39,6 +39,17 @@
   --color-destructive-foreground: hsl(var(--destructive-foreground));
   --color-destructive-border: var(--destructive-border);
 
+  /* Analytics figures: one warm camel wash for every stat / KPI card. */
+  --color-stat: hsl(var(--stat-surface));
+  --color-stat-border: hsl(var(--stat-surface-border));
+
+  /* Recognition surfaces: the dark "citation" look, shared across roles. */
+  --color-recognition: hsl(var(--recognition-surface));
+  --color-recognition-raised: hsl(var(--recognition-surface-raised));
+  --color-recognition-foreground: hsl(var(--recognition-foreground));
+  --color-recognition-panel: var(--recognition-panel);
+  --color-recognition-border: var(--recognition-border);
+
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));
   --color-chart-3: hsl(var(--chart-3));
@@ -110,6 +121,19 @@
   --chart-4: 32 9% 55%;
   --chart-5: 30 10% 24%;
 
+  /* Analytics surface — a warm camel-gold wash so every figure on the platform
+     reads as measured data rather than another white panel. */
+  --stat-surface: 39 52% 95%;
+  --stat-surface-border: 37 40% 80%;
+
+  /* Recognition surface — the dark "verified record" look. Deliberately dark in
+     both themes; the learner recognition page is the reference. */
+  --recognition-surface: 26 18% 8%;
+  --recognition-surface-raised: 27 19% 11%;
+  --recognition-foreground: 0 0% 100%;
+  --recognition-panel: rgba(255, 255, 255, 0.04);
+  --recognition-border: rgba(255, 255, 255, 0.10);
+
   --sidebar: 40 30% 96%;
   --sidebar-foreground: 30 10% 16%;
   --sidebar-border: 38 22% 87%;
@@ -165,6 +189,11 @@
   --border: 30 8% 22%;
   --input: 30 8% 22%;
   --ring: 37 35% 58%;
+
+  /* Warm gold wash lifted off the dark card so figures still stand out, with
+     enough contrast for the dark foreground text sitting on it. */
+  --stat-surface: 36 16% 19%;
+  --stat-surface-border: 37 24% 32%;
 }
 
 @layer base {
@@ -185,5 +214,25 @@
   [data-ai-phase="running"] [data-ai-content] {
     opacity: 1 !important;
     filter: none !important;
+  }
+
+  /* Tinted and dark surfaces cost ink and, in the recognition case, would print
+     white-on-white. Both fall back to plain bordered panels on paper. */
+  /* Text colour is forced too: in dark theme these tiles carry a light
+     --foreground, which would print near-invisible on white paper. */
+  [data-stat-surface],
+  [data-stat-surface] * {
+    background: #fff !important;
+    border-color: #d6d3d1 !important;
+    color: #1c1917 !important;
+  }
+
+  [data-recognition-surface],
+  [data-recognition-surface] * {
+    background-color: transparent !important;
+    background-image: none !important;
+    color: #1c1917 !important;
+    border-color: #d6d3d1 !important;
+    box-shadow: none !important;
   }
 }

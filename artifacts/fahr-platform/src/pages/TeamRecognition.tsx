@@ -1,14 +1,14 @@
 import React, { useMemo } from "react";
 import { Link } from "wouter";
 import { Layout } from "@/components/Layout";
-import { PageHeader } from "@/components/PageHeader";
 import { PageEnter, Stagger, StaggerItem, ScrollReveal, CountUp } from "@/components/motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { STAT_SURFACE_ATTRS, STAT_SURFACE_CLASS } from "@/components/StatCard";
+import { RecognitionBand, RecognitionItemCard } from "@/components/recognition/RecognitionSurface";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  Award,
   ChevronRight,
   Clock,
   Flame,
@@ -89,18 +89,22 @@ export default function TeamRecognition() {
   return (
     <Layout role="manager">
       <PageEnter className="mx-auto w-full max-w-7xl space-y-6 pb-12">
-        <PageHeader
-          tone="primary"
-          icon={<Award className="h-7 w-7 text-primary" />}
+        <RecognitionBand
+          testId="band-team-recognition"
+          eyebrow="Verified team record"
           title="Team Recognition & Impact"
           description="Credentials and badges your team has earned, where it stands on the capability ladder, the impact its Workplace Projects return, and how that compares with the entity."
           actions={
             <>
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+              <Badge variant="outline" className="border-primary/40 bg-primary/15 text-primary">
                 <ShieldCheck className="me-1 h-3 w-3" /> {recognition.credentials.length} credentials
               </Badge>
               {recognition.ladderLead && (
-                <Badge variant="outline" data-testid="badge-ladder-lead">
+                <Badge
+                  variant="outline"
+                  className="border-white/25 bg-white/5 text-white/80"
+                  data-testid="badge-ladder-lead"
+                >
                   Highest level: {recognition.ladderLead.label}
                 </Badge>
               )}
@@ -218,21 +222,20 @@ export default function TeamRecognition() {
                 <Stagger className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {recognition.credentials.map((credential) => (
                     <StaggerItem as="div" key={credential.id}>
-                      <div
-                        className="flex items-start gap-3 rounded-lg border border-border p-4"
-                        data-testid={`credential-${credential.id}`}
-                      >
-                        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-foreground">{credential.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {credential.personName} · issued {credential.issuedOn}
-                          </p>
-                          <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                            {credential.verificationCode}
-                          </p>
+                      <RecognitionItemCard data-testid={`credential-${credential.id}`}>
+                        <div className="flex items-start gap-3">
+                          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-white">{credential.title}</p>
+                            <p className="text-xs text-white/60">
+                              {credential.personName} · issued {credential.issuedOn}
+                            </p>
+                            <p className="mt-1 font-mono text-[10px] text-white/45">
+                              {credential.verificationCode}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      </RecognitionItemCard>
                     </StaggerItem>
                   ))}
                 </Stagger>
@@ -259,26 +262,38 @@ export default function TeamRecognition() {
                   const earned = badge.earnedBy.length;
                   return (
                     <StaggerItem as="div" key={badge.id}>
-                      <div
-                        className={`h-full rounded-lg border p-4 ${
-                          earned > 0 ? "border-primary/25 bg-primary/5" : "border-dashed border-border bg-muted/20"
-                        }`}
+                      <RecognitionItemCard
+                        state={earned > 0 ? "earned" : "empty"}
                         data-testid={`badge-${badge.id}`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <Icon className={`h-5 w-5 ${earned > 0 ? "text-primary" : "text-muted-foreground"}`} />
-                          <ReportPill tone={earned > 0 ? "good" : "muted"}>
-                            {earned} of {team.length}
-                          </ReportPill>
+                          {earned > 0 ? (
+                            <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                              {earned} of {team.length}
+                            </span>
+                          ) : (
+                            <ReportPill tone="muted">
+                              {earned} of {team.length}
+                            </ReportPill>
+                          )}
                         </div>
-                        <p className="mt-3 text-sm font-semibold text-foreground">{badge.label}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{badge.description}</p>
-                        <p className="mt-2 text-[11px] text-muted-foreground">
+                        <p className={`mt-3 text-sm font-semibold ${earned > 0 ? "text-white" : "text-foreground"}`}>
+                          {badge.label}
+                        </p>
+                        <p
+                          className={`mt-1 text-xs leading-relaxed ${
+                            earned > 0 ? "text-white/60" : "text-muted-foreground"
+                          }`}
+                        >
+                          {badge.description}
+                        </p>
+                        <p className={`mt-2 text-[11px] ${earned > 0 ? "text-white/45" : "text-muted-foreground"}`}>
                           {earned > 0
                             ? badge.earnedBy.map((p) => p.name.split(" ")[0]).join(", ")
                             : badge.criteria}
                         </p>
-                      </div>
+                      </RecognitionItemCard>
                     </StaggerItem>
                   );
                 })}
@@ -313,25 +328,25 @@ export default function TeamRecognition() {
                 ) : (
                   <>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-lg border border-border bg-muted/20 p-3">
+                      <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
                         <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-impact-hours">
                           <CountUp to={impact.hoursPerMonth} />
                         </p>
                         <p className="text-xs text-muted-foreground">Hours saved each month</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-muted/20 p-3">
+                      <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
                         <p className="text-2xl font-bold tabular-nums text-foreground">
                           <CountUp to={impact.workingDaysReturned} />
                         </p>
                         <p className="text-xs text-muted-foreground">Working days returned a year</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-muted/20 p-3">
+                      <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
                         <p className="text-2xl font-bold tabular-nums text-foreground">
                           <CountUp to={impact.valueAed} prefix="AED " />
                         </p>
                         <p className="text-xs text-muted-foreground">Estimated annual value</p>
                       </div>
-                      <div className="rounded-lg border border-border bg-muted/20 p-3">
+                      <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
                         <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-impact-projects">
                           {impact.projectsDeployed}/{impact.projectsValidated}
                         </p>

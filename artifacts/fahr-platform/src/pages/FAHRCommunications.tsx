@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -285,7 +286,7 @@ export default function FAHRCommunications() {
         <Stagger className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {kpiCards.map((kpi, i) => (
             <StaggerItem key={kpi.label}>
-              <Card>
+              <StatCard className="h-full">
                 <CardContent className="p-4 flex flex-col items-center text-center">
                   <kpi.icon className="w-6 h-6 mb-2 text-primary" />
                   <p className="text-2xl font-bold" data-testid={`kpi-comms-${i}`}>
@@ -293,7 +294,7 @@ export default function FAHRCommunications() {
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 </CardContent>
-              </Card>
+              </StatCard>
             </StaggerItem>
           ))}
         </Stagger>

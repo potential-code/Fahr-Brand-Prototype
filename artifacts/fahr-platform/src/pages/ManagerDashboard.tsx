@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatCard, STAT_SURFACE_ATTRS, STAT_SURFACE_CLASS } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -189,7 +190,7 @@ export default function ManagerDashboard() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="border-border shadow-sm">
+          <StatCard className="h-full shadow-sm">
             <CardContent className="p-6 flex flex-col justify-center">
               <div className="flex justify-between items-start mb-4">
                 <Users className="w-5 h-5 text-muted-foreground" />
@@ -198,8 +199,8 @@ export default function ManagerDashboard() {
               <p className="text-3xl font-bold text-foreground" data-testid="text-team-size">{team.length}</p>
               <p className="text-sm text-muted-foreground mt-1">Direct Reports enrolled</p>
             </CardContent>
-          </Card>
-          <Card className="border-border shadow-sm">
+          </StatCard>
+          <StatCard className="h-full shadow-sm">
             <CardContent className="p-6 flex flex-col justify-center">
               <div className="flex justify-between items-start mb-4">
                 <Activity className="w-5 h-5 text-muted-foreground" />
@@ -208,8 +209,8 @@ export default function ManagerDashboard() {
               <p className="text-3xl font-bold text-foreground" data-testid="text-avg-progress">{avgProgress}%</p>
               <p className="text-sm text-muted-foreground mt-1">Avg. Pathway Completion</p>
             </CardContent>
-          </Card>
-          <Card className="border-border shadow-sm">
+          </StatCard>
+          <StatCard className="h-full shadow-sm">
             <CardContent className="p-6 flex flex-col justify-center">
               <div className="flex justify-between items-start mb-4">
                 <Target className="w-5 h-5 text-muted-foreground" />
@@ -217,8 +218,8 @@ export default function ManagerDashboard() {
               <p className="text-3xl font-bold text-foreground">{practitionersOrAbove}</p>
               <p className="text-sm text-muted-foreground mt-1">Practitioners or above</p>
             </CardContent>
-          </Card>
-          <Card className="border-border shadow-sm">
+          </StatCard>
+          <StatCard className="h-full shadow-sm">
             <CardContent className="p-6 flex flex-col justify-center">
               <div className="flex justify-between items-start mb-4">
                 <Shield className="w-5 h-5 text-muted-foreground" />
@@ -226,7 +227,7 @@ export default function ManagerDashboard() {
               <p className="text-3xl font-bold text-foreground">{teamCredentials}</p>
               <p className="text-sm text-muted-foreground mt-1">Verified Credentials Earned</p>
             </CardContent>
-          </Card>
+          </StatCard>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -274,19 +275,19 @@ export default function ManagerDashboard() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-3 gap-3 text-center">
-                  <div>
+                  <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
                     <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-hours">
                       {impact.hoursPerMonth}
                     </p>
                     <p className="text-[11px] text-muted-foreground">Hours saved / month</p>
                   </div>
-                  <div>
+                  <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
                     <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-credentials">
                       {recognition.credentials.length}
                     </p>
                     <p className="text-[11px] text-muted-foreground">Credentials earned</p>
                   </div>
-                  <div>
+                  <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
                     <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-projects">
                       {impact.projectsValidated}
                     </p>

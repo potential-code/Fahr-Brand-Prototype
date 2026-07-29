@@ -41,6 +41,14 @@ description: Durable conventions and gotchas for the FAHR platform mockup
 Theme tokens now: cream bg (40 33% 98%), camel-gold primary deepened to 37 33% 42% for white-text contrast (51% lightness failed review), bronze accent (35 38% 44%) with WHITE accent-foreground — never use `text-accent-foreground` on light surfaces (invisible); use `text-accent` instead. Greens/reds kept only for genuine success/danger semantics. Sidebar is a separated `bg-sidebar` panel card; top bar is logo-only.
 - A low competency score is a development priority, not an error: rank strength / steady / gap by **weight** (solid primary, bronze accent, muted bar plus a solid dark "Priority gap" pill), never by hue. `destructive` red on a capability bar reads as a system failure on a government screen.
 
+## Two branded surface families: tinted stat cards, dark recognition
+
+Analytics/KPI tiles and recognition surfaces each have ONE shared definition, and new screens must reuse it rather than styling a card inline. Every dark or tinted surface also carries a data attribute so the print stylesheet can flatten it — and the print rule must force **text colour** as well as background, because the dark theme's foreground token would otherwise print near-white on paper.
+
+**Why:** a plain white KPI card on one new screen makes the whole set look unbranded, and the dark recognition look drifted into one-off hex values on the first screen that copied it.
+
+**How to apply:** stat tiles get the shared stat-card shell (or its exported class + attrs when the tile is a raw div and restructuring it would disturb the layout); recognition screens open with the shared dark band and use the shared dark item card for badges/credentials, while their tables, charts and analytics stay on light cards. A short dark band needs a tighter decorative bloom than a tall hero or the glow swallows the whole band.
+
 ## Sidebar-reachable screens must never be dead ends
 
 Every screen in the learner sidebar can be opened directly, in any order, without the preceding step having been done. A screen whose content depends on an earlier action (an evaluation depending on a submitted project, a credential depending on an evaluation) must synthesise a worked example from the same derivation helpers it would use for real input, and label the real case explicitly ("this is the project you just submitted").
