@@ -236,3 +236,14 @@
     box-shadow: none !important;
   }
 }
+
+/* The voice channel's waveform. Bars breathe while the agent is speaking; the
+   pane freezes them flat when it is listening or on hold. */
+@keyframes twin-wave {
+  from {
+    transform: scaleY(0.35);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}

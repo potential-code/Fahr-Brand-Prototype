@@ -15,7 +15,7 @@ type CoachPanelProps = {
 };
 
 /**
- * The AI Learning Coach itself: conversation, suggested questions and a text
+ * The Learning Agent itself: conversation, suggested questions and a text
  * input. Positioning is the caller's job — this renders as a full-height
  * column and is used both as a fixed dock and as an in-dialog slide-in.
  */
@@ -76,19 +76,19 @@ export function CoachPanel({ context, collapsed, onCollapse, onClose }: CoachPan
         <button
           type="button"
           onClick={onCollapse}
-          aria-label={`Expand the ${AGENTS.coach}`}
+          aria-label={`Expand the ${AGENTS.learning}`}
           data-testid="button-coach-expand"
           className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105"
         >
           <Bot className="h-5 w-5" />
         </button>
         <span className="mt-2 flex-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground [writing-mode:vertical-rl]">
-          {AGENTS.coach}
+          {AGENTS.learning}
         </span>
         <button
           type="button"
           onClick={onClose}
-          aria-label={`Close the ${AGENTS.coach}`}
+          aria-label={`Close the ${AGENTS.learning}`}
           className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
         >
           <X className="h-4 w-4" />
@@ -104,7 +104,7 @@ export function CoachPanel({ context, collapsed, onCollapse, onClose }: CoachPan
           <Bot className="h-4.5 w-4.5" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold leading-tight">{AGENTS.coach}</p>
+          <p className="truncate text-sm font-semibold leading-tight">{AGENTS.learning}</p>
           <p className="flex items-center gap-1 text-[11px] text-primary-foreground/75">
             <span className="h-1.5 w-1.5 rounded-full bg-green-400" /> Online — simulated
           </p>
@@ -114,7 +114,7 @@ export function CoachPanel({ context, collapsed, onCollapse, onClose }: CoachPan
           size="icon"
           className="h-8 w-8 text-primary-foreground hover:bg-white/10"
           onClick={onCollapse}
-          aria-label={`Collapse the ${AGENTS.coach}`}
+          aria-label={`Collapse the ${AGENTS.learning}`}
           data-testid="button-coach-collapse"
         >
           <ChevronsRight className="h-4 w-4 rtl:rotate-180" />
@@ -124,7 +124,7 @@ export function CoachPanel({ context, collapsed, onCollapse, onClose }: CoachPan
           size="icon"
           className="h-8 w-8 text-primary-foreground hover:bg-white/10"
           onClick={onClose}
-          aria-label={`Close the ${AGENTS.coach}`}
+          aria-label={`Close the ${AGENTS.learning}`}
           data-testid="button-coach-close"
         >
           <X className="h-4 w-4" />
@@ -216,7 +216,7 @@ export function CoachPanel({ context, collapsed, onCollapse, onClose }: CoachPan
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your coach…"
-          aria-label={`Message the ${AGENTS.coach}`}
+          aria-label={`Message the ${AGENTS.learning}`}
           data-testid="input-coach-message"
           className="min-w-0 flex-1 rounded-full border border-input bg-background px-4 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-ring"
         />

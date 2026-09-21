@@ -209,7 +209,7 @@ export default function LeadershipDashboard() {
                     )}
                   </div>
                   <div className="mt-auto">
-                    <p className="text-3xl font-bold text-foreground">
+                    <p className="text-3xl font-bold text-foreground" data-testid={`kpi-${i}`}>
                       <CountUp to={kpi.value as number} decimals={kpi.decimals ?? 0} prefix={kpi.prefix} suffix={kpi.suffix} />
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">{kpi.label}</p>
@@ -402,7 +402,7 @@ export default function LeadershipDashboard() {
               <Stagger as="div" gap={0.1}>
                 {CAPABILITY_BANDS.map((band, i) => (
                   <StaggerItem key={band.level.id}>
-                    <div className="space-y-1.5 py-1">
+                    <div className="space-y-1.5 py-1" data-testid={`band-${band.level.id}`}>
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium text-foreground">{band.level.label}</span>
                         <div className="flex items-center gap-3">
@@ -425,7 +425,7 @@ export default function LeadershipDashboard() {
               </Stagger>
               <div className="pt-4 border-t border-border text-xs text-muted-foreground">
                 Total active learners:{" "}
-                <span className="font-semibold text-foreground">
+                <span className="font-semibold text-foreground" data-testid="text-total-learners">
                   {FEDERAL.activeLearners.toLocaleString()}
                 </span>
               </div>

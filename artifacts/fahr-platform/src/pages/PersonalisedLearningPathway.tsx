@@ -112,7 +112,7 @@ export default function PersonalisedLearningPathway() {
       unlockAdaptiveItem();
       toast({
         title: "Your pathway has been adjusted",
-        description: `Your ${AGENTS.coach} added “${added.title}” after your role-play.`,
+        description: `Your ${AGENTS.learning} added “${added.title}” after your role-play.`,
       });
       return;
     }
@@ -141,7 +141,7 @@ export default function PersonalisedLearningPathway() {
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
                 The pathway is assembled from your baseline assessment: which courses you are given, which
                 microlearning and practical assignments sit between them, which live session is booked, and when you
-                are re-tested. Take the assessment and your {AGENTS.advisor} builds it in front of you.
+                are re-tested. Take the assessment and your {AGENTS.capability} builds it in front of you.
               </p>
 
               <div className="mx-auto mt-6 grid max-w-md gap-2 text-start">
@@ -249,7 +249,7 @@ export default function PersonalisedLearningPathway() {
                     Your pathway has been adjusted
                   </p>
                   <p className="mt-1 text-sm font-semibold text-foreground">
-                    Your {AGENTS.coach} added “{adaptiveItem.title}”
+                    Your {AGENTS.learning} added “{adaptiveItem.title}”
                   </p>
                   <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                     {adaptiveItem.description}
@@ -269,7 +269,7 @@ export default function PersonalisedLearningPathway() {
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
-                  <Target className="h-3.5 w-3.5" /> Assigned by your {AGENTS.advisor}
+                  <Target className="h-3.5 w-3.5" /> Assigned by your {AGENTS.capability}
                 </p>
                 <h2 className="mt-1 text-lg font-bold text-foreground">Courses in your pathway</h2>
                 <p className="mt-0.5 text-sm text-muted-foreground">
@@ -352,7 +352,7 @@ export default function PersonalisedLearningPathway() {
           <ScrollReveal className="mt-10">
             <div className="mb-4">
               <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
-                <MessagesSquare className="h-3.5 w-3.5" /> Paced by your {AGENTS.coach}
+                <MessagesSquare className="h-3.5 w-3.5" /> Paced by your {AGENTS.learning}
               </p>
               <h2 className="mt-1 text-lg font-bold text-foreground">Your coaching plan and next checkpoint</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">

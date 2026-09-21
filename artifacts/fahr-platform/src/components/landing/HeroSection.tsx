@@ -9,14 +9,14 @@ import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
 import { STAKEHOLDERS } from "@/lib/constants";
 import { FEDERAL } from "@/lib/federal";
-import { LANDING_AGENTS } from "./agents";
+import { SPECIALISED_AGENTS } from "./agents";
 import { LANDING_MOTION, LightSweep, Parallax, RevealHeading } from "./motion";
 import { TYPE } from "./typography";
 
 const HERO_STATS: { value: number; suffix?: string; label: string }[] = [
   { value: FEDERAL.employees, label: "Federal employees in scope" },
   { value: FEDERAL.ministriesTotal, label: "Federal entities" },
-  { value: LANDING_AGENTS.length, label: "Specialised AI agents" },
+  { value: SPECIALISED_AGENTS.length, label: "Specialised AI agents" },
   { value: STAKEHOLDERS.length, label: "Role-based portals" },
 ];
 

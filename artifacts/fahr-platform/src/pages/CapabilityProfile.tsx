@@ -243,7 +243,7 @@ export default function CapabilityProfile() {
             <CardContent className="p-6">
               <h2 className="text-base font-semibold text-foreground">Where this profile is used</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                The {AGENTS.advisor} republishes this record to every part of the programme that needs it.
+                The {AGENTS.capability} republishes this record to every part of the programme that needs it.
               </p>
               <ul className="mt-4 grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(265px,1fr))]">
                 {[

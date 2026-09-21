@@ -211,7 +211,7 @@ export default function MinistryDashboard() {
           </StaggerItem>
         </Stagger>
 
-        {/* AI Analytics Assistant Panel */}
+        {/* Analytics Agent Panel */}
         <AIAnalysisPanel
           agent={AGENTS.analytics}
           title="Entity Insights & Interventions"
@@ -235,7 +235,7 @@ export default function MinistryDashboard() {
                 size="sm"
                 variant="outline"
                 disabled={appliedRecommendations.includes("rec-1")}
-                onClick={() => handleApplyRecommendation("rec-1", "Send automated check-in via AI Learning Coach")}
+                onClick={() => handleApplyRecommendation("rec-1", "Send automated check-in via Learning Agent")}
                 data-testid="button-rec-1"
               >
                 {appliedRecommendations.includes("rec-1") ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Triggered</> : "Send Coach Check-in"}

@@ -1,12 +1,16 @@
 // Shared platform constants — proposal-aligned naming
 
+// The six specialised agents of the platform proposal, plus the Practice
+// Partner. The Coaching Agent is the always-on surface the learner meets as a
+// concierge in the flow of work — one agent, two ways in.
 export const AGENTS = {
-  coach: "AI Learning Coach",
-  advisor: "AI Skills Advisor",
+  capability: "Capability Agent",
+  learning: "Learning Agent",
+  assessment: "Assessment Agent",
+  content: "Content Agent",
+  coaching: "Coaching Agent",
+  analytics: "Analytics Agent",
   practice: "AI Practice Partner",
-  content: "AI Content Assistant",
-  analytics: "AI Analytics Assistant",
-  concierge: "AI Concierge",
 } as const;
 
 /** The demo learner used throughout the learner journey screens. */

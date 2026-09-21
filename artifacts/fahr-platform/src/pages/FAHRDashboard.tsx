@@ -312,8 +312,8 @@ export default function FAHRDashboard() {
   const nudgeSuggestion = (person: Person) => {
     const gap = person.gapCompetencyIds?.[0];
     return gap
-      ? `Your next step on ${competencyLabel(gap)} is waiting in your pathway — the AI Learning Coach has a 20-minute block ready.`
-      : `You are ${100 - person.pathwayProgress}% from completing your pathway — the AI Learning Coach can plan the final stretch with you.`;
+      ? `Your next step on ${competencyLabel(gap)} is waiting in your pathway — the Learning Agent has a 20-minute block ready.`
+      : `You are ${100 - person.pathwayProgress}% from completing your pathway — the Learning Agent can plan the final stretch with you.`;
   };
 
   const openNudge = () => {
@@ -327,7 +327,7 @@ export default function FAHRDashboard() {
     if (!selectedIndividual || !nudgeNote.trim()) return;
     const person = selectedIndividual;
     sendAnnouncement({
-      title: `AI Learning Coach nudge — ${person.name}`,
+      title: `Learning Agent nudge — ${person.name}`,
       body: nudgeNote.trim(),
       kind: "Coach nudge",
       channels: ["In-app", "Email"],
@@ -343,7 +343,7 @@ export default function FAHRDashboard() {
     setLastNudge({ personId: person.id, recipients: person.name });
     toast({
       title: "Coach nudge sent",
-      description: `${AGENTS.coach} will follow up with ${person.name}. Recorded in federal communications.`,
+      description: `${AGENTS.learning} will follow up with ${person.name}. Recorded in federal communications.`,
     });
   };
 
@@ -1070,7 +1070,7 @@ export default function FAHRDashboard() {
       <Dialog open={nudgeOpen} onOpenChange={setNudgeOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Nudge {selectedIndividual?.name} via {AGENTS.coach}</DialogTitle>
+            <DialogTitle>Nudge {selectedIndividual?.name} via {AGENTS.learning}</DialogTitle>
             <DialogDescription>
               The coach delivers this in-app and by email. It is recorded in federal communications and the audit trail.
             </DialogDescription>

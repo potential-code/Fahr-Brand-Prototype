@@ -4,9 +4,15 @@
   "license": "MIT",
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "dev": "node scripts/run.mjs platform dev",
+    "dev:sandbox": "node scripts/run.mjs sandbox dev",
+    "dev:api": "node scripts/run.mjs api dev",
+    "dev:all": "node scripts/run.mjs all dev",
+    "build": "pnpm run typecheck && node scripts/run.mjs all build",
+    "preview": "node scripts/run.mjs platform serve",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "test": "pnpm --filter @workspace/fahr-platform run test"
   },
   "private": true,
   "devDependencies": {

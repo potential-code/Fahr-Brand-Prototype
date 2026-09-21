@@ -1,4 +1,4 @@
-// Scripted content for the AI Learning Coach side panel.
+// Scripted content for the Learning Agent side panel.
 //
 // The coach travels with the learner: it opens inside the course player and
 // inside pathway activities, and always answers about whatever is on screen.
@@ -26,7 +26,7 @@ export function coachGreeting(ctx: CoachContext): string {
   const where = ctx.competency
     ? `“${ctx.subject}”, which builds your ${ctx.competency.label}`
     : `“${ctx.subject}”`;
-  return `I'm your ${AGENTS.coach}. I can see you are on ${where}. Ask me anything about it, or pick one of the questions below.`;
+  return `I'm your ${AGENTS.learning}. I can see you are on ${where}. Ask me anything about it, or pick one of the questions below.`;
 }
 
 function simplerAnswer(ctx: CoachContext): string {

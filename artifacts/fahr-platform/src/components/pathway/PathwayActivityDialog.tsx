@@ -47,7 +47,7 @@ function CoachNote({ note }: { note: string }) {
       </span>
       <div className="min-w-0">
         <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
-          Why your {AGENTS.coach} assigned this
+          Why your {AGENTS.learning} assigned this
         </p>
         <p className="mt-1 text-sm leading-relaxed text-foreground">{note}</p>
       </div>
@@ -219,7 +219,7 @@ function SessionDetails({ item, onAddToCalendar }: { item: PathwayItem; onAddToC
 /**
  * Runs a single pathway activity with a layout matched to its format — a
  * microlearning reader, an assignment brief, a live-session panel, a role-play
- * or a hand-off to another screen — with the AI Learning Coach available as a
+ * or a hand-off to another screen — with the Learning Agent available as a
  * slide-in panel over the activity.
  */
 export function PathwayActivityDialog({ item, onClose, onComplete, isComplete }: PathwayActivityDialogProps) {
@@ -296,7 +296,12 @@ export function PathwayActivityDialog({ item, onClose, onComplete, isComplete }:
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="relative max-h-[88vh] overflow-hidden p-0 sm:max-w-[760px]"
+        // No position utility here: `cn` runs through tailwind-merge, so a
+        // `relative` would replace DialogContent's own `fixed` and the dialog
+        // would be laid out in the document instead of the viewport —
+        // invisible whenever the page behind it is scrolled. The sliding coach
+        // panel still anchors to this element, because `fixed` positions it.
+        className="max-h-[88vh] overflow-hidden p-0 sm:max-w-[760px]"
         data-testid={`dialog-activity-${item.id}`}
       >
         <div className="flex max-h-[88vh] flex-col">
@@ -473,7 +478,7 @@ export function PathwayActivityDialog({ item, onClose, onComplete, isComplete }:
               }}
               data-testid="button-activity-coach"
             >
-              <Bot className="me-2 h-4 w-4" /> Ask the {AGENTS.coach}
+              <Bot className="me-2 h-4 w-4" /> Ask the {AGENTS.learning}
             </Button>
 
             <div className="ms-auto flex flex-wrap gap-2">

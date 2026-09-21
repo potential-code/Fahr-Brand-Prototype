@@ -727,7 +727,7 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
       }));
       recordAudit({
         actor: options?.by ?? "FAHR Capability Office",
-        agent: AGENTS.advisor,
+        agent: AGENTS.capability,
         action: `Remapped ${competency.label} to ${contentIds.length} catalogue item${contentIds.length === 1 ? "" : "s"} — personalised pathways rebuild from the new mapping`,
         risk: "Low",
         status: "Applied",
@@ -876,7 +876,7 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
       }));
       recordAudit({
         actor: draft.by ?? "FAHR Programme Team",
-        agent: draft.kind === "Coach nudge" ? AGENTS.coach : "Human decision",
+        agent: draft.kind === "Coach nudge" ? AGENTS.learning : "Human decision",
         action: `${status === "Scheduled" ? "Scheduled" : "Sent"} ${draft.kind.toLowerCase()} "${draft.title.trim()}" to ${recipients.toLocaleString()} recipient${recipients === 1 ? "" : "s"}`,
         risk: "Low",
         status,

@@ -4,6 +4,26 @@ A clickable, bilingual (English/Arabic, RTL-ready) front-end prototype for a UAE
 
 ## Run & Operate
 
+### Local development (outside Replit)
+
+Replit injects `PORT` / `BASE_PATH` per artifact service and supplies the auth
+credentials from Secrets. Locally, `scripts/run.mjs` does the same job, so the
+root scripts work on a plain checkout:
+
+- `pnpm install` — install the workspace
+- `cp .env.example .env` — then set `PLATFORM_AUTH_USERNAME` / `PLATFORM_AUTH_PASSWORD`
+- `pnpm dev` — FAHR platform mockup on http://localhost:23288 (browser prompts for the Basic auth credentials)
+- `pnpm dev:sandbox` — component canvas on http://localhost:8081/__mockup
+- `pnpm dev:api` — API server on http://localhost:8080 (needs `DATABASE_URL`)
+- `pnpm dev:all` — all three at once
+- `pnpm build` — typecheck + build every artifact
+- `pnpm preview` — serve the built platform
+- `pnpm test` — the platform's vitest suite
+
+`.env` is gitignored; real environment variables override it, so `PORT=3000 pnpm dev` still works.
+
+### On Replit
+
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages

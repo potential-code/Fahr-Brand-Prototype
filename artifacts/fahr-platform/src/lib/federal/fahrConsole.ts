@@ -38,7 +38,7 @@ export const FEDERAL_ROLES: FederalRole[] = [
     label: "Line Manager",
     description: "Signs off the team's workplace projects and monitors their capability.",
     scope: "Department",
-    permissions: ["Team dashboard", "Project sign-off", "Nudge via AI Learning Coach"],
+    permissions: ["Team dashboard", "Project sign-off", "Nudge via Learning Agent"],
   },
   {
     id: "content",
@@ -132,7 +132,7 @@ export const GUARDRAIL_EFFECTS: GuardrailEffect[] = [
     id: "preventPII",
     whenOn: "Prompts are screened and personal data is stripped before any model call.",
     whenOff: "Prompts reach models unscreened; personal data can leave the platform boundary.",
-    surfaces: ["AI Learning Coach", "AI Concierge", "Agentic AI Lab"],
+    surfaces: ["Learning Agent", "Coaching Agent", "Agentic AI Lab"],
     offRisk: "High",
   },
   {
@@ -594,7 +594,7 @@ export const ENTITY_SECTORS = [
 
 /**
  * What each competency looks like at each rung of the capability ladder. This
- * is the mapping the AI Skills Advisor scores an assessment against, so it is
+ * is the mapping the Capability Agent scores an assessment against, so it is
  * authored once here and read by both the framework screen and the
  * personalisation explainer.
  */
@@ -637,7 +637,7 @@ export const COMPETENCY_EXPECTATIONS: Record<string, Record<string, string>> = {
 };
 
 /**
- * How a capability gap becomes assigned learning. The AI Skills Advisor reads
+ * How a capability gap becomes assigned learning. The Capability Agent reads
  * these rules, so the framework screen can show the exact chain from an
  * assessment score to the content a learner is given.
  */

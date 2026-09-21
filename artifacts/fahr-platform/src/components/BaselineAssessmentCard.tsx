@@ -54,7 +54,7 @@ export function BaselineAssessmentCard() {
                 Take your AI capability baseline
               </h2>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-2xl">
-                Eight scenario questions drawn from real federal work. The AI Skills Advisor scores you against
+                Eight scenario questions drawn from real federal work. The Capability Agent scores you against
                 the five FAHR AI competencies and builds a personalised course pathway from the result.
               </p>
 

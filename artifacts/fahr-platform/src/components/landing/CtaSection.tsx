@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Link } from "wouter";
-import { ArrowRight, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, FileCheck2, Lock, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LANDING_MOTION, LightSweep, Parallax, Reveal, RevealHeading } from "./motion";
@@ -11,6 +11,7 @@ import { TYPE } from "./typography";
 const ASSURANCES = [
   { icon: ShieldCheck, label: "Federal governance built in" },
   { icon: Lock, label: "UAE data residency" },
+  { icon: FileCheck2, label: "PDPL-aligned" },
   { icon: Sparkles, label: "Arabic and English" },
 ];
 

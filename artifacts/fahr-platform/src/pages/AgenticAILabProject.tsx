@@ -39,6 +39,7 @@ import {
   type StageId,
 } from "@/lib/workplaceProject";
 import { StageStepper } from "@/components/project/StageStepper";
+import { TwinHandoff } from "@/components/project/TwinHandoff";
 import { PracticePartner, ImprovementPanel } from "@/components/project/PracticePartner";
 import { LineList } from "@/components/project/LineList";
 import { ImpactEstimator } from "@/components/project/ImpactEstimator";
@@ -150,12 +151,26 @@ export default function AgenticAILabProject() {
         <PageHeader
           bordered
           title="Workplace Project"
-          description="Apply what you have learned to one real piece of your work, then submit it for evaluation and certification."
+          description="Put your Digital Twin to work on one real piece of your job, then submit it for evaluation and certification."
           actions={
             <Badge variant="outline" className="border-primary/25 bg-primary/5 px-3 py-1 text-sm text-primary">
               Draft · {readiness.percent}% ready
             </Badge>
           }
+        />
+
+        {/* Where the twin built in Stage 1 becomes this project's subject. */}
+        <TwinHandoff
+          disabled={locked}
+          onUseTask={(task) => {
+            updateDraft({
+              title: draft.title || task,
+              challenge:
+                draft.challenge ||
+                `${task} is recurring work in my department. My digital twin already handles part of it, and this project puts that to work properly.`,
+            });
+            setStage("challenge");
+          }}
         />
 
         <StageStepper current={stage} complete={completeStages} onSelect={setStage} />
@@ -473,7 +488,7 @@ export default function AgenticAILabProject() {
               </p>
               <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-muted-foreground">
                 <li>The AI Practice Partner drafts and improves your wording.</li>
-                <li>The AI Analytics Assistant keeps the impact estimate live.</li>
+                <li>The Analytics Agent keeps the impact estimate live.</li>
                 <li>FAHR Governance and Audit runs the policy check before you submit.</li>
               </ul>
             </div>

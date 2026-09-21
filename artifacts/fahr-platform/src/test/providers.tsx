@@ -7,6 +7,9 @@ import { LanguageProvider } from "@/lib/LanguageContext";
 import { LearnerProgressProvider } from "@/lib/LearnerProgressContext";
 import { FederalDataProvider } from "@/lib/FederalDataContext";
 import { FahrConsoleProvider } from "@/lib/FahrConsoleContext";
+import { EntityAdminProvider } from "@/lib/EntityAdminContext";
+import { WorkplaceProjectProvider } from "@/lib/WorkplaceProjectContext";
+import { DigitalTwinProvider } from "@/lib/DigitalTwinContext";
 
 /**
  * Renders a screen inside the same provider stack as the app, so tests exercise
@@ -20,7 +23,13 @@ export function renderScreen(ui: React.ReactElement, path = "/"): RenderResult {
         <TooltipProvider>
           <LearnerProgressProvider>
             <FederalDataProvider>
-              <FahrConsoleProvider>{ui}</FahrConsoleProvider>
+              <FahrConsoleProvider>
+                <EntityAdminProvider>
+                  <WorkplaceProjectProvider>
+                    <DigitalTwinProvider>{ui}</DigitalTwinProvider>
+                  </WorkplaceProjectProvider>
+                </EntityAdminProvider>
+              </FahrConsoleProvider>
             </FederalDataProvider>
           </LearnerProgressProvider>
         </TooltipProvider>

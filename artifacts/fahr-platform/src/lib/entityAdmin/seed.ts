@@ -343,7 +343,7 @@ export const EVENT_META: Record<
   },
   ev7: {
     summary:
-      "Induction for the Customer Happiness cohort: what the pathway asks of them, how the AI Learning Coach works and what the workplace project involves.",
+      "Induction for the Customer Happiness cohort: what the pathway asks of them, how the Learning Agent works and what the workplace project involves.",
     facilitator: "Saeed Al Balushi",
     location: "Microsoft Teams",
     audienceLabel: "Customer Happiness Agents",

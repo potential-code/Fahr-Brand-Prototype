@@ -104,7 +104,7 @@ function SignalRow({ signal, index }: { signal: AdvisorSignal; index: number }) 
 }
 
 /**
- * Makes the personalisation legible: the signals the Skills Advisor reads about
+ * Makes the personalisation legible: the signals the Capability Agent reads about
  * this learner, and the conclusion it drew from them.
  */
 export function AdvisorSignalsPanel({
@@ -127,7 +127,7 @@ export function AdvisorSignalsPanel({
           <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-[#171310]" />
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white">{AGENTS.advisor}</p>
+          <p className="truncate text-sm font-semibold text-white">{AGENTS.capability}</p>
           <p className="truncate text-xs text-white/60">What I am reading about you</p>
         </div>
         <Badge variant="outline" className="ms-auto shrink-0 rounded-full border-white/25 text-[10px] text-white/80">
@@ -165,7 +165,7 @@ export function AdvisorSignalsPreview({ signals }: { signals: AdvisorSignal[] })
           className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-white/20"
         />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white">{AGENTS.advisor}</p>
+          <p className="truncate text-sm font-semibold text-white">{AGENTS.capability}</p>
           <p className="truncate text-xs text-white/60">What I can read so far</p>
         </div>
       </div>

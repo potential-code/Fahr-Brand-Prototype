@@ -1,4 +1,5 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { useEffect } from "react";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,7 @@ import { LearnerProgressProvider } from "@/lib/LearnerProgressContext";
 import { FederalDataProvider } from "@/lib/FederalDataContext";
 import { FahrConsoleProvider } from "@/lib/FahrConsoleContext";
 import { WorkplaceProjectProvider } from "@/lib/WorkplaceProjectContext";
+import { DigitalTwinProvider } from "@/lib/DigitalTwinContext";
 import NotFound from "@/pages/not-found";
 
 import Welcome from "@/pages/Welcome";
@@ -64,6 +66,24 @@ import MinistryDepartment from "@/pages/MinistryDepartment";
 import MinistryPerson from "@/pages/MinistryPerson";
 
 const queryClient = new QueryClient();
+
+/**
+ * Every route opens at the top of the page.
+ *
+ * This is a single-page app, so the window keeps its scroll offset across
+ * navigations: reading to the bottom of one dashboard and then moving to
+ * another opened the new screen already scrolled past its own header. Keyed on
+ * the pathname only, so in-page anchors on the landing page still work.
+ */
+export function ScrollToTop() {
+  const [pathname] = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
+
+  return null;
+}
 
 function Router() {
   return (
@@ -149,11 +169,14 @@ function App() {
               <FahrConsoleProvider>
                 <EntityAdminProvider>
                   <WorkplaceProjectProvider>
-                    <WouterRouter
-                      base={import.meta.env.BASE_URL.replace(/\/$/, "")}
-                    >
-                      <Router />
-                    </WouterRouter>
+                    <DigitalTwinProvider>
+                      <WouterRouter
+                        base={import.meta.env.BASE_URL.replace(/\/$/, "")}
+                      >
+                        <ScrollToTop />
+                        <Router />
+                      </WouterRouter>
+                    </DigitalTwinProvider>
                   </WorkplaceProjectProvider>
                 </EntityAdminProvider>
               </FahrConsoleProvider>

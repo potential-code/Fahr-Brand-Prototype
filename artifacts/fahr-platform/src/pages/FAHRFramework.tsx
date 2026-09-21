@@ -299,7 +299,7 @@ export default function FAHRFramework() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">Competency × capability-level matrix</CardTitle>
                 <CardDescription>
-                  What each competency looks like at each rung of the ladder — the mapping the AI Skills Advisor scores
+                  What each competency looks like at each rung of the ladder — the mapping the Capability Agent scores
                   against. Click a cell to rewrite the expectation.
                 </CardDescription>
               </CardHeader>
@@ -666,7 +666,7 @@ export default function FAHRFramework() {
 
                 <AIAnalysisPanel
                   bare
-                  agent={AGENTS.advisor}
+                  agent={AGENTS.capability}
                   title="Mapping learner pathway"
                   steps={[
                     "Evaluating baseline score against capability ladder",

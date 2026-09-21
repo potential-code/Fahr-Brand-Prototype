@@ -931,11 +931,11 @@ export const APPROVALS: ApprovalRecord[] = [
 
 /** Seeded audit trail. Every action taken in the demo appends to this. */
 export const AUDIT_EVENTS: AuditEvent[] = [
-  { id: "ae1", time: "10 mins ago", actor: "Aisha Al Mansoori", agent: "AI Skills Advisor", action: "Recommended Workplace Project", risk: "Low", status: "Approved", ministryId: "mohap" },
+  { id: "ae1", time: "10 mins ago", actor: "Aisha Al Mansoori", agent: "Capability Agent", action: "Recommended Workplace Project", risk: "Low", status: "Approved", ministryId: "mohap" },
   { id: "ae2", time: "1 hour ago", actor: "Saeed Al Balushi", agent: "AI Practice Partner", action: "Reviewed Project", risk: "Medium", status: "Pending Human Review", ministryId: "mohap" },
-  { id: "ae3", time: "2 hours ago", actor: "Noura Al Kaabi", agent: "AI Analytics Assistant", action: "Generated Federal Report", risk: "Low", status: "Approved", ministryId: "mohap" },
-  { id: "ae4", time: "Yesterday", actor: "System", agent: "AI Analytics Assistant", action: "Flagged Data Policy Warning (PII)", risk: "High", status: "Blocked", ministryId: "moe" },
-  { id: "ae5", time: "Yesterday", actor: "Khalid Al Rashid", agent: "AI Content Assistant", action: "Connected Knowledge Source", risk: "Low", status: "Approved", ministryId: "mohap" },
+  { id: "ae3", time: "2 hours ago", actor: "Noura Al Kaabi", agent: "Analytics Agent", action: "Generated Federal Report", risk: "Low", status: "Approved", ministryId: "mohap" },
+  { id: "ae4", time: "Yesterday", actor: "System", agent: "Analytics Agent", action: "Flagged Data Policy Warning (PII)", risk: "High", status: "Blocked", ministryId: "moe" },
+  { id: "ae5", time: "Yesterday", actor: "Khalid Al Rashid", agent: "Content Agent", action: "Connected Knowledge Source", risk: "Low", status: "Approved", ministryId: "mohap" },
   { id: "ae6", time: "2 days ago", actor: "Ahmed Al Shamsi", agent: "Human decision", action: "Escalated Curriculum Feedback Synthesiser to FAHR", risk: "Medium", status: "Open", ministryId: "moe" },
   { id: "ae7", time: "3 days ago", actor: "FAHR Programme Team", agent: "Human decision", action: "Raised Climate Change token quota to 2.0M", risk: "Low", status: "Applied", ministryId: "moccae" },
 ];
@@ -977,7 +977,7 @@ export const CREDENTIALS: Credential[] = [
 export const ESCALATIONS: Escalation[] = [
   { id: "es1", ministryId: "moe", subject: "Curriculum Feedback Synthesiser — data-sharing exception", kind: "Approval", raisedOn: "15 July 2026", raisedBy: "Ahmed Al Shamsi", status: "Open", detail: "Cross-emirate feedback records fall outside the entity's approved data scope. Federal sign-off requested.", submissionId: "s8" },
   { id: "es2", ministryId: "moccae", subject: "Token quota exceeded for Climate Policy cohort", kind: "Quota", raisedOn: "13 July 2026", raisedBy: "Shamma Al Hosani", status: "In progress", detail: "Consumption is at 105% of quota with six weeks of the cohort remaining." },
-  { id: "es3", ministryId: "moi", subject: "Concierge escalation — credential not visible to HRIS", kind: "Support", raisedOn: "11 July 2026", raisedBy: "AI Concierge", status: "Open", detail: "Three learners report issued credentials missing from the entity HR record." },
+  { id: "es3", ministryId: "moi", subject: "Concierge escalation — credential not visible to HRIS", kind: "Support", raisedOn: "11 July 2026", raisedBy: "Coaching Agent", status: "Open", detail: "Three learners report issued credentials missing from the entity HR record." },
 ];
 
 /**
@@ -991,6 +991,9 @@ export const GOVERNANCE_POLICIES: GovernancePolicy[] = [
   { id: "dataResidency", label: "Enforce UAE data residency for embeddings", description: "Knowledge sources and embeddings stay within approved UAE infrastructure.", enabled: true, scope: "Federal", lastReviewed: "18 June 2026", owner: "Ministry of Digital Economy and AI" },
   { id: "restrictPublicModels", label: "Restrict access to unapproved public models", description: "Only models on the federal approved list can be reached from the platform.", enabled: true, scope: "Federal", lastReviewed: "11 May 2026", owner: "FAHR Governance Office" },
   { id: "explainability", label: "Require an explainability trace for AI decisions", description: "Each AI-assisted decision carries the reasoning and sources behind it.", enabled: true, scope: "Entity", lastReviewed: "11 May 2026", owner: "Entity Admins" },
+  { id: "pdplAlignment", label: "PDPL-aligned personal data handling", description: "Collection, processing and retention follow UAE Federal Decree-Law 45 of 2021, with a lawful basis recorded for every category of learner data.", enabled: true, scope: "Federal", lastReviewed: "2 July 2026", owner: "FAHR Governance Office" },
+  { id: "sovereignHosting", label: "Sovereign model hosting", description: "Inference runs on UAE-sovereign infrastructure, with a defined path to LLMs on FAHR-owned GPUs.", enabled: true, scope: "Federal", lastReviewed: "18 June 2026", owner: "Ministry of Digital Economy and AI" },
+  { id: "modelRegister", label: "Maintain the approved model register", description: "Every model reachable from the platform is named, versioned and re-approved each quarter.", enabled: true, scope: "Federal", lastReviewed: "11 May 2026", owner: "FAHR Governance Office" },
 ];
 
 /** Accounts for the entity and federal user-administration screens. */

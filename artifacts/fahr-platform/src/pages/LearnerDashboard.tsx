@@ -66,10 +66,10 @@ function WelcomeBanner() {
             {assessed
               ? isAr
                 ? `حدد مستشار المهارات الذكي مستواك عند ${result.levelLabel} بنتيجة ${result.overall}%، وبنى مسار تعلم يركز على أولوياتك التطويرية.`
-                : `The AI Skills Advisor placed you at ${result.levelLabel} on ${result.overall}% and built a pathway around your development priorities. Pick up where you left off.`
+                : `The Capability Agent placed you at ${result.levelLabel} on ${result.overall}% and built a pathway around your development priorities. Pick up where you left off.`
               : isAr
                 ? "يبدأ مسار تطوير الذكاء الاصطناعي الخاص بك بتقييم تشخيصي قصير. سيتعرف مستشار المهارات الذكي على دورك ويبني مسار تعلم شخصياً لك."
-                : "Your Agentic AI development pathway starts with a short baseline assessment. The AI Skills Advisor will learn about your role and generate your Personalised Learning Pathway."}
+                : "Your Agentic AI development pathway starts with a short baseline assessment. The Capability Agent will learn about your role and generate your Personalised Learning Pathway."}
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">

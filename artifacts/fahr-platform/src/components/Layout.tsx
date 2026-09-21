@@ -521,7 +521,10 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
         </main>
       </div>
 
-      <AIConcierge />
+      {/* The Coaching Agent is a learner surface — every one of its quick
+          actions goes to /learner/*, so it has no business on a manager,
+          entity or federal console. */}
+      {role === "learner" && <AIConcierge />}
     </div>
   );
 }

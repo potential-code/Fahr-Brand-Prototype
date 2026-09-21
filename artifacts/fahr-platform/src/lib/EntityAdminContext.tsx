@@ -346,7 +346,7 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
         `Assigned the ${pathway} pathway to ${cohort?.name ?? "a cohort"}`,
         "Assigned",
         "Low",
-        AGENTS.advisor,
+        AGENTS.capability,
       );
     },
     [audit, getCohort, update],
@@ -726,7 +726,7 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
         `${scheduled ? "Scheduled" : "Sent"} ${record.kind.toLowerCase()} "${record.subject}" to ${record.audienceLabel} (${record.recipients} recipients)`,
         record.status,
         "Low",
-        AGENTS.concierge,
+        AGENTS.coaching,
       );
       return record;
     },

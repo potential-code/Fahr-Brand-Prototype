@@ -111,7 +111,7 @@ export default function MinistryCommunications() {
         name: "Nudge at-risk learners",
         kind: "Reminder",
         subject: "Let's get your learning back on track",
-        body: "You have not been active on your Personalised Learning Pathway recently. Twenty minutes this week keeps you on schedule — the AI Learning Coach can suggest where to pick up.",
+        body: "You have not been active on your Personalised Learning Pathway recently. Twenty minutes this week keeps you on schedule — the Learning Agent can suggest where to pick up.",
         audienceKey: "status:at-risk",
         cadence: "Weekly until completed",
       },

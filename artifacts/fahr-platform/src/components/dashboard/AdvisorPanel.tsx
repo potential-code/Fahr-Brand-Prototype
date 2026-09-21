@@ -3,26 +3,32 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  useAgentConversation,
+  type AgentConversation,
+  type Utterance,
+} from "./useAgentConversation";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
-  Bot,
   ArrowRight,
+  BookOpen,
+  Bot,
+  Building2,
+  CheckCircle2,
+  ChevronDown,
+  ClipboardCheck,
+  FlaskConical,
+  Lightbulb,
   MessageSquare,
   Mic,
-  User,
-  RotateCcw,
-  CheckCircle2,
-  PlayCircle,
-  BookOpen,
-  FlaskConical,
-  TrendingUp,
-  Play,
-  ClipboardCheck,
-  Lightbulb,
-  Building2,
+  Pause,
   Phone,
+  Play,
+  PlayCircle,
+  RotateCcw,
+  TrendingUp,
+  User,
   Video,
-  ChevronDown,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { AGENTS } from "@/lib/constants";
@@ -235,44 +241,29 @@ const SCRIPT: ChatStep[] = [
   },
 ];
 
+/** The spoken line inside a script step, or null for the visual-only ones. */
+function utteranceFor(step: ChatStep): Utterance | null {
+  if (step.kind === "agent") return { speaker: "agent", text: step.en };
+  if (step.kind === "user") return { speaker: "learner", text: step.en };
+  return null;
+}
+
 const blockIcon = (icon: "learn" | "simulate" | "outcome") => {
   if (icon === "learn") return BookOpen;
   if (icon === "simulate") return FlaskConical;
   return TrendingUp;
 };
 
-function AgentChatDemo() {
+function AgentChatDemo({ conversation }: { conversation: AgentConversation }) {
   const { language } = useLanguage();
-  const [visible, setVisible] = useState(1);
-  const [typing, setTyping] = useState(false);
+  const { visible, typing, finished, replay } = conversation;
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (visible >= SCRIPT.length) {
-      setTyping(false);
-      return;
-    }
-    const next = SCRIPT[visible];
-    const delay = next.kind === "user" ? 900 : 1500;
-    setTyping(next.kind === "agent" || next.kind === "gap" || next.kind === "block");
-    const timer = setTimeout(() => {
-      setVisible((v) => v + 1);
-    }, delay);
-    return () => clearTimeout(timer);
-  }, [visible]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [visible, typing]);
-
-  const replay = () => {
-    setVisible(1);
-    setTyping(true);
-  };
-
-  const finished = visible >= SCRIPT.length;
 
   return (
     <div className="flex flex-col">
@@ -515,72 +506,225 @@ function AgentChatDemo() {
   );
 }
 
-function VoicePane({ language }: { language: "en" | "ar" }) {
+/** Twelve bars whose heights follow a fixed pattern, so the waveform reads as
+ *  speech rather than noise and looks identical on every replay. */
+const WAVE_PATTERN = [0.35, 0.7, 0.45, 0.95, 0.6, 0.8, 0.4, 0.9, 0.55, 0.75, 0.3, 0.65];
+
+function Waveform({ active }: { active: boolean }) {
   return (
-    <div className="flex h-full min-h-[460px] flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-8">
-      <div className="relative w-36 h-36 mb-8">
-        <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping" />
-        <div
-          className="absolute -inset-2 rounded-full border border-primary/30 animate-ping"
-          style={{ animationDelay: "200ms" }}
+    <div className="flex items-center justify-center gap-1 h-12" aria-hidden>
+      {WAVE_PATTERN.map((height, index) => (
+        <span
+          key={index}
+          className={`w-1.5 rounded-full transition-all duration-200 ${
+            active ? "bg-primary" : "bg-muted-foreground/25"
+          }`}
+          style={{
+            height: active ? `${height * 100}%` : "12%",
+            animation: active ? `twin-wave 900ms ease-in-out ${index * 70}ms infinite alternate` : undefined,
+          }}
         />
-        <img
-          src={`${import.meta.env.BASE_URL}brand/aisha-avatar.png`}
-          alt={language === "ar" ? "المستشار الذكي للمهارات" : AGENTS.advisor}
-          className="relative w-36 h-36 rounded-full object-cover border-4 border-white shadow-lg"
-        />
-        <span className="absolute bottom-1 end-1 w-5 h-5 rounded-full bg-green-500 border-2 border-white" />
-      </div>
-      <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-4">
-        {language === "ar" ? "وضع الصوت – محاكاة" : "Voice mode – simulated"}
-      </p>
-      <div className="text-center max-w-lg mb-8">
-        <p className="text-xl font-medium leading-relaxed">
-          {language === "ar"
-            ? "«عائشة، أقوى مجالاتك هو استراتيجية المحتوى. دعينا نسد فجوة التحليلات ونبني مولّد موجز الحملات معاً.»"
-            : "\"Aisha, your strongest area is content strategy. Let's close your analytics gap and build a Campaign Brief Generator together.\""}
-        </p>
-      </div>
-      <Button size="lg" className="rounded-full bg-green-600 hover:bg-green-700 text-white gap-2 px-8">
-        <Phone className="w-5 h-5" />
-        {language === "ar" ? "ابدأ المكالمة" : "Start call"}
-      </Button>
+      ))}
     </div>
   );
 }
 
-function AvatarPane({ language }: { language: "en" | "ar" }) {
+/**
+ * The line being spoken, as a caption track.
+ *
+ * The whole line is laid out from the start with the unspoken words dimmed,
+ * rather than appended word by word. Appending reflows the box on every word —
+ * the caption grows taller and, when centred, every word already on screen
+ * shifts sideways. Laying the full line out once means nothing moves.
+ */
+function LiveTranscript({
+  conversation,
+  className = "",
+}: {
+  conversation: AgentConversation;
+  className?: string;
+}) {
+  const { current, words, spokenCount, speaking } = conversation;
+  if (!current) return null;
+
   return (
-    <div className="relative flex h-full min-h-[460px] flex-col items-center justify-center overflow-hidden bg-foreground p-8">
-      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-foreground to-foreground"></div>
-      <div className="w-56 h-56 relative z-10 mb-8">
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-[40%] animate-[spin_10s_linear_infinite] opacity-50 blur-xl"></div>
-        <div className="absolute inset-2 rounded-[30%] overflow-hidden border border-white/30 shadow-2xl">
+    <p
+      className={className}
+      data-testid="agent-transcript"
+      // The caption always holds the whole line, so how far the agent has
+      // actually got is only visible through these.
+      data-spoken={spokenCount}
+      data-total={words.length}
+      data-speaker={current.speaker}
+    >
+      {current.speaker === "learner" && (
+        <span className="text-xs uppercase tracking-wider opacity-60 me-2">You</span>
+      )}
+      {words.map((word, index) => (
+        <span
+          key={`${index}-${word}`}
+          className={index < spokenCount ? "transition-opacity duration-200" : "opacity-25"}
+        >
+          {word}
+          {index < words.length - 1 ? " " : ""}
+        </span>
+      ))}
+      {speaking && (
+        <span className="ms-0.5 inline-block w-0.5 h-[1em] align-middle bg-current animate-pulse" />
+      )}
+    </p>
+  );
+}
+
+function VoicePane({
+  language,
+  conversation,
+}: {
+  language: "en" | "ar";
+  conversation: AgentConversation;
+}) {
+  const isAr = language === "ar";
+  const { speaking, paused, setPaused, current, finished, replay } = conversation;
+  const agentSpeaking = speaking && current?.speaker === "agent" && !paused;
+
+  return (
+    <div
+      className="flex h-full min-h-[460px] flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-8"
+      data-testid="advisor-voice-pane"
+    >
+      <div className="relative w-32 h-32 mb-6">
+        {agentSpeaking && (
+          <>
+            <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping" />
+            <div
+              className="absolute -inset-2 rounded-full border border-primary/30 animate-ping"
+              style={{ animationDelay: "200ms" }}
+            />
+          </>
+        )}
+        <img
+          src={`${BASE}brand/aisha-avatar.png`}
+          alt={isAr ? "وكيل القدرات" : AGENTS.capability}
+          className="relative w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+        />
+        <span
+          className={`absolute bottom-1 end-1 w-5 h-5 rounded-full border-2 border-white ${
+            paused ? "bg-muted-foreground" : "bg-green-500"
+          }`}
+        />
+      </div>
+
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
+        {paused
+          ? isAr ? "المكالمة متوقفة" : "Call on hold"
+          : agentSpeaking
+            ? isAr ? "يتحدث الآن" : "Speaking"
+            : isAr ? "ينصت" : "Listening"}
+      </p>
+
+      <Waveform active={agentSpeaking} />
+
+      <div className="flex items-center justify-center text-center w-full max-w-lg my-6 min-h-[7.5rem]">
+        <LiveTranscript conversation={conversation} className="text-lg font-medium leading-relaxed" />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button
+          size="lg"
+          className={`rounded-full gap-2 px-8 ${
+            paused ? "bg-green-600 hover:bg-green-700 text-white" : ""
+          }`}
+          variant={paused ? "default" : "outline"}
+          onClick={() => setPaused(!paused)}
+          data-testid="button-voice-toggle"
+        >
+          {paused ? <Phone className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
+          {paused ? (isAr ? "استئناف" : "Resume") : isAr ? "إيقاف مؤقت" : "Hold"}
+        </Button>
+        {finished && (
+          <Button size="lg" variant="ghost" className="rounded-full gap-2" onClick={replay}>
+            <RotateCcw className="w-4 h-4" />
+            {isAr ? "إعادة" : "Replay"}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AvatarPane({
+  language,
+  conversation,
+}: {
+  language: "en" | "ar";
+  conversation: AgentConversation;
+}) {
+  const isAr = language === "ar";
+  const { speaking, paused, setPaused, current, finished, replay } = conversation;
+  const agentSpeaking = speaking && current?.speaker === "agent" && !paused;
+
+  return (
+    <div
+      className="relative flex h-full min-h-[460px] flex-col items-center justify-center overflow-hidden bg-foreground p-8"
+      data-testid="advisor-avatar-pane"
+    >
+      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-foreground to-foreground" />
+
+      <div className="w-48 h-48 relative z-10 mb-6">
+        <div
+          className={`absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-[40%] blur-xl transition-opacity duration-500 ${
+            agentSpeaking ? "opacity-70 animate-[spin_10s_linear_infinite]" : "opacity-30"
+          }`}
+        />
+        <div
+          className={`absolute inset-2 rounded-[30%] overflow-hidden border border-white/30 shadow-2xl transition-transform duration-300 ${
+            agentSpeaking ? "scale-[1.03]" : "scale-100"
+          }`}
+        >
           <img
-            src={`${import.meta.env.BASE_URL}brand/aisha-avatar.png`}
-            alt={language === "ar" ? "المستشار الذكي للمهارات" : AGENTS.advisor}
+            src={`${BASE}brand/aisha-avatar.png`}
+            alt={isAr ? "وكيل القدرات" : AGENTS.capability}
             className="w-full h-full object-cover"
           />
         </div>
       </div>
-      <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl max-w-md text-center text-white mb-6">
-        <p className="text-lg">
-          {language === "ar"
-            ? "«سأرشدك خطوة بخطوة من تحديد فجواتك إلى تحقيق أثر تطبيقي قابل للقياس.»"
-            : "\"I will guide you step by step from identifying your gaps to delivering applied, measurable impact.\""}
-        </p>
+
+      <span className="relative z-10 mb-3 inline-flex items-center gap-2 text-[11px] uppercase tracking-widest text-white/70">
+        <span
+          className={`w-1.5 h-1.5 rounded-full ${agentSpeaking ? "bg-primary animate-pulse" : "bg-white/40"}`}
+        />
+        {paused
+          ? isAr ? "متوقف" : "Paused"
+          : agentSpeaking
+            ? isAr ? "يتحدث" : "Speaking"
+            : isAr ? "ينصت" : "Listening"}
+      </span>
+
+      {/* Captions, so the avatar channel is usable without sound. */}
+      <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl w-full max-w-md text-center text-white mb-6 min-h-[8.5rem] flex items-center justify-center">
+        <LiveTranscript conversation={conversation} className="text-base leading-relaxed" />
       </div>
-      <Button size="lg" className="relative z-10 rounded-full gap-2 px-8">
-        <Video className="w-5 h-5" />
-        {language === "ar" ? "ابدأ الجلسة" : "Start session"}
-      </Button>
+
+      <div className="relative z-10 flex items-center gap-3">
+        <Button size="lg" className="rounded-full gap-2 px-8" onClick={() => setPaused(!paused)} data-testid="button-avatar-toggle">
+          {paused ? <Video className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
+          {paused ? (isAr ? "استئناف الجلسة" : "Resume session") : isAr ? "إيقاف مؤقت" : "Pause"}
+        </Button>
+        {finished && (
+          <Button size="lg" variant="ghost" className="rounded-full gap-2 text-white hover:text-white hover:bg-white/10" onClick={replay}>
+            <RotateCcw className="w-4 h-4" />
+            {isAr ? "إعادة" : "Replay"}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
+
 type Mode = "chat" | "voice" | "avatar";
 
 /**
- * The AI Skills Advisor surface on the learner dashboard: a chat window with a
+ * The Capability Agent surface on the learner dashboard: a chat window with a
  * branded agent header, text / voice / avatar modes and a collapse control.
  */
 export function AdvisorPanel() {
@@ -588,6 +732,11 @@ export function AdvisorPanel() {
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(true);
   const [mode, setMode] = useState<Mode>("chat");
+  const conversation = useAgentConversation({
+    script: SCRIPT,
+    toUtterance: utteranceFor,
+    delayFor: (step) => (step.kind === "user" ? 900 : 1500),
+  });
   const reduceMotion = useReducedMotion();
   const isAr = language === "ar";
 
@@ -611,7 +760,7 @@ export function AdvisorPanel() {
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold sm:text-base">
-                {isAr ? "المستشار الذكي للمهارات" : AGENTS.advisor}
+                {isAr ? "المستشار الذكي للمهارات" : AGENTS.capability}
               </p>
               <p className="truncate text-[11px] text-white/80">
                 {isAr
@@ -671,13 +820,13 @@ export function AdvisorPanel() {
               className="overflow-hidden"
             >
               <TabsContent value="chat" className="m-0">
-                <AgentChatDemo />
+                <AgentChatDemo conversation={conversation} />
               </TabsContent>
               <TabsContent value="voice" className="m-0">
-                <VoicePane language={language} />
+                <VoicePane language={language} conversation={conversation} />
               </TabsContent>
               <TabsContent value="avatar" className="m-0">
-                <AvatarPane language={language} />
+                <AvatarPane language={language} conversation={conversation} />
               </TabsContent>
 
               <div className="flex justify-end border-t border-border p-4">

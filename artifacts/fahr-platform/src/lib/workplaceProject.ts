@@ -12,6 +12,7 @@
 import { AGENTS, LEARNER_PROFILE } from "@/lib/constants";
 import type { ProjectIdea } from "@/lib/recommendations";
 import type { Competency } from "@/lib/learningData";
+import { assessTwin, type TwinProfile } from "@/lib/digitalTwin";
 
 // ---------------------------------------------------------------------------
 // The draft
@@ -544,7 +545,10 @@ const quote = (text: string, max = 110): string => {
  * Scores a submission. Every dimension is computed from what the learner
  * actually wrote, so two different projects are evaluated differently.
  */
-export function evaluateSubmission(submission: ProjectSubmission): Evaluation {
+export function evaluateSubmission(
+  submission: ProjectSubmission,
+  twin?: TwinProfile,
+): Evaluation {
   const { draft, impact, policies } = submission;
   const outcomes = filled(draft.outcomes);
   const measures = filled(draft.measures);
@@ -574,7 +578,7 @@ export function evaluateSubmission(submission: ProjectSubmission): Evaluation {
       label: "Practical application",
       value: application,
       summary: "How firmly the project is attached to real, recurring work.",
-      assessedBy: AGENTS.practice,
+      assessedBy: AGENTS.assessment,
       evidence: [
         `You named a task carried by ${draft.peopleAffected} colleagues taking ${draft.hoursPerWeek} hours each per week.`,
         `Your challenge statement opens: "${quote(draft.challenge || "Not provided")}"`,
@@ -586,7 +590,7 @@ export function evaluateSubmission(submission: ProjectSubmission): Evaluation {
       label: "Innovation",
       value: innovation,
       summary: "Whether the design goes beyond single-prompt use of AI.",
-      assessedBy: AGENTS.practice,
+      assessedBy: AGENTS.assessment,
       evidence: [
         innovationSignals >= 4
           ? "The design chains several steps together rather than treating AI as a one-shot drafting tool."
@@ -618,7 +622,7 @@ export function evaluateSubmission(submission: ProjectSubmission): Evaluation {
       label: "Governance compliance",
       value: governance,
       summary: "The project against the federal AI guardrails.",
-      assessedBy: "FAHR Governance and Audit",
+      assessedBy: `${AGENTS.assessment} · FAHR Governance and Audit`,
       evidence: [
         warnings === 0
           ? `All ${policies.length} policy checks passed at submission.`
@@ -628,6 +632,20 @@ export function evaluateSubmission(submission: ProjectSubmission): Evaluation {
       ],
     },
   ];
+
+  // The twin the learner built in the Lab is assessed alongside the project it
+  // was built for — including the guardrails they left on it.
+  if (twin && twin.trainedAt) {
+    const assessed = assessTwin(twin);
+    dimensions.push({
+      id: "twin",
+      label: "Digital twin governance",
+      value: assessed.value,
+      summary: assessed.summary,
+      assessedBy: AGENTS.assessment,
+      evidence: assessed.evidence,
+    });
+  }
 
   const overall = Math.round(dimensions.reduce((sum, d) => sum + d.value, 0) / dimensions.length);
   const points = Math.round((overall * 5) / 10) * 10;

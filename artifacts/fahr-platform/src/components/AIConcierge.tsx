@@ -29,7 +29,7 @@ const CANNED: Record<string, string> = {
   default:
     "I can help you navigate the platform, explain how the programme works, or connect you with the FAHR support team. Try one of the quick actions below, or ask me anything.",
   pathway:
-    "Your personalised pathway is built by the AI Skills Advisor from your baseline assessment and role profile. It adapts as you complete each step — you can review it any time under Learning Pathway.",
+    "Your personalised pathway is built by the Capability Agent from your baseline assessment and role profile. It adapts as you complete each step — you can review it any time under Learning Pathway.",
   certificate:
     "Certificates and badges you earn are stored in your Recognition wallet. Points contribute to your entity leaderboard position.",
   help:
@@ -49,7 +49,7 @@ export function AIConcierge() {
   const [messages, setMessages] = useState<Msg[]>([
     {
       from: "agent",
-      text: `Hi, I'm your ${AGENTS.concierge}. I can answer questions about the platform, guide you to the right place, or connect you with a human specialist.`,
+      text: `Hi, I'm your ${AGENTS.coaching}. I can answer questions about the platform, guide you to the right place, or connect you with a human specialist.`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -87,10 +87,10 @@ export function AIConcierge() {
       subject: `Concierge escalation — ${learner?.name ?? LEARNER_PROFILE.name}`,
       kind: "Support",
       detail: lastQuestion
-        ? `${AGENTS.concierge} could not resolve: “${lastQuestion}”. Learner asked for a human specialist.`
-        : `${learner?.name ?? LEARNER_PROFILE.name} asked to speak with a human specialist through the ${AGENTS.concierge}.`,
+        ? `${AGENTS.coaching} could not resolve: “${lastQuestion}”. Learner asked for a human specialist.`
+        : `${learner?.name ?? LEARNER_PROFILE.name} asked to speak with a human specialist through the ${AGENTS.coaching}.`,
       raisedBy: learner?.name ?? LEARNER_PROFILE.name,
-      agent: AGENTS.concierge,
+      agent: AGENTS.coaching,
       personId: learner?.id,
     });
     setEscalated(true);
@@ -107,14 +107,14 @@ export function AIConcierge() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label="Open AI Concierge"
+          aria-label="Open Coaching Agent"
           className="fixed bottom-6 right-6 z-40 group flex items-center gap-2 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 px-4 py-3 hover:scale-105 transition-transform"
         >
           <span className="relative flex">
             <Bot className="w-6 h-6" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-primary" />
           </span>
-          <span className="hidden sm:block text-sm font-medium pr-1">{AGENTS.concierge}</span>
+          <span className="hidden sm:block text-sm font-medium pr-1">{AGENTS.coaching}</span>
         </button>
       )}
 
@@ -127,7 +127,7 @@ export function AIConcierge() {
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold leading-tight">{AGENTS.concierge}</p>
+                <p className="text-sm font-semibold leading-tight">{AGENTS.coaching}</p>
                 <p className="text-[11px] text-primary-foreground/70 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Online — simulated
                 </p>

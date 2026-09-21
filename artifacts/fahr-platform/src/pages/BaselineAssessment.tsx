@@ -26,7 +26,7 @@ const ANALYSIS_STEPS = [
   "Benchmarking against 41,850 active federal learners",
   "Identifying capability strengths and gaps",
   "Selecting your recommended learning pathway",
-  "Composing your AI Skills Advisor report",
+  "Composing your Capability Agent report",
 ];
 
 const STEP_MS = 900;
@@ -72,7 +72,7 @@ function AnalysisPanel({ onDone }: { onDone: () => void }) {
           </div>
 
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-            {AGENTS.advisor}
+            {AGENTS.capability}
           </p>
           <h2 className="mt-2 text-xl md:text-2xl font-bold text-foreground">
             Analysing your responses

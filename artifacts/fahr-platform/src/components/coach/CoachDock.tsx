@@ -12,7 +12,7 @@ type CoachDockProps = {
 };
 
 /**
- * Fixed slide-in dock for the AI Learning Coach, used inside the course
+ * Fixed slide-in dock for the Learning Agent, used inside the course
  * player. Closed, it leaves a tab on the edge of the screen; open, it can be
  * collapsed to a rail so the lesson stays readable without losing the thread.
  */
@@ -39,7 +39,7 @@ export function CoachDock({ context, open, onOpenChange }: CoachDockProps) {
           >
             <Bot className="h-5 w-5" />
             <span className="text-[11px] font-semibold uppercase tracking-widest [writing-mode:vertical-rl]">
-              {AGENTS.coach}
+              {AGENTS.learning}
             </span>
           </motion.button>
         )}
@@ -50,7 +50,7 @@ export function CoachDock({ context, open, onOpenChange }: CoachDockProps) {
           <motion.aside
             key="coach-dock"
             role="complementary"
-            aria-label={AGENTS.coach}
+            aria-label={AGENTS.learning}
             initial={reduceMotion ? { opacity: 0 } : { x: "100%" }}
             animate={reduceMotion ? { opacity: 1 } : { x: 0 }}
             exit={reduceMotion ? { opacity: 0 } : { x: "100%" }}

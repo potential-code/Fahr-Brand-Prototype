@@ -12,6 +12,8 @@ import { ArrowRight, ArrowUpRight, Award, FileCheck, Sparkles, Star, UserCheck }
 import { CAPABILITY_LEVELS, LEARNER_PROFILE } from "@/lib/constants";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
+import { useDigitalTwin } from "@/lib/DigitalTwinContext";
+import { AGENTS } from "@/lib/constants";
 import { buildRecommendations } from "@/lib/recommendations";
 import { demoSubmission, evaluateSubmission, reviewThread } from "@/lib/workplaceProject";
 
@@ -20,13 +22,14 @@ export default function AgenticAIEvaluation() {
   const reduceMotion = useReducedMotion();
   const { result, answers } = useLearnerProgress();
   const { submission } = useWorkplaceProject();
+  const { profile: twin } = useDigitalTwin();
 
   const plan = useMemo(() => (result ? buildRecommendations(result, answers) : null), [result, answers]);
 
   // Evaluates what the learner submitted this session; falls back to a worked
   // example so the screen is never empty when reached straight from the sidebar.
   const evaluated = useMemo(() => submission ?? demoSubmission(plan?.project ?? null), [submission, plan]);
-  const evaluation = useMemo(() => evaluateSubmission(evaluated), [evaluated]);
+  const evaluation = useMemo(() => evaluateSubmission(evaluated, twin), [evaluated, twin]);
   const thread = useMemo(() => reviewThread(evaluated, evaluation), [evaluated, evaluation]);
 
   const currentIndex = useMemo(() => {
@@ -52,8 +55,8 @@ export default function AgenticAIEvaluation() {
     {
       icon: UserCheck,
       label: "Who evaluated it",
-      value: "The evaluation engine and your Ministry Innovation Lead",
-      detail: "Four scored dimensions, then a human decision on top of them",
+      value: `The ${AGENTS.assessment} and your Ministry Innovation Lead`,
+      detail: `${evaluation.dimensions.length} scored dimensions, then a human decision on top of them`,
     },
     {
       icon: Award,

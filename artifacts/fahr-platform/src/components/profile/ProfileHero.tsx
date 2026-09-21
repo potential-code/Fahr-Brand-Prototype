@@ -66,7 +66,7 @@ export function ProfileHero({ analysis }: { analysis: ProfileAnalysis }) {
       <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1">
         <Sparkles className="h-3.5 w-3.5 text-primary" />
         <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-          Maintained by your {AGENTS.advisor}
+          Maintained by your {AGENTS.capability}
         </span>
       </div>
 
@@ -138,7 +138,7 @@ export function ProfileHeroEmpty() {
             Your Capability Profile is <span className="text-white/45">not measured yet</span>
           </h1>
           <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-white/65">
-            The {AGENTS.advisor} already knows your role, entity and department. Eight scenario questions are all
+            The {AGENTS.capability} already knows your role, entity and department. Eight scenario questions are all
             it needs to score you against the five FAHR AI competencies and start tracking growth from today.
           </p>
           <Button asChild className="mt-6">

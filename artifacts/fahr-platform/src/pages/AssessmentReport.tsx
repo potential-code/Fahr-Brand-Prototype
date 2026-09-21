@@ -108,7 +108,7 @@ function ReportSection({
 }
 
 /**
- * The AI Skills Advisor report. Deliberately short: where the learner stands,
+ * The Capability Agent report. Deliberately short: where the learner stands,
  * what is strong, what is weak, the three priorities and the courses that close
  * them — then one action into the pathway. Practice, coaching and resources
  * live on the pathway and events screens, where the learner acts on them.
@@ -168,7 +168,7 @@ export default function AssessmentReport() {
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-                {AGENTS.advisor} Report
+                {AGENTS.capability} Report
               </span>
             </div>
 
@@ -268,7 +268,7 @@ export default function AssessmentReport() {
         {/* 4. Development priorities */}
         <ReportSection
           id="priorities"
-          agent={AGENTS.advisor}
+          agent={AGENTS.capability}
           title="Your top three development priorities"
           description="Where movement will change your capability level fastest, ranked by the size of the gain available."
         >

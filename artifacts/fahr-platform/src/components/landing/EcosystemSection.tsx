@@ -1,4 +1,4 @@
-// The capability ecosystem — the six agents.
+// The capability ecosystem — the six specialised agents.
 //
 // Layout is the familiar photograph-plus-list, but the list is now the control
 // for a detail panel: what the agent does, which journey stages it is present
@@ -10,7 +10,7 @@ import React, { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { JOURNEY_STAGES, LANDING_AGENTS } from "./agents";
+import { JOURNEY_STAGES, SPECIALISED_AGENTS } from "./agents";
 import { LANDING_MOTION, Parallax, useAutoRotate } from "./motion";
 import { SectionHeading, TYPE } from "./typography";
 
@@ -20,11 +20,11 @@ export function EcosystemSection() {
   const [paused, setPaused] = useState(false);
   const reduced = useReducedMotion();
   const { index, select, progress } = useAutoRotate({
-    count: LANDING_AGENTS.length,
+    count: SPECIALISED_AGENTS.length,
     intervalMs: ROTATE_MS,
     paused,
   });
-  const agent = LANDING_AGENTS[index];
+  const agent = SPECIALISED_AGENTS[index];
   const ActiveIcon = agent.icon;
 
   return (
@@ -77,7 +77,9 @@ export function EcosystemSection() {
               <span className="tabular-nums text-primary">
                 {String(index + 1).padStart(2, "0")}
               </span>
-              <span className="text-white/50">/ {String(LANDING_AGENTS.length).padStart(2, "0")}</span>
+              <span className="text-white/50">
+                / {String(SPECIALISED_AGENTS.length).padStart(2, "0")}
+              </span>
             </span>
 
             <div className="absolute inset-x-4 bottom-4">
@@ -106,7 +108,7 @@ export function EcosystemSection() {
 
           {/* Agent selector */}
           <ul className="flex flex-col gap-1" role="list">
-            {LANDING_AGENTS.map((item, i) => {
+            {SPECIALISED_AGENTS.map((item, i) => {
               const Icon = item.icon;
               const isActive = i === index;
               return (

@@ -21,7 +21,7 @@ export function NextCapabilities({ items }: { items: NextCapability[] }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-              {AGENTS.advisor}
+              {AGENTS.capability}
             </p>
             <h2 className="mt-1 inline-flex items-center gap-2 text-base font-semibold text-foreground">
               <Target className="h-4 w-4 text-primary" /> Recommended next capabilities

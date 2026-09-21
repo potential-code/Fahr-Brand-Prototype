@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   User,
   Users,
+  FileCheck2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -257,6 +258,7 @@ export default function Login() {
             {[
               { icon: ShieldCheck, label: "Federal single sign-on" },
               { icon: Lock, label: "UAE data residency" },
+              { icon: FileCheck2, label: "PDPL-aligned" },
             ].map(({ icon: Icon, label }) => (
               <li key={label} className="inline-flex items-center gap-2 text-xs text-white/70">
                 <Icon className="h-3.5 w-3.5 text-primary" />

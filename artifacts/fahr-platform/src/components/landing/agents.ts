@@ -1,11 +1,12 @@
-// Landing-page content for the six platform agents.
+// Landing-page content for the platform's agents: the six specialised agents
+// of the proposal, plus the Practice Partner.
 //
 // Names come from `AGENTS` in `@/lib/constants` and the analytics figures come
 // from the federal data spine, so the marketing page can never quote a number
 // the consoles disagree with.
 
 import type React from "react";
-import { BarChart3, Brain, GraduationCap, LifeBuoy, Sparkles, Target } from "lucide-react";
+import { BarChart3, Brain, ClipboardCheck, GraduationCap, LifeBuoy, Sparkles, Target } from "lucide-react";
 import { AGENTS } from "@/lib/constants";
 import { FEDERAL, nationalGaps } from "@/lib/federal";
 
@@ -33,27 +34,17 @@ export type LandingAgent = {
   capabilities: [string, string];
   icon: React.ElementType;
   image: string;
+  /** One of the six specialised agents, as opposed to a supporting agent. */
+  specialised: boolean;
 };
 
 const topGap = nationalGaps()[0];
 
 export const LANDING_AGENTS: LandingAgent[] = [
   {
-    key: "coach",
-    name: AGENTS.coach,
-    tagline: "Guides the individual",
-    description:
-      "Interprets assessment outcomes and turns them into a weekly plan the employee can actually follow.",
-    stages: ["Onboarding", "Personalised pathway", "Assess & validate"],
-    sample:
-      "Your baseline puts you at Emerging Practitioner. Prompt design is your strength; oversight of AI output is the gap. I have put a 20-minute human-in-the-loop module at the top of this week.",
-    capabilities: ["Reads every assessment", "Replans as you progress"],
-    icon: GraduationCap,
-    image: "brand/landing/ecosystem-agents.jpg",
-  },
-  {
-    key: "advisor",
-    name: AGENTS.advisor,
+    key: "capability",
+    specialised: true,
+    name: AGENTS.capability,
     tagline: "Maps role to capability",
     description:
       "Recommends the pathway that matches the federal role, the entity's priorities and the capability ladder.",
@@ -65,20 +56,36 @@ export const LANDING_AGENTS: LandingAgent[] = [
     image: "brand/landing/ecosystem-2.jpg",
   },
   {
-    key: "practice",
-    name: AGENTS.practice,
-    tagline: "Safe place to try",
+    key: "learning",
+    specialised: true,
+    name: AGENTS.learning,
+    tagline: "Guides the individual",
     description:
-      "Runs simulated workplace scenarios and digital twins so capability is practised before it is used on real work.",
-    stages: ["Experiential learning", "Build & train"],
+      "Interprets assessment outcomes and turns them into a weekly plan the employee can actually follow.",
+    stages: ["Onboarding", "Personalised pathway", "Assess & validate"],
     sample:
-      "Scenario: a resident disputes an AI-drafted reply from your department. Draft your response and I will score it against the federal responsible-AI checklist, line by line.",
-    capabilities: ["Sandboxed scenarios", "Scored against policy"],
-    icon: Brain,
-    image: "brand/landing/ecosystem-3.jpg",
+      "Your baseline puts you at Emerging Practitioner. Prompt design is your strength; oversight of AI output is the gap. I have put a 20-minute human-in-the-loop module at the top of this week.",
+    capabilities: ["Reads every assessment", "Replans as you progress"],
+    icon: GraduationCap,
+    image: "brand/landing/ecosystem-agents.jpg",
+  },
+  {
+    key: "assessment",
+    specialised: true,
+    name: AGENTS.assessment,
+    tagline: "Judges the outcome",
+    description:
+      "Scores demonstrated capability and the quality of delivered work, with the reasoning behind every mark.",
+    stages: ["Assess & validate", "Recognition & impact"],
+    sample:
+      "Implementation quality 4/5: the workflow has a named approver and a fallback, but nothing measuring what it saved. Add that and this moves to Practitioner.",
+    capabilities: ["Rubric with a reasoning trace", "Routes to human review"],
+    icon: ClipboardCheck,
+    image: "brand/landing/ecosystem-2.jpg",
   },
   {
     key: "content",
+    specialised: true,
     name: AGENTS.content,
     tagline: "Builds the material",
     description:
@@ -91,7 +98,22 @@ export const LANDING_AGENTS: LandingAgent[] = [
     image: "brand/landing/ecosystem-agents.jpg",
   },
   {
+    key: "coaching",
+    specialised: true,
+    name: AGENTS.coaching,
+    tagline: "Always on hand",
+    description:
+      "Navigates the platform, chases what is outstanding and answers questions in the flow of work.",
+    stages: ["Onboarding", "Recognition & impact"],
+    sample:
+      "You have two workplace submissions waiting on your line manager and one credential ready to claim. Shall I open the validations, or your credential wallet?",
+    capabilities: ["Context-aware answers", "Follows up for you"],
+    icon: LifeBuoy,
+    image: "brand/landing/ecosystem-3.jpg",
+  },
+  {
     key: "analytics",
+    specialised: true,
     name: AGENTS.analytics,
     tagline: "Answers to leadership",
     description:
@@ -107,16 +129,20 @@ export const LANDING_AGENTS: LandingAgent[] = [
     image: "brand/landing/ecosystem-2.jpg",
   },
   {
-    key: "concierge",
-    name: AGENTS.concierge,
-    tagline: "Always on hand",
+    key: "practice",
+    specialised: false,
+    name: AGENTS.practice,
+    tagline: "Safe place to try",
     description:
-      "Navigates the platform, chases what is outstanding and answers questions in the flow of work.",
-    stages: ["Onboarding", "Recognition & impact"],
+      "Runs simulated workplace scenarios and digital twins so capability is practised before it is used on real work.",
+    stages: ["Experiential learning", "Build & train"],
     sample:
-      "You have two workplace submissions waiting on your line manager and one credential ready to claim. Shall I open the validations, or your credential wallet?",
-    capabilities: ["Context-aware answers", "Follows up for you"],
-    icon: LifeBuoy,
+      "Scenario: a resident disputes an AI-drafted reply from your department. Draft your response and I will score it against the federal responsible-AI checklist, line by line.",
+    capabilities: ["Sandboxed scenarios", "Scored against policy"],
+    icon: Brain,
     image: "brand/landing/ecosystem-3.jpg",
   },
 ];
+
+/** The six specialised agents of the proposal, without the supporting one. */
+export const SPECIALISED_AGENTS = LANDING_AGENTS.filter((agent) => agent.specialised);

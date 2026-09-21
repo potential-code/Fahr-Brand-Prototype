@@ -324,7 +324,7 @@ export default function CoursePlayer() {
                 onClick={() => setCoachOpen(true)}
                 data-testid="button-open-coach-hero"
               >
-                <Bot className="me-2 h-4 w-4" /> Ask the {AGENTS.coach}
+                <Bot className="me-2 h-4 w-4" /> Ask the {AGENTS.learning}
               </Button>
             </div>
           </div>

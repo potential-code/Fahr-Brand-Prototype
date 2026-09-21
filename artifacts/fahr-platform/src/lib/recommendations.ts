@@ -1,4 +1,4 @@
-// Personalised recommendation engine for the AI Skills Advisor report.
+// Personalised recommendation engine for the Capability Agent report.
 //
 // The proposal (5.2 / 5.4) says the platform recommends "learning activities,
 // resources, coaching interactions, practical exercises, and assessments", and
@@ -204,7 +204,7 @@ const RESOURCES: Record<string, Resource[]> = {
   ],
 };
 
-/** Just-in-time reading the AI Content Assistant can offer for a competency. */
+/** Just-in-time reading the Content Agent can offer for a competency. */
 export function resourcesForCompetency(competencyId: string): Resource[] {
   return RESOURCES[competencyId] ?? [];
 }
