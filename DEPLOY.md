@@ -11,14 +11,14 @@ Two images, both built from the repository root:
 
 The front end never calls the API — nothing under `artifacts/fahr-platform/src`
 imports `@workspace/api-client-react`. If you only want the clickable prototype
-online, delete the `api-server` service from `docker-compose.prod.yml` and
+online, delete the `api-server` service from `docker-compose.yml` and
 deploy one container.
 
 ## Set up the Dokploy app
 
 1. **Project → Create Service → Compose.**
 2. **Provider:** this Git repository, branch `main`.
-3. **Compose Path:** `docker-compose.prod.yml`.
+3. **Compose Path:** `docker-compose.yml`.
 4. **Environment** (Dokploy writes these to the `.env` next to the compose file,
    which is where the `${...}` substitutions read from):
 
@@ -92,14 +92,14 @@ the environment variables blank — that serves a `503`, not the site.
 - **No database.** `lib/db` throws at import time without `DATABASE_URL`, but
   nothing imports it yet. When something does, add a Dokploy-managed Postgres
   and paste its internal connection string into the environment — don't add a
-  `postgres:` service to `docker-compose.prod.yml`.
+  `postgres:` service to `docker-compose.yml`.
 
 ## Running the stack locally
 
 ```sh
 docker network create dokploy-network        # once; Dokploy creates it on the server
 PLATFORM_AUTH_USERNAME=fahr PLATFORM_AUTH_PASSWORD=change-me \
-  docker compose -f docker-compose.prod.yml up --build
+  docker compose up --build
 ```
 
 Or a single image:

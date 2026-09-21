@@ -13,7 +13,7 @@
 #
 # To run it outside Dokploy:
 #   docker network create dokploy-network        # once
-#   docker compose -f docker-compose.prod.yml up --build
+#   docker compose up --build
 
 services:
   fahr-platform:
