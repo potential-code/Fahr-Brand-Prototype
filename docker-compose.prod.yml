@@ -1,0 +1,72 @@
+# Production stack for Dokploy.
+#
+# Application services only. There is no postgres or redis here on purpose:
+# nothing in the deployed app talks to a database yet (the platform is a
+# front-end mockup and artifacts/api-server only serves /api/healthz), and when
+# one is needed it should be a Dokploy-managed database, not a container in
+# this file.
+#
+# Dokploy: create a Compose service, point it at this file, and attach domains
+# per service in the UI. Do not add `ports:` — Traefik reaches the containers
+# over dokploy-network by container port, and published host ports only create
+# collisions with the other apps on the server.
+#
+# To run it outside Dokploy:
+#   docker network create dokploy-network        # once
+#   docker compose -f docker-compose.prod.yml up --build
+
+services:
+  fahr-platform:
+    build:
+      context: .
+      dockerfile: artifacts/fahr-platform/Dockerfile
+      args:
+        # Baked into the bundle as import.meta.env.BASE_URL. Keep it "/" unless
+        # the platform is served from a sub-path.
+        BASE_PATH: ${BASE_PATH:-/}
+    environment:
+      # Both must be set or nginx answers 503 for everything but /healthz.
+      PLATFORM_AUTH_USERNAME: ${PLATFORM_AUTH_USERNAME:?set PLATFORM_AUTH_USERNAME}
+      PLATFORM_AUTH_PASSWORD: ${PLATFORM_AUTH_PASSWORD:?set PLATFORM_AUTH_PASSWORD}
+    expose:
+      - "80"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - dokploy-network
+
+  # Optional. The mockup never calls it — artifacts/fahr-platform/src has no
+  # import of @workspace/api-client-react — so delete this service until the
+  # front end actually needs an API.
+  api-server:
+    build:
+      context: .
+      dockerfile: artifacts/api-server/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: "8080"
+      PLATFORM_AUTH_USERNAME: ${PLATFORM_AUTH_USERNAME:?set PLATFORM_AUTH_USERNAME}
+      PLATFORM_AUTH_PASSWORD: ${PLATFORM_AUTH_PASSWORD:?set PLATFORM_AUTH_PASSWORD}
+      # Only read once something imports @workspace/db. lib/db throws at import
+      # time when it is missing, so wire it up before adding the first query.
+      DATABASE_URL: ${DATABASE_URL:-}
+    expose:
+      - "8080"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - dokploy-network
+
+networks:
+  # Created by Dokploy on the host. Traefik only routes to containers attached
+  # to it.
+  dokploy-network:
+    external: true

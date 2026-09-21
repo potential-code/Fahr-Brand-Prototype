@@ -12,6 +12,14 @@ A clickable, bilingual (English/Arabic, RTL-ready) front-end prototype for a UAE
 - Required env: `DATABASE_URL` — Postgres connection string
 - Required secrets: `PLATFORM_AUTH_USERNAME`, `PLATFORM_AUTH_PASSWORD` — the HTTP Basic credentials that gate the whole platform. Without both set, every service answers `503` (fail closed).
 
+### Deploy (Dokploy)
+
+- `docker-compose.prod.yml` — the two app services (`fahr-platform` on port 80, `api-server` on 8080), built from `artifacts/*/Dockerfile`. No database service: nothing in the deployed app uses one yet.
+- Required env on the Dokploy service: `PLATFORM_AUTH_USERNAME`, `PLATFORM_AUTH_PASSWORD`, `BASE_PATH`.
+- The platform image re-creates the `lib/basic-auth` guard in nginx, same fail-closed contract: no credentials, no site.
+- Builds are linux/amd64 + glibc only — the workspace `overrides` drop the musl native binaries.
+- Full walkthrough and the gotchas: [DEPLOY.md](DEPLOY.md).
+
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
