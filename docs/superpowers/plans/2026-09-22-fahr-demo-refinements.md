@@ -830,24 +830,47 @@ Implement it alongside the existing `courseProgress` state, persisted by the sam
 
 `openRemediation` is idempotent on purpose: a second failing attempt must not reset `addedAt` or duplicate the units.
 
-- [ ] **Step 4: Include the revision units in the course's lesson list**
+- [ ] **Step 4: Make revision progress survive a reload, without touching the shared helpers**
 
-`courseLessons(course)` currently flattens `course.groups`. Revision units must count toward completion and be reachable, so extend it:
+**Do NOT modify `courseLessons` or `courseStepCount`.** Both are consumed by
+`lib/federal/live.ts` (the federal readiness roll-up behind the leadership
+dashboard), `lib/recognitionRecord.ts`, `lib/profileAnalysis.ts` and
+`LearnerProgressContext` itself. Folding revision units into them would move
+the leadership dashboard's numbers and stop every non-remediated course from
+ever reaching 100%. Revision units are composed locally by the course player
+in Task 11 instead.
+
+Two narrow changes are still needed in `src/lib/LearnerProgressContext.tsx`:
+
+1. The stored-progress validation currently discards any completed lesson id
+   it cannot find in the course (around line 165, `const lessonIds = new
+   Set(courseLessons(course).map((l) => l.id));`). Revision unit ids are not
+   in `courseLessons`, so a refresh would silently wipe revision progress.
+   Widen the set:
 
 ```ts
-export function courseLessons(course: Course): Lesson[] {
-  return [...course.groups.flatMap((group) => group.lessons), ...course.revisionUnits];
-}
+    const lessonIds = new Set(
+      [...courseLessons(course), ...course.revisionUnits].map((l) => l.id),
+    );
 ```
 
-This changes `getCoursePercent` denominators for every course. Check the effect:
+2. `getCoursePercent` divides completed lessons by `courseStepCount(course)`,
+   which excludes revision units — so completing them can push the result
+   past 100. Clamp it:
+
+```ts
+      return Math.min(100, Math.round((done / courseStepCount(course)) * 100));
+```
+
+Confirm nothing else needs changing:
 
 ```bash
 cd artifacts/fahr-platform
-grep -rn "courseLessons" src/
+grep -rn "courseLessons\|courseStepCount" src/
 ```
 
-If any caller needs the pre-remediation list, add a second export `courseBaseLessons(course)` returning only the grouped lessons and use it there, rather than branching inside `courseLessons`.
+Every hit outside `LearnerProgressContext` and `CoursePlayer` must be left
+exactly as it is.
 
 - [ ] **Step 5: Typecheck and test**
 
@@ -1021,6 +1044,22 @@ export function RemediationBanner({
 Four changes in `src/pages/CoursePlayer.tsx`:
 
 1. Pull the new context members: `const { remediation, openRemediation, revisionDone, ... } = useLearnerProgress();` and derive `const remediationFor = remediation[course.id];`.
+
+   Then compose the active lesson list here — `courseLessons` is deliberately
+   left alone (see Task 10 Step 4), so the revision units are appended locally
+   and only while remediation is open:
+
+```tsx
+  const lessons = useMemo(
+    () =>
+      course ? [...courseLessons(course), ...(remediationFor ? course.revisionUnits : [])] : [],
+    [course, remediationFor],
+  );
+```
+
+   `initialItem()` calls `courseLessons(course)` directly for the same purpose
+   — give it the same treatment so "resume where you left off" can land on a
+   revision unit.
 
 2. Render the banner above the outline/content grid:
 
@@ -1220,7 +1259,7 @@ Notes that matter for the tests above:
 - **Emirates ID** is `784` + 4 digits + 7 digits + 1 digit, separators optional.
 - **Name** is anchored to an introducing phrase — `my name is`, `i am`, `this is`, `اسمي` — followed by two or three capitalised words. Not any capitalised pair, or "Ministry of Health and Prevention" trips it.
 - **Date of birth** requires a birth-related word (`born`, `dob`, `date of birth`, `مواليد`) near the date.
-- **Keyword** reuses the existing `PERSONAL_DATA_TERMS` list; export it from `digitalTwin.ts` and import it here rather than duplicating it.
+- **Keyword** reuses the existing `PERSONAL_DATA_TERMS` list. **Move** it out of `digitalTwin.ts` and into this file, deleting it and its `mentionsPersonalData` helper from `digitalTwin.ts`. Do not import it from `digitalTwin.ts`: Task 15 makes `digitalTwin.ts` import `screenForPii` from here, so importing back the other way would be a circular dependency. The list belongs with the other detectors anyway.
 - **Redaction** replaces each finding's `[start, end)` span with `[${label}]`, applied right-to-left so earlier offsets stay valid.
 
 - [ ] **Step 4: Run the tests**
@@ -1751,21 +1790,51 @@ git rm src/components/recognition/AchievementsGrid.tsx src/components/recognitio
 
 In `src/components/recognition/StandingPanels.tsx`, delete the `ImpactPanel` export (the "Measured workplace impact" card with its "Build my workplace project" and "See how it is evaluated" buttons) and its usage in `RecognitionAndImpact.tsx`.
 
-- [ ] **Step 8: Clean up the record builder**
+- [ ] **Step 8: Repoint the hero's stat tiles**
+
+`RecognitionHero` renders two stat tiles whose sources this task deletes:
+
+| Tile | Reads | Source being deleted |
+|---|---|---|
+| "Verified credentials" | `record.earnedCount` | the credential wallet |
+| "Badges earned" | `record.achievementsEarned` | the achievements grid |
+
+Both must be repointed, not left dangling:
+
+1. **"Badges earned"** now counts earned competency badges. In
+   `buildRecognitionRecord`, replace
+   `achievementsEarned: achievements.filter((a) => a.earned).length` with
+   `achievementsEarned: competencyBadges(result).filter((b) => b.earned).length`.
+
+2. **"Verified credentials"** — `earnedCount` counts completed courses
+   (`credentials.filter((c) => c.state === "earned")`), which is still a true
+   and useful number even without the wallet. Keep the computation and
+   **relabel the tile "Courses completed"**, so the screen does not advertise
+   a credential list the learner can no longer open.
+
+Then remove the `onSync` prop and its handler: it toasts "Wallet synced with
+UAE Pass", and there is no wallet any more. Delete the prop from
+`RecognitionHero` and the callback from `RecognitionAndImpact.tsx`.
+
+- [ ] **Step 9: Clean up the record builder**
 
 ```bash
 cd artifacts/fahr-platform
-grep -rn "\.achievements\|\.credentials\|earnedCount" src/
+grep -rn "\.achievements\b\|\.credentials\b" src/
 ```
 
-`buildRecognitionRecord` still computes `achievements` and `credentials`. Remove each field only once nothing reads it — `RecognitionHero` uses `record.earnedCount`, so check before deleting. If `RecognitionHero` still needs a count, point it at the earned competency badges instead.
+`buildRecognitionRecord` still computes `achievements` and `credentials`.
+`credentials` still feeds `earnedCount` from Step 8, so it stays. Remove the
+`achievements` array and its `Achievement` type only if nothing else reads
+them — `lib/profileAnalysis.ts` has its own separate `earnedCount`, which is
+unrelated and must be left alone.
 
-- [ ] **Step 9: Typecheck and test**
+- [ ] **Step 10: Typecheck and test**
 
 Run: `pnpm typecheck && pnpm --filter @workspace/fahr-platform run test`
 Expected: both PASS
 
-- [ ] **Step 10: Commit**
+- [ ] **Step 11: Commit**
 
 ```bash
 git add -A artifacts/fahr-platform/src
@@ -1784,7 +1853,13 @@ git commit -m "Replace the achievements grid with competency badges"
 - Consumes: `demoSubmission`, `evaluateSubmission` from `@/lib/workplaceProject`; `verifyId` from `@/lib/recognitionRecord`.
 - Produces: `ProjectCertificate({ learnerName, projectTitle, competencies, score, issuedOn, verifyId, reviewer }: { learnerName: string; projectTitle: string; competencies: string[]; score: number; issuedOn: string; verifyId: string; reviewer: string })`
 
-- [ ] **Step 1: Seed the project as submitted and approved**
+- [ ] **Step 1: Export `verifyId`**
+
+`verifyId` at `src/lib/recognitionRecord.ts:130` is currently a private
+`function verifyId(seed: string, year: number): string`. This task needs it,
+so add `export` to its declaration. Nothing else about it changes.
+
+- [ ] **Step 2: Seed the project as submitted and approved**
 
 `src/pages/AgenticAIEvaluation.tsx` already falls back to `demoSubmission(plan?.project ?? null)` when nothing was submitted this session. Seed `WorkplaceProjectContext` from the same helper so Recognition and Evaluation agree without a second source of truth:
 
@@ -1797,7 +1872,7 @@ git commit -m "Replace the achievements grid with competency badges"
 
 Read the file's existing `localStorage` hydration first and place the fallback after it, so a real submission from this session always wins.
 
-- [ ] **Step 2: Build the certificate**
+- [ ] **Step 3: Build the certificate**
 
 Create `src/components/recognition/ProjectCertificate.tsx`. An inline preview card that opens a full-screen `Dialog` (from `@/components/ui/dialog`) on click.
 
@@ -1822,20 +1897,20 @@ Include the fake download:
 
 It fires a toast and produces no file. That is the agreed behaviour for the demo — do not add a PDF library.
 
-- [ ] **Step 3: Place it on Recognition**
+- [ ] **Step 4: Place it on Recognition**
 
 In `src/pages/RecognitionAndImpact.tsx`, render `ProjectCertificate` directly beneath `RecognitionHero`, above the competency badges, fed from `submission` and `evaluateSubmission(submission, twin)`. It is the headline artefact of the screen and should not be scrolled to.
 
-- [ ] **Step 4: Check both states in the browser**
+- [ ] **Step 5: Check both states in the browser**
 
 Run `pnpm dev`, open Recognition. Expected: the certificate is present on first load with the learner's real name and the demo project's title; clicking it opens full-screen; "Download PDF" shows the toast and downloads nothing.
 
-- [ ] **Step 5: Typecheck and test**
+- [ ] **Step 6: Typecheck and test**
 
 Run: `pnpm typecheck && pnpm --filter @workspace/fahr-platform run test`
 Expected: both PASS. `src/test/twin-to-project.test.tsx` asserts on project state — if seeding a default submission breaks it, adjust the test to start from an explicitly empty context rather than removing the seed.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add artifacts/fahr-platform/src
