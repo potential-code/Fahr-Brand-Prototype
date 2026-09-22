@@ -329,7 +329,7 @@ export const COURSES: Course[] = [
             id: "l3",
             title: "Where AI fails in public service",
             type: "video",
-            videoId: "zqowMgMgSjA",
+            videoId: "mUw27wG7uFA",
             duration: "6 min",
             body: [
               "Three failure modes cause almost every problem seen in government pilots: fabricated facts, silent staleness, and confident answers outside the model's competence.",
@@ -540,7 +540,7 @@ export const COURSES: Course[] = [
             id: "l3",
             title: "Showing an example",
             type: "video",
-            videoId: "mUw27wG7uFA",
+            videoId: "zqowMgMgSjA",
             duration: "6 min",
             body: [
               "One good example of the output you want is usually worth three paragraphs of description. This session shows how to supply a reference sample and ask the assistant to match its structure and register.",
