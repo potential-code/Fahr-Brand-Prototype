@@ -73,13 +73,13 @@ export const LANDING_AGENTS: LandingAgent[] = [
     key: "assessment",
     specialised: true,
     name: AGENTS.assessment,
-    tagline: "Judges the outcome",
+    tagline: "Sets and marks the test",
     description:
-      "Scores demonstrated capability and the quality of delivered work, with the reasoning behind every mark.",
+      "Prepares the pre- and post-assessment for each pathway, then evaluates capability progression and the quality of the work delivered.",
     stages: ["Assess & validate", "Recognition & impact"],
     sample:
-      "Implementation quality 4/5: the workflow has a named approver and a fallback, but nothing measuring what it saved. Add that and this moves to Practitioner.",
-    capabilities: ["Rubric with a reasoning trace", "Routes to human review"],
+      "Your pre-assessment put prompt design ahead of oversight, so the post-assessment weights oversight twice. Implementation quality 4/5: the workflow has a named approver and a fallback, but nothing measuring what it saved.",
+    capabilities: ["Pre- and post-assessment", "Rubric with a reasoning trace"],
     icon: ClipboardCheck,
     image: "brand/landing/ecosystem-2.jpg",
   },
@@ -89,11 +89,11 @@ export const LANDING_AGENTS: LandingAgent[] = [
     name: AGENTS.content,
     tagline: "Builds the material",
     description:
-      "Generates learning scenarios, cases and knowledge checks from the entity's own context, in Arabic and English.",
+      "Builds the learning-path content from the courses entity admins create, and generates extra scenarios, cases and knowledge checks on demand, in Arabic and English.",
     stages: ["Personalised pathway", "Experiential learning"],
     sample:
-      "Generated: a six-step case study built on your entity's public-awareness campaign, with an Arabic version, three discussion prompts and a knowledge check.",
-    capabilities: ["Entity-specific cases", "Bilingual by default"],
+      "Your entity admin published three courses this month. I have sequenced two of them into your pathway and generated a six-step case study on your public-awareness campaign, with an Arabic version and a knowledge check.",
+    capabilities: ["Builds from admin courses", "Bilingual by default"],
     icon: Sparkles,
     image: "brand/landing/ecosystem-agents.jpg",
   },
