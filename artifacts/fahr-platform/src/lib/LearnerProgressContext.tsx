@@ -30,6 +30,14 @@ export type CourseProgress = {
   finalDone: boolean;
 };
 
+export type Remediation = {
+  /** The competency the low post-assessment identified as weakest. */
+  competencyId: string;
+  /** Score on the attempt that opened it, for the banner to quote. */
+  lastScore: number;
+  addedAt: string;
+};
+
 type State = {
   answers: Record<string, number>;
   result: AssessmentResult | null;
@@ -38,6 +46,8 @@ type State = {
   completedActivityIds: string[];
   /** True once the role-play has caused the pathway to insert its extra module. */
   adaptiveUnlocked: boolean;
+  /** Courses where a low post-assessment opened a revision group, keyed by course id. */
+  remediation: Record<string, Remediation | undefined>;
 };
 
 type Ctx = State & {
@@ -52,6 +62,10 @@ type Ctx = State & {
   /** Idempotent: completing the same activity twice changes nothing. */
   completeActivity: (activityId: string) => void;
   unlockAdaptiveItem: () => void;
+  /** Record a low post-assessment and open the revision units for that course. */
+  openRemediation: (courseId: string, competencyId: string, lastScore: number) => void;
+  /** True when a course has remediation open and both revision units are complete. */
+  revisionDone: (courseId: string) => boolean;
 };
 
 const STORAGE_KEY = "fahr.learner.progress.v1";
@@ -69,6 +83,7 @@ const INITIAL_STATE: State = {
   courseProgress: SEED_COURSE_PROGRESS,
   completedActivityIds: [],
   adaptiveUnlocked: false,
+  remediation: {},
 };
 
 function readStored(): State {
@@ -84,6 +99,7 @@ function readStored(): State {
       courseProgress: sanitizeCourseProgress(parsed.courseProgress),
       completedActivityIds: sanitizeActivityIds(parsed.completedActivityIds),
       adaptiveUnlocked: parsed.adaptiveUnlocked === true,
+      remediation: sanitizeRemediation(parsed.remediation),
     };
   } catch {
     return INITIAL_STATE;
@@ -162,7 +178,9 @@ function sanitizeCourseProgress(v: unknown): Record<string, CourseProgress> {
   for (const [courseId, raw] of Object.entries(v)) {
     const course = COURSE_BY_ID[courseId];
     if (!course || !isRecord(raw)) continue;
-    const lessonIds = new Set(courseLessons(course).map((l) => l.id));
+    const lessonIds = new Set(
+      [...courseLessons(course), ...course.revisionUnits].map((l) => l.id),
+    );
     out[courseId] = {
       completedLessonIds: isStringArray(raw.completedLessonIds)
         ? raw.completedLessonIds.filter((id) => lessonIds.has(id))
@@ -170,6 +188,25 @@ function sanitizeCourseProgress(v: unknown): Record<string, CourseProgress> {
       pretestDone: raw.pretestDone === true,
       finalDone: raw.finalDone === true,
     };
+  }
+  return out;
+}
+
+/**
+ * Keep only entries for courses that still exist, with the shape a
+ * `Remediation` requires — otherwise a stale or corrupted store could open a
+ * revision group for a course the current catalogue does not have.
+ */
+function sanitizeRemediation(v: unknown): Record<string, Remediation | undefined> {
+  if (!isRecord(v)) return {};
+  const out: Record<string, Remediation | undefined> = {};
+  for (const [courseId, raw] of Object.entries(v)) {
+    if (!(courseId in COURSE_BY_ID) || !isRecord(raw)) continue;
+    const { competencyId, lastScore, addedAt } = raw;
+    if (typeof competencyId !== "string" || !(competencyId in COMPETENCY_BY_ID)) continue;
+    if (typeof lastScore !== "number" || !Number.isFinite(lastScore)) continue;
+    if (typeof addedAt !== "string") continue;
+    out[courseId] = { competencyId, lastScore: Math.max(0, Math.min(100, Math.round(lastScore))), addedAt };
   }
   return out;
 }
@@ -275,6 +312,22 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
     [update],
   );
 
+  const openRemediation = useCallback(
+    (courseId: string, competencyId: string, lastScore: number) =>
+      update((prev) =>
+        prev.remediation[courseId]
+          ? prev
+          : {
+              ...prev,
+              remediation: {
+                ...prev.remediation,
+                [courseId]: { competencyId, lastScore, addedAt: new Date().toISOString() },
+              },
+            },
+      ),
+    [update],
+  );
+
   const getCourseProgress = useCallback(
     (courseId: string) => state.courseProgress[courseId] ?? EMPTY_COURSE,
     [state.courseProgress],
@@ -286,9 +339,20 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       if (!course) return 0;
       const p = state.courseProgress[courseId] ?? EMPTY_COURSE;
       const done = p.completedLessonIds.length + (p.finalDone ? 1 : 0);
-      return Math.round((done / courseStepCount(course)) * 100);
+      return Math.min(100, Math.round((done / courseStepCount(course)) * 100));
     },
     [state.courseProgress],
+  );
+
+  const revisionDone = useCallback(
+    (courseId: string) => {
+      if (!state.remediation[courseId]) return false;
+      const course = COURSE_BY_ID[courseId];
+      if (!course) return false;
+      const done = getCourseProgress(courseId).completedLessonIds;
+      return course.revisionUnits.every((unit) => done.includes(unit.id));
+    },
+    [state.remediation, getCourseProgress],
   );
 
   const updateCourse = useCallback(
@@ -337,6 +401,8 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       setFinalDone,
       completeActivity,
       unlockAdaptiveItem,
+      openRemediation,
+      revisionDone,
     }),
     [
       state,
@@ -350,6 +416,8 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       setFinalDone,
       completeActivity,
       unlockAdaptiveItem,
+      openRemediation,
+      revisionDone,
     ],
   );
 

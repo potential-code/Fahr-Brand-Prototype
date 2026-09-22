@@ -273,6 +273,12 @@ export type Course = {
   groups: LessonGroup[];
   pretest: { title: string; intro: string; questions: QuizQuestion[] };
   finalAssessment: { title: string; intro: string; questions: QuizQuestion[] };
+  /**
+   * Two extra units the Content Agent adds when the post-assessment comes back
+   * low. Authored rather than generated: the demo needs this content to be as
+   * good as the rest of the course.
+   */
+  revisionUnits: Lesson[];
 };
 
 export const COURSES: Course[] = [
@@ -484,6 +490,38 @@ export const COURSES: Course[] = [
         },
       ],
     },
+    revisionUnits: [
+      {
+        id: "r1",
+        title: "Fluency is not evidence, one more time",
+        type: "reading",
+        duration: "6 min",
+        body: [
+          "Your post-assessment showed the fluency question missed more than any other: a confident, well-formed answer was read as a verified one. That mistake is worth catching early, because it is invisible in the moment — nothing about a fabricated figure looks different from a real one.",
+          "This unit returns to the single idea the rest of the course depends on. A language model produces the most statistically likely continuation of your prompt, not a lookup against a source of truth. Fluency tells you the model has seen a lot of similar text. It tells you nothing about whether this particular sentence is correct.",
+        ],
+        points: [
+          "A well-formed sentence and a true sentence are unrelated claims",
+          "The model has no way to flag its own fabrication — it does not know which parts it invented",
+          "Treat every figure, name and citation as a claim to verify, not a fact to accept",
+        ],
+      },
+      {
+        id: "r2",
+        title: "Naming the failure mode",
+        type: "activity",
+        duration: "8 min",
+        body: [
+          "The three failure modes — fabrication, staleness and overreach — are easy to recite and harder to spot in your own inbox, which is exactly what the post-assessment picked up.",
+          "Work through five short AI outputs drawn from real federal drafting work and name which failure mode, if any, each one shows. Compare your answers against the walkthrough at the end.",
+        ],
+        points: [
+          "Fabrication looks like a specific fact you cannot find anywhere else",
+          "Staleness looks correct but assumes last year's policy or figures",
+          "Overreach looks like confident legal, medical or financial advice",
+        ],
+      },
+    ],
   },
   {
     id: "prompt-craft",
@@ -697,6 +735,38 @@ export const COURSES: Course[] = [
         },
       ],
     },
+    revisionUnits: [
+      {
+        id: "r1",
+        title: "Context, one more time",
+        type: "reading",
+        duration: "6 min",
+        body: [
+          "Your post-assessment showed context being the part of the instruction dropped most often once a task started to feel familiar — exactly the point where a missing fact gets filled in with something plausible instead of something true.",
+          "This unit returns to what context actually needs to contain: the approved facts, the audience and the channel, given in a form the assistant can use without ever containing identifiable personal data. Context is the single input with the biggest effect on output quality, and the one most often skipped under time pressure.",
+        ],
+        points: [
+          "No context means the assistant fills the gap for you, plausibly and wrongly",
+          "Context is not the same as attaching the whole source document",
+          "Summarise and anonymise before it goes into the prompt",
+        ],
+      },
+      {
+        id: "r2",
+        title: "The one-correction rule, under pressure",
+        type: "activity",
+        duration: "8 min",
+        body: [
+          "The post-assessment showed the one-correction rule being the first thing abandoned under pressure: a weak draft triggering a full rewrite from scratch instead of a single targeted fix.",
+          "Take three weak public-facing drafts through a single corrective iteration each. Name the specific gap, supply the missing input, and ask for a targeted revision — then compare your result against a full rewrite of the same draft.",
+        ],
+        points: [
+          "Name the specific gap before you re-prompt",
+          "Supply the missing input rather than restating the whole request",
+          "If one targeted correction does not fix it, the task is likely mis-scoped, not under-prompted",
+        ],
+      },
+    ],
   },
   {
     id: "ai-governance",
@@ -875,6 +945,38 @@ export const COURSES: Course[] = [
         },
       ],
     },
+    revisionUnits: [
+      {
+        id: "r1",
+        title: "Classification, one more time",
+        type: "reading",
+        duration: "6 min",
+        body: [
+          "Your post-assessment showed the classification step being skipped when the material felt routine. That is exactly where it matters: routine material is what gets pasted into a tool without a second thought.",
+          "This unit walks the four federal classifications again, with the borderline cases that caused the most wrong answers — internal drafts, resident correspondence, and anything containing a name.",
+        ],
+        points: [
+          "Classify before you paste, not after",
+          "A draft inherits the classification of its source material",
+          "If you cannot classify it, it does not go into the tool",
+        ],
+      },
+      {
+        id: "r2",
+        title: "Deciding what needs a human",
+        type: "activity",
+        duration: "8 min",
+        body: [
+          "Proportionate review is the other half of the guardrail, and the post-assessment showed it being applied evenly rather than proportionately.",
+          "Work through five outputs and decide, for each, whether it needs a named reviewer before it leaves your desk. Compare your answers with the federal threshold at the end.",
+        ],
+        points: [
+          "Risk to the resident sets the level of review, not the length of the output",
+          "A named reviewer, not a team inbox",
+          "Record the decision either way",
+        ],
+      },
+    ],
   },
 ];
 
