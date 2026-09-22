@@ -33,6 +33,7 @@ import {
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { CoachDock } from "@/components/coach/CoachDock";
 import { StepQuiz } from "@/components/learning/StepQuiz";
+import { VideoEmbed } from "@/components/learning/VideoEmbed";
 import { AGENTS } from "@/lib/constants";
 import type { CoachContext } from "@/lib/coach";
 
@@ -70,16 +71,8 @@ function LessonBody({
       </div>
       <h2 className="mt-2 text-xl md:text-2xl font-bold text-foreground">{lesson.title}</h2>
 
-      {lesson.type === "video" && (
-        <div className="mt-5 relative aspect-video rounded-xl bg-[#171310] overflow-hidden flex items-center justify-center">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(184,146,84,0.28),transparent_65%)]" />
-          <div className="relative flex flex-col items-center">
-            <span className="h-16 w-16 rounded-full bg-primary flex items-center justify-center">
-              <PlayCircle className="h-8 w-8 text-primary-foreground" />
-            </span>
-            <p className="mt-3 text-sm text-white/70">{lesson.duration} session</p>
-          </div>
-        </div>
+      {lesson.type === "video" && lesson.videoId && (
+        <VideoEmbed videoId={lesson.videoId} title={lesson.title} />
       )}
 
       <div className="mt-5 space-y-4">

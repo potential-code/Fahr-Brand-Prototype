@@ -235,6 +235,8 @@ export type Lesson = {
   title: string;
   type: LessonType;
   duration: string;
+  /** YouTube id. Required when `type` is "video"; meaningless otherwise. */
+  videoId?: string;
   /** Paragraphs of lesson body copy. */
   body: string[];
   /** Optional key-points list rendered after the body. */
@@ -327,6 +329,7 @@ export const COURSES: Course[] = [
             id: "l3",
             title: "Where AI fails in public service",
             type: "video",
+            videoId: "zqowMgMgSjA",
             duration: "6 min",
             body: [
               "Three failure modes cause almost every problem seen in government pilots: fabricated facts, silent staleness, and confident answers outside the model's competence.",
@@ -537,6 +540,7 @@ export const COURSES: Course[] = [
             id: "l3",
             title: "Showing an example",
             type: "video",
+            videoId: "mUw27wG7uFA",
             duration: "6 min",
             body: [
               "One good example of the output you want is usually worth three paragraphs of description. This session shows how to supply a reference sample and ask the assistant to match its structure and register.",
@@ -755,6 +759,7 @@ export const COURSES: Course[] = [
             id: "l3",
             title: "Being transparent with the public",
             type: "video",
+            videoId: "_ZqSFVi6UDY",
             duration: "6 min",
             body: [
               "Residents are entitled to know when they are interacting with an automated system and how to reach a person instead.",
