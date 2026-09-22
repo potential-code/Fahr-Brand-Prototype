@@ -13,13 +13,25 @@ type StepQuizProps = {
   onPass: (correct: number) => void;
   /** Copy shown above the score when the learner passes. */
   passNote?: string;
+  /** Fired on every submission, pass or fail, with the score. */
+  onAttempt?: (correct: number, total: number) => void;
+  /** Shown instead of `passNote` when the attempt is below `passMark`. */
+  failNote?: string;
 };
 
 /**
  * Paced knowledge check: one question at a time, with a progress indicator,
  * feedback and explanation after each answer, and a summary at the end.
  */
-export function StepQuiz({ questions, passMark, submitLabel, onPass, passNote }: StepQuizProps) {
+export function StepQuiz({
+  questions,
+  passMark,
+  submitLabel,
+  onPass,
+  passNote,
+  onAttempt,
+  failNote,
+}: StepQuizProps) {
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -62,7 +74,7 @@ export function StepQuiz({ questions, passMark, submitLabel, onPass, passNote }:
         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
           {passed
             ? passNote ?? "Strong result. This is recorded as evidence against your Capability Profile."
-            : "Review the explanations below, then run it again — repetition is how the capability sticks."}
+            : failNote ?? "Review the explanations below, then run it again — repetition is how the capability sticks."}
         </p>
 
         <ul className="mt-4 space-y-2.5">
@@ -205,7 +217,12 @@ export function StepQuiz({ questions, passMark, submitLabel, onPass, passNote }:
             onClick={() => {
               const next = [...answers, picked as number];
               setAnswers(next);
-              if (next.length < questions.length) advance();
+              if (next.length < questions.length) {
+                advance();
+              } else {
+                const correct = next.filter((a, i) => a === questions[i].correctIndex).length;
+                onAttempt?.(correct, questions.length);
+              }
             }}
             data-testid="button-next-question"
           >
