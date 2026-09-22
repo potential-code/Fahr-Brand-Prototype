@@ -19,7 +19,7 @@ const OUTCOMES = [
   {
     icon: Briefcase,
     title: "Applied to real work",
-    body: "Capability is practised in a sandbox, then applied to a workplace project their line manager can see.",
+    body: "Capability is practised in a sandbox, then applied to a workplace project their department manager can see.",
   },
   {
     icon: BadgeCheck,

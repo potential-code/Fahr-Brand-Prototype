@@ -30,7 +30,7 @@ export function ApprovalsTrail({ events, freshIds }: Props) {
         <History className="h-6 w-6 text-muted-foreground" />
         <p className="text-sm font-medium">No entity activity yet</p>
         <p className="text-xs text-muted-foreground">
-          Decisions you and your line managers take this session appear here.
+          Decisions you and your department managers take this session appear here.
         </p>
       </div>
     );

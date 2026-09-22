@@ -243,7 +243,7 @@ export default function LearnerOnboarding() {
                       />
                       <Label htmlFor="consent" className="text-sm font-normal leading-relaxed cursor-pointer">
                         I consent to FAHR processing my assessment responses and learning activity to generate my
-                        capability profile. My results are visible to me and my line manager, and are reported to my
+                        capability profile. My results are visible to me and my department manager, and are reported to my
                         entity only in aggregate.
                       </Label>
                     </div>

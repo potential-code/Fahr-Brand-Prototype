@@ -1,4 +1,4 @@
-// Team-level derivation for the line manager portal.
+// Team-level derivation for the department manager portal.
 //
 // The manager aggregates its own people and nothing else. Every figure it is
 // compared against — the department readiness index, the entity's per-competency
@@ -439,7 +439,7 @@ export function teamCertificationProgress(roster: TeamRosterRow[]): Certificatio
 // ---------------------------------------------------------------------------
 
 /**
- * States a project has reached once the line manager has signed it off. Impact
+ * States a project has reached once the department manager has signed it off. Impact
  * is only counted from here, so a sign-off taken in the demo moves the figures.
  */
 export const VALIDATED_STATES: SubmissionState[] = [

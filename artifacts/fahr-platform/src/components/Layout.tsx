@@ -69,7 +69,7 @@ type NavLink = {
 
 const ROLE_LABELS: Record<Role, string> = {
   learner: "Federal Employee",
-  manager: "Line Manager",
+  manager: "Department Manager",
   ministry: "Entity Admin",
   fahr: "FAHR Programme Team",
   leadership: "Federal Leadership",

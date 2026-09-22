@@ -47,7 +47,7 @@ export const CAPABILITY_LEVELS: CapabilityLevel[] = [
 
 export const STAKEHOLDERS = [
   { id: "learner", title: "Federal Employee / Learner", route: "/learner" },
-  { id: "manager", title: "Line Manager", route: "/manager" },
+  { id: "manager", title: "Department Manager", route: "/manager" },
   { id: "entity", title: "Entity Admin", route: "/ministry" },
   { id: "fahr-team", title: "FAHR Programme Team", route: "/fahr" },
   { id: "leadership", title: "Federal Leadership", route: "/leadership" },

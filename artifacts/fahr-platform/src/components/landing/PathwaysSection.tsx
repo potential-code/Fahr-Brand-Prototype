@@ -19,7 +19,7 @@ const ROLE_META: Record<string, { image: string; blurb: string; badge: string }>
   manager: {
     image: "stakeholder-manager.jpg",
     blurb: "See your team's gaps, validate real workplace application and recognise progress.",
-    badge: "Line manager",
+    badge: "Department manager",
   },
   entity: {
     image: "stakeholder-entity.jpg",

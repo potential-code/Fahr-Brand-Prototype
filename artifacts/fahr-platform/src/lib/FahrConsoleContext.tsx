@@ -193,7 +193,7 @@ function nextPolicyVersion(versions: PolicyVersion[]): string {
  */
 const ROLE_HEADCOUNT: Record<string, (employees: number) => number> = {
   "Entity Admin": () => 2,
-  "Line Manager": (employees) => Math.max(1, Math.round(employees / 45)),
+  "Department Manager": (employees) => Math.max(1, Math.round(employees / 45)),
   "Content Author": () => 3,
 };
 

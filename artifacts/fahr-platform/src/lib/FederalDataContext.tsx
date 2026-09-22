@@ -1,7 +1,7 @@
 // Session store for the federal programme model.
 //
 // The four role consoles read the same state from here, so a decision taken as
-// a line manager is visible to the entity admin, FAHR and leadership for the
+// a department manager is visible to the entity admin, FAHR and leadership for the
 // rest of the session. Session-scoped only — front-end mock, no backend.
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
@@ -238,7 +238,7 @@ export type FederalDataValue = {
   signOff: (submissionId: string, options?: DecisionOptions) => void;
   requestRevision: (submissionId: string, options?: DecisionOptions) => void;
   endorse: (submissionId: string, options?: DecisionOptions) => void;
-  /** Entity sends a project back to the line manager rather than endorsing it. */
+  /** Entity sends a project back to the department manager rather than endorsing it. */
   returnToManager: (submissionId: string, options?: DecisionOptions) => void;
   escalate: (submissionId: string, options?: DecisionOptions) => void;
   issueCredential: (request: CredentialRequest) => void;
@@ -417,7 +417,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "manager",
         "awaiting_entity",
         "Entity Admin",
-        "Line manager signed off — sent for entity endorsement",
+        "Department manager signed off — sent for entity endorsement",
         options,
         "Signed off workplace project",
         "Low",
@@ -470,10 +470,10 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "revision_requested",
         "ministry",
         "awaiting_manager",
-        "Line manager",
-        "Entity returned the project to the line manager",
+        "Department manager",
+        "Entity returned the project to the department manager",
         options,
-        "Returned workplace project to the line manager",
+        "Returned workplace project to the department manager",
         "Medium",
         "Returned to manager",
         ["awaiting_entity"],

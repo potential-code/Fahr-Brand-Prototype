@@ -96,7 +96,7 @@ export function ApprovalsQueueCard({
         {managerSignOff && (
           <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs">
             <p className="flex items-center gap-1.5 font-medium text-primary">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Line manager signed off
+              <CheckCircle2 className="h-3.5 w-3.5" /> Department manager signed off
             </p>
             <p className="mt-1 text-muted-foreground">
               {managerSignOff.by} · {managerSignOff.on}

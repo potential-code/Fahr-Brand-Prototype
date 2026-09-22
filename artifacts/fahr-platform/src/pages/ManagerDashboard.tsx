@@ -143,7 +143,7 @@ export default function ManagerDashboard() {
 
   const handleSignOff = (submissionId: string, title: string, personId: string) => {
     const owner = getPerson(personId);
-    signOff(submissionId, { by: manager?.name ?? "Line Manager" });
+    signOff(submissionId, { by: manager?.name ?? "Department Manager" });
     if (owner) {
       issueCredential({
         personId,
@@ -151,7 +151,7 @@ export default function ManagerDashboard() {
         title: "Workplace Project Validated: " + title,
         levelId: "practitioner",
         submissionId,
-        by: manager?.name ?? "Line Manager"
+        by: manager?.name ?? "Department Manager"
       });
     }
     toast({
@@ -162,7 +162,7 @@ export default function ManagerDashboard() {
 
   const handleRevision = (submissionId: string, title: string) => {
     requestRevision(submissionId, {
-      by: manager?.name ?? "Line Manager",
+      by: manager?.name ?? "Department Manager",
       note: "Strengthen the measured impact before resubmitting.",
     });
     toast({

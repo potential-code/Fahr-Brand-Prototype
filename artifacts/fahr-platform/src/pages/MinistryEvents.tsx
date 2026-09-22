@@ -92,7 +92,7 @@ export default function MinistryEvents() {
   const AUDIENCE_OPTIONS = useMemo(
     () => [
       { value: "entity", label: "Entity-wide" },
-      { value: "managers", label: "All line managers" },
+      { value: "managers", label: "All department managers" },
       ...cohorts.map((c) => ({ value: `cohort:${c.id}`, label: c.name })),
       ...departments.map((d) => ({ value: `dept:${d.id}`, label: d.name })),
     ],

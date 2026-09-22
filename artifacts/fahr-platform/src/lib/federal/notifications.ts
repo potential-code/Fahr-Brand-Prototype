@@ -120,7 +120,7 @@ function ministryNotifications(input: NotificationInput): FederalNotification[] 
     out.push({
       id: `n-ent-approval-${submission.id}`,
       title: "Project awaiting entity endorsement",
-      body: `"${submission.title}" cleared line manager sign-off and needs your decision.`,
+      body: `"${submission.title}" cleared department manager sign-off and needs your decision.`,
       time: submission.submittedOn,
       href: "/ministry/approvals",
       kind: "approval",

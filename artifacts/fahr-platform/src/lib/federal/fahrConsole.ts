@@ -35,7 +35,7 @@ export const FEDERAL_ROLES: FederalRole[] = [
   },
   {
     id: "manager",
-    label: "Line Manager",
+    label: "Department Manager",
     description: "Signs off the team's workplace projects and monitors their capability.",
     scope: "Department",
     permissions: ["Team dashboard", "Project sign-off", "Nudge via Learning Agent"],
@@ -280,7 +280,7 @@ export const INTEGRATIONS: Integration[] = [
     direction: "Bi-directional",
     records: 80000,
     owner: "Hind Al Owais",
-    dataPoints: ["Employee record", "Job family", "Department", "Line manager", "Credential write-back"],
+    dataPoints: ["Employee record", "Job family", "Department", "Department manager", "Credential write-back"],
   },
   {
     id: "bi",
@@ -467,7 +467,7 @@ export const ANNOUNCEMENTS: Announcement[] = [
     body: "Every entity can enter up to three workplace projects into the federal challenge. Entries close on 15 September 2026 and shortlisted projects present to the FAHR Governance Board.",
     kind: "Campaign",
     channels: ["In-app", "Email"],
-    audience: { entityIds: [], roleLabels: ["Entity Admin", "Line Manager"], levelIds: [] },
+    audience: { entityIds: [], roleLabels: ["Entity Admin", "Department Manager"], levelIds: [] },
     recipients: 1840,
     status: "Sent",
     sentOn: "21 July 2026",

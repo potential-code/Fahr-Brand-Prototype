@@ -520,11 +520,11 @@ export function buildPathway(
     href: "/learner/lab/project",
     hrefLabel: "Open my Workplace Project",
     meta: plan.project.outcome,
-    coachNote: `Chosen because ${plan.project.competency.label} is your first priority. This is the item your line manager signs off, so it is the one that turns your learning into recorded impact.`,
+    coachNote: `Chosen because ${plan.project.competency.label} is your first priority. This is the item your department manager signs off, so it is the one that turns your learning into recorded impact.`,
     steps: [
       "Describe the problem and the AI solution you applied.",
       "State the expected time or quality gain.",
-      "Submit for evaluation and line manager confirmation.",
+      "Submit for evaluation and department manager confirmation.",
     ],
     submissionPrompt:
       "Sketch the problem and the AI solution you have in mind. Your full submission and evidence are completed in the Agentic AI Lab.",

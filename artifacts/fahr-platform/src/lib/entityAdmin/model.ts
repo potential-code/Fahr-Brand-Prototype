@@ -13,14 +13,14 @@ import type { ContentItem, LearnerStatus } from "@/lib/federal/model";
 /** Platform roles an entity admin can grant inside their own entity. */
 export type PlatformRole =
   | "Federal Employee"
-  | "Line Manager"
+  | "Department Manager"
   | "Content Author"
   | "Reporting Viewer"
   | "Entity Admin";
 
 export const PLATFORM_ROLES: PlatformRole[] = [
   "Federal Employee",
-  "Line Manager",
+  "Department Manager",
   "Content Author",
   "Reporting Viewer",
   "Entity Admin",

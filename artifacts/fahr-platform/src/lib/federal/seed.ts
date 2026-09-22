@@ -695,7 +695,7 @@ export const SUBMISSIONS: Submission[] = [
     submittedOn: "22 July 2026",
     timeline: [
       { date: "19 July 2026", event: "Drafted with the AI Practice Partner" },
-      { date: "22 July 2026", event: "Submitted for line manager sign-off" },
+      { date: "22 July 2026", event: "Submitted for department manager sign-off" },
     ],
   },
   {
@@ -718,7 +718,7 @@ export const SUBMISSIONS: Submission[] = [
     submittedOn: "9 June 2026",
     timeline: [
       { date: "4 June 2026", event: "Prototype completed" },
-      { date: "9 June 2026", event: "Line manager signed off" },
+      { date: "9 June 2026", event: "Department manager signed off" },
       { date: "14 June 2026", event: "Entity endorsed for pilot" },
     ],
   },
@@ -741,8 +741,8 @@ export const SUBMISSIONS: Submission[] = [
     competencyIds: ["prompting", "agentic"],
     submittedOn: "4 May 2026",
     timeline: [
-      { date: "4 May 2026", event: "Submitted for line manager sign-off" },
-      { date: "11 May 2026", event: "Line manager signed off" },
+      { date: "4 May 2026", event: "Submitted for department manager sign-off" },
+      { date: "11 May 2026", event: "Department manager signed off" },
       { date: "2 June 2026", event: "Entity endorsed and deployed" },
     ],
   },
@@ -765,8 +765,8 @@ export const SUBMISSIONS: Submission[] = [
     competencyIds: ["analytics", "agentic"],
     submittedOn: "3 April 2026",
     timeline: [
-      { date: "3 April 2026", event: "Submitted for line manager sign-off" },
-      { date: "9 April 2026", event: "Line manager signed off" },
+      { date: "3 April 2026", event: "Submitted for department manager sign-off" },
+      { date: "9 April 2026", event: "Department manager signed off" },
       { date: "18 April 2026", event: "Entity endorsed and deployed" },
     ],
   },
@@ -789,8 +789,8 @@ export const SUBMISSIONS: Submission[] = [
     competencyIds: ["agentic", "governance"],
     submittedOn: "14 July 2026",
     timeline: [
-      { date: "14 July 2026", event: "Submitted for line manager sign-off" },
-      { date: "20 July 2026", event: "Line manager signed off — sent for entity endorsement" },
+      { date: "14 July 2026", event: "Submitted for department manager sign-off" },
+      { date: "20 July 2026", event: "Department manager signed off — sent for entity endorsement" },
     ],
   },
   {
@@ -812,7 +812,7 @@ export const SUBMISSIONS: Submission[] = [
     competencyIds: ["prompting", "governance"],
     submittedOn: "2 July 2026",
     timeline: [
-      { date: "2 July 2026", event: "Submitted for line manager sign-off" },
+      { date: "2 July 2026", event: "Submitted for department manager sign-off" },
       { date: "8 July 2026", event: "Revision requested — evidence of human review missing" },
     ],
   },
@@ -836,7 +836,7 @@ export const SUBMISSIONS: Submission[] = [
     submittedOn: "24 July 2026",
     timeline: [
       { date: "21 July 2026", event: "Drafted with the AI Practice Partner" },
-      { date: "24 July 2026", event: "Submitted for line manager sign-off" },
+      { date: "24 July 2026", event: "Submitted for department manager sign-off" },
     ],
   },
   {
@@ -858,8 +858,8 @@ export const SUBMISSIONS: Submission[] = [
     competencyIds: ["analytics", "governance"],
     submittedOn: "6 July 2026",
     timeline: [
-      { date: "6 July 2026", event: "Submitted for line manager sign-off" },
-      { date: "10 July 2026", event: "Line manager signed off" },
+      { date: "6 July 2026", event: "Submitted for department manager sign-off" },
+      { date: "10 July 2026", event: "Department manager signed off" },
       { date: "15 July 2026", event: "Escalated to FAHR — federal data-sharing exception needed" },
     ],
   },
@@ -882,8 +882,8 @@ export const SUBMISSIONS: Submission[] = [
     competencyIds: ["literacy", "prompting"],
     submittedOn: "13 July 2026",
     timeline: [
-      { date: "13 July 2026", event: "Submitted for line manager sign-off" },
-      { date: "21 July 2026", event: "Line manager signed off — sent for entity endorsement" },
+      { date: "13 July 2026", event: "Submitted for department manager sign-off" },
+      { date: "21 July 2026", event: "Department manager signed off — sent for entity endorsement" },
     ],
   },
   {
@@ -905,8 +905,8 @@ export const SUBMISSIONS: Submission[] = [
     competencyIds: ["analytics", "prompting"],
     submittedOn: "5 June 2026",
     timeline: [
-      { date: "5 June 2026", event: "Submitted for line manager sign-off" },
-      { date: "12 June 2026", event: "Line manager signed off" },
+      { date: "5 June 2026", event: "Submitted for department manager sign-off" },
+      { date: "12 June 2026", event: "Department manager signed off" },
       { date: "17 June 2026", event: "Entity endorsed" },
     ],
   },
@@ -921,11 +921,11 @@ export const APPROVALS: ApprovalRecord[] = [
   { id: "a5", submissionId: "s4", role: "manager", decision: "signed_off", by: "Ali Al Hammadi", on: "9 April 2026" },
   { id: "a6", submissionId: "s4", role: "ministry", decision: "endorsed", by: "Noura Al Kaabi", on: "18 April 2026" },
   { id: "a7", submissionId: "s5", role: "manager", decision: "signed_off", by: "Ali Al Hammadi", on: "20 July 2026" },
-  { id: "a8", submissionId: "s6", role: "manager", decision: "revision_requested", by: "Yousef Al Ali's line manager", on: "8 July 2026", note: "Add the human-review step before resubmitting." },
-  { id: "a9", submissionId: "s8", role: "manager", decision: "signed_off", by: "Alia's line manager", on: "10 July 2026" },
+  { id: "a8", submissionId: "s6", role: "manager", decision: "revision_requested", by: "Yousef Al Ali's department manager", on: "8 July 2026", note: "Add the human-review step before resubmitting." },
+  { id: "a9", submissionId: "s8", role: "manager", decision: "signed_off", by: "Alia's department manager", on: "10 July 2026" },
   { id: "a10", submissionId: "s8", role: "ministry", decision: "escalated", by: "Ahmed Al Shamsi", on: "15 July 2026", note: "Federal data-sharing exception required." },
-  { id: "a11", submissionId: "s9", role: "manager", decision: "signed_off", by: "Sara's line manager", on: "21 July 2026" },
-  { id: "a12", submissionId: "s10", role: "manager", decision: "signed_off", by: "Tariq's line manager", on: "12 June 2026" },
+  { id: "a11", submissionId: "s9", role: "manager", decision: "signed_off", by: "Sara's department manager", on: "21 July 2026" },
+  { id: "a12", submissionId: "s10", role: "manager", decision: "signed_off", by: "Tariq's department manager", on: "12 June 2026" },
   { id: "a13", submissionId: "s10", role: "ministry", decision: "endorsed", by: "Latifa Al Marzooqi", on: "17 June 2026" },
 ];
 
@@ -947,7 +947,7 @@ export const SESSIONS: ScheduledSession[] = [
   { id: "ev3", title: "Responsible AI Review Workshop", mode: "In person", date: "3 September 2026", time: "09:00 – 15:00", host: "FAHR Governance Office", seats: 60, registered: 44, status: "Open" },
   { id: "ev4", title: "Clinical AI Assistants: Hands-on Lab", mode: "Hybrid", date: "2 June 2026", time: "09:30 – 12:30", host: "Digital Health", ministryId: "mohap", seats: 80, registered: 51, status: "Open" },
   { id: "ev5", title: "Entity Admin Onboarding: Cohorts & Reporting", mode: "Virtual", date: "14 July 2026", time: "11:00 – 12:00", host: "FAHR Programme Team", seats: 40, registered: 40, status: "Completed" },
-  { id: "ev6", title: "Line Manager Briefing: Reading a Capability Profile", mode: "Virtual", date: "10 August 2026", time: "09:00 – 10:00", host: "Noura Al Kaabi", ministryId: "mohap", seats: 60, registered: 37, status: "Open" },
+  { id: "ev6", title: "Department Manager Briefing: Reading a Capability Profile", mode: "Virtual", date: "10 August 2026", time: "09:00 – 10:00", host: "Noura Al Kaabi", ministryId: "mohap", seats: 60, registered: 37, status: "Open" },
   { id: "ev7", title: "Customer Happiness Cohort Induction", mode: "Virtual", date: "18 August 2026", time: "13:00 – 14:00", host: "Saeed Al Balushi", ministryId: "mohap", seats: 300, registered: 214, status: "Open" },
   { id: "ev8", title: "HR Automation Team: Project Showcase", mode: "In person", date: "24 June 2026", time: "10:00 – 13:00", host: "Fatima Al Zaabi", ministryId: "mohap", seats: 90, registered: 74, status: "Completed" },
 ];
@@ -999,9 +999,9 @@ export const GOVERNANCE_POLICIES: GovernancePolicy[] = [
 /** Accounts for the entity and federal user-administration screens. */
 export const PLATFORM_USERS: PlatformUser[] = [
   { id: "u1", name: "Noura Al Kaabi", email: "noura.alkaabi@mohap.gov.ae", roleLabel: "Entity Admin", ministryId: "mohap", status: "Active", lastActive: "15 mins ago" },
-  { id: "u2", name: "Mariam Al Zaabi", email: "mariam.alzaabi@mohap.gov.ae", roleLabel: "Line Manager", ministryId: "mohap", departmentId: "mohap-comms", status: "Active", lastActive: "20 mins ago" },
+  { id: "u2", name: "Mariam Al Zaabi", email: "mariam.alzaabi@mohap.gov.ae", roleLabel: "Department Manager", ministryId: "mohap", departmentId: "mohap-comms", status: "Active", lastActive: "20 mins ago" },
   { id: "u3", name: "Aisha Al Mansoori", email: "aisha.almansoori@mohap.gov.ae", roleLabel: "Federal Employee", ministryId: "mohap", departmentId: "mohap-comms", status: "Active", lastActive: "2 hours ago" },
-  { id: "u4", name: "Ali Al Hammadi", email: "ali.alhammadi@mohap.gov.ae", roleLabel: "Line Manager", ministryId: "mohap", departmentId: "mohap-hospitals", status: "Active", lastActive: "Yesterday" },
+  { id: "u4", name: "Ali Al Hammadi", email: "ali.alhammadi@mohap.gov.ae", roleLabel: "Department Manager", ministryId: "mohap", departmentId: "mohap-hospitals", status: "Active", lastActive: "Yesterday" },
   { id: "u5", name: "Hessa Al Nuaimi", email: "hessa.alnuaimi@mohap.gov.ae", roleLabel: "Federal Employee", ministryId: "mohap", departmentId: "mohap-hospitals", status: "Active", lastActive: "4 hours ago" },
   { id: "u6", name: "Yousef Al Ali", email: "yousef.alali@mohap.gov.ae", roleLabel: "Federal Employee", ministryId: "mohap", departmentId: "mohap-policy", status: "Active", lastActive: "6 days ago" },
   { id: "u7", name: "Mohammed Al Rayssi", email: "mohammed.alrayssi@mohap.gov.ae", roleLabel: "Content Author", ministryId: "mohap", departmentId: "mohap-comms", status: "Invited", lastActive: "—" },

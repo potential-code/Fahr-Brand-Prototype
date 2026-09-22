@@ -11,7 +11,7 @@ import TeamMembers from "@/pages/TeamMembers";
 import { DEPARTMENT_BY_ID, FOCUS, MINISTRY_BY_ID, PEOPLE } from "@/lib/federal";
 import { COMPETENCIES } from "@/lib/learningData";
 
-/** The submission the demo learner has waiting on her line manager. */
+/** The submission the demo learner has waiting on her department manager. */
 const AISHA_SUBMISSION = "s1";
 
 const directReports = PEOPLE.filter((p) => p.managerId === FOCUS.managerId);

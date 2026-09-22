@@ -42,7 +42,7 @@ export function ManagerActionDialogs({
     }
 
     recordAudit({
-      actor: "Line Manager",
+      actor: "Department Manager",
       agent: "Human decision",
       action: auditAction,
       risk: "Low",

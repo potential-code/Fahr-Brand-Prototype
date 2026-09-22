@@ -9,7 +9,7 @@ import MinistryPortfolio from "@/pages/MinistryPortfolio";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { FOCUS, SUBMISSION_STATE_LABEL } from "@/lib/federal";
 
-/** The submission the demo learner has waiting on her line manager. */
+/** The submission the demo learner has waiting on her department manager. */
 const AISHA_SUBMISSION = "s1";
 
 /** Reads store-derived values that no single screen renders on its own. */

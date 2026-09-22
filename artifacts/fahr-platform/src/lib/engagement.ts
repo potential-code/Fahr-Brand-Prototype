@@ -214,7 +214,7 @@ export const THREADS: Thread[] = [
   {
     id: "thr-measure-impact",
     title: "How are you evidencing hours saved without sounding made up?",
-    body: "My line manager asked for the baseline behind my \"six hours a week\" figure. I had not taken one before the assistant went live. What is the most credible way to recover from that?",
+    body: "My department manager asked for the baseline behind my \"six hours a week\" figure. I had not taken one before the assistant went live. What is the most credible way to recover from that?",
     author: "Noura Al Ameri",
     initials: "NA",
     role: "HR Business Partner",

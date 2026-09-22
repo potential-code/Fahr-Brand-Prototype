@@ -3,7 +3,7 @@ import { GraduationCap, UserCog, Building2, Landmark, ChevronRight } from "lucid
 
 const STEPS = [
   { icon: GraduationCap, label: "Learner", note: "submits the project" },
-  { icon: UserCog, label: "Line manager", note: "signs off or returns" },
+  { icon: UserCog, label: "Department manager", note: "signs off or returns" },
   { icon: Building2, label: "Entity", note: "endorses, returns or escalates", accent: true },
   { icon: Landmark, label: "FAHR", note: "federal decision" },
 ];

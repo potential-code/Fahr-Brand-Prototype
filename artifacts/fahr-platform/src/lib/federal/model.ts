@@ -70,7 +70,7 @@ export type Person = {
   ministryId: string;
   departmentId: string;
   cohortId?: string;
-  /** Line manager, when the person is a direct report. */
+  /** Department manager, when the person is a direct report. */
   managerId?: string;
   isManager?: boolean;
   /** Capability ladder id from `constants.ts`. */

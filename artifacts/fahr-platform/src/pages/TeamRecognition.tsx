@@ -551,7 +551,7 @@ export default function TeamRecognition() {
 
         <p className="text-xs text-muted-foreground">
           Recognition is derived from the same credential register, project records and entity roll-up as the learner,
-          entity and leadership views — {manager?.name ?? "the line manager"}'s team, {ministry.name}.
+          entity and leadership views — {manager?.name ?? "the department manager"}'s team, {ministry.name}.
         </p>
       </PageEnter>
     </Layout>

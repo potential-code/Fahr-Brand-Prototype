@@ -42,18 +42,18 @@ type AccountSeed = {
  * roster so the two can never disagree.
  */
 const ACCOUNT_SEEDS: AccountSeed[] = [
-  { personId: "p-mariam", platformRole: "Line Manager", profileCompletion: 100, missingProfileFields: [], consent: "Granted" },
+  { personId: "p-mariam", platformRole: "Department Manager", profileCompletion: 100, missingProfileFields: [], consent: "Granted" },
   { personId: "p-aisha", platformRole: "Federal Employee", profileCompletion: 100, missingProfileFields: [], consent: "Granted" },
-  { personId: "p-khalid-h", platformRole: "Federal Employee", profileCompletion: 45, missingProfileFields: ["Job family", "Line manager", "Learning goals"], consent: "Pending" },
+  { personId: "p-khalid-h", platformRole: "Federal Employee", profileCompletion: 45, missingProfileFields: ["Job family", "Department manager", "Learning goals"], consent: "Pending" },
   { personId: "p-fatima-q", platformRole: "Federal Employee", profileCompletion: 85, missingProfileFields: ["Learning goals"], consent: "Granted" },
   { personId: "p-omar", platformRole: "Federal Employee", profileCompletion: 100, missingProfileFields: [], consent: "Granted" },
   { personId: "p-zayed", platformRole: "Federal Employee", profileCompletion: 70, missingProfileFields: ["Job family", "Preferred language"], consent: "Granted" },
   { personId: "p-noura-s", platformRole: "Content Author", profileCompletion: 100, missingProfileFields: [], consent: "Granted" },
-  { personId: "p-saeed", platformRole: "Line Manager", profileCompletion: 90, missingProfileFields: ["Emergency contact"], consent: "Granted" },
+  { personId: "p-saeed", platformRole: "Department Manager", profileCompletion: 90, missingProfileFields: ["Emergency contact"], consent: "Granted" },
   { personId: "p-fatima-z", platformRole: "Federal Employee", profileCompletion: 60, missingProfileFields: ["Job family", "Learning goals"], consent: "Withdrawn" },
   { personId: "p-khalid-r", platformRole: "Federal Employee", profileCompletion: 100, missingProfileFields: [], consent: "Granted" },
-  { personId: "p-hessa", platformRole: "Line Manager", profileCompletion: 95, missingProfileFields: ["Preferred language"], consent: "Granted" },
-  { personId: "p-yousef", platformRole: "Federal Employee", profileCompletion: 40, missingProfileFields: ["Job family", "Line manager", "Learning goals", "Preferred language"], consent: "Pending" },
+  { personId: "p-hessa", platformRole: "Department Manager", profileCompletion: 95, missingProfileFields: ["Preferred language"], consent: "Granted" },
+  { personId: "p-yousef", platformRole: "Federal Employee", profileCompletion: 40, missingProfileFields: ["Job family", "Department manager", "Learning goals", "Preferred language"], consent: "Pending" },
 ];
 
 /** Accounts that are not learners, so they have no row in the federal roster. */
@@ -77,7 +77,7 @@ const ADMIN_ACCOUNTS: EntityAccount[] = [
     jobRole: "Head of Clinical Operations",
     departmentId: "mohap-hospitals",
     cohortId: "mohap-c6",
-    platformRole: "Line Manager",
+    platformRole: "Department Manager",
     status: "Active",
     lastActive: "Yesterday",
     profileCompletion: 90,
@@ -279,7 +279,7 @@ export const CONTENT_META: Record<
   ct8: {
     programme: "Governance & Assurance",
     pathway: "AI in Policy & Regulation",
-    audience: "Line managers",
+    audience: "Department managers",
     durationMins: 120,
     summary: "A live clinic on running a human-in-the-loop review that stands up to audit.",
     history: [
@@ -298,7 +298,7 @@ export const CONTENT_PROGRAMMES = [
 
 export const CONTENT_AUDIENCES = [
   "All employees",
-  "Line managers",
+  "Department managers",
   "Practitioners and above",
   "Communications teams",
   "Data and analytics roles",
@@ -334,10 +334,10 @@ export const EVENT_META: Record<
   },
   ev6: {
     summary:
-      "Webinar for every line manager in the entity on reading a capability profile and signing off a workplace project.",
+      "Webinar for every department manager in the entity on reading a capability profile and signing off a workplace project.",
     facilitator: "Noura Al Kaabi",
     location: "Microsoft Teams",
-    audienceLabel: "All line managers",
+    audienceLabel: "All department managers",
     competencyId: "governance",
     format: "Webinar",
   },
@@ -380,7 +380,7 @@ export const ENTITY_COMMUNICATIONS: Communication[] = [
     kind: "Announcement",
     subject: "Comms & Marketing Batch 1: workplace project briefs due 6 August",
     body:
-      "Your workplace project brief is due to your line manager by 6 August. Use the template on the Workplace Project screen and bring questions to the prompt craft clinic on 27 August.",
+      "Your workplace project brief is due to your department manager by 6 August. Use the template on the Workplace Project screen and bring questions to the prompt craft clinic on 27 August.",
     audienceKind: "cohort",
     audienceId: "mohap-c5",
     audienceLabel: "Comms & Marketing Batch 1",
@@ -442,12 +442,12 @@ export const ENTITY_COMMUNICATIONS: Communication[] = [
   {
     id: "cm5",
     kind: "Reminder",
-    subject: "Line managers: two projects are waiting on your sign-off",
+    subject: "Department managers: two projects are waiting on your sign-off",
     body:
       "Your team has workplace projects awaiting a decision. Open the Validations screen to sign off or return them with a note.",
     audienceKind: "role",
-    audienceId: "Line Manager",
-    audienceLabel: "All line managers",
+    audienceId: "Department Manager",
+    audienceLabel: "All department managers",
     recipients: 24,
     channel: "Email",
     status: "Sent",

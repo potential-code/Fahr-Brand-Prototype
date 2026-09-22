@@ -204,7 +204,7 @@ export default function ManagerReports() {
   // -- Export sheets: the same rows the sections render ------------------------
   const notes = useMemo(
     () => [
-      `Manager: ${manager?.name ?? "Line manager"}`,
+      `Manager: ${manager?.name ?? "Department manager"}`,
       `Department: ${benchmark?.department.name ?? focus.departmentId}`,
       `Entity: ${ministry.name}`,
       `Team size: ${team.length}`,
@@ -356,7 +356,7 @@ export default function ManagerReports() {
     const name = downloadCsvPack(
       `${benchmark?.department.name ?? "team"}-team-report`,
       sheets,
-      `${manager?.name ?? "Line manager"} — team reporting pack`,
+      `${manager?.name ?? "Department manager"} — team reporting pack`,
     );
     toast({
       title: "Team report exported",
@@ -367,7 +367,7 @@ export default function ManagerReports() {
   const handlePrint = () => {
     printReport({
       title: `${benchmark?.department.name ?? "Team"} — team capability report`,
-      subtitle: `${manager?.name ?? "Line manager"} · ${ministry.name}`,
+      subtitle: `${manager?.name ?? "Department manager"} · ${ministry.name}`,
       notes,
       sheets,
     });

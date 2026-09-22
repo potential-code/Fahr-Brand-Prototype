@@ -100,7 +100,7 @@ describe("guardrails change the outcome, not just the wording", () => {
     expect(reply.notes.some((note) => note.id === "noPersonalData" && note.kind === "breach")).toBe(true);
   });
 
-  it("routes output to the line manager while human review is on", () => {
+  it("routes output to the department manager while human review is on", () => {
     const reply = answer(trainedProfile(), "Draft the campaign brief", false);
     expect(reply.text).toContain("Mariam Al Zaabi");
     expect(reply.notes.some((note) => note.id === "humanReview" && note.kind === "held")).toBe(true);

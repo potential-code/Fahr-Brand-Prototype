@@ -147,7 +147,7 @@ export default function MinistryApprovals() {
     } else if (kind === "return") {
       returnToManager(id, { by: ENTITY_ADMIN, note });
       setSessionCounts((c) => ({ ...c, returned: c.returned + 1 }));
-      toast({ title: "Returned to manager", description: `"${title}" is back with the line manager.` });
+      toast({ title: "Returned to manager", description: `"${title}" is back with the department manager.` });
     } else {
       escalate(id, { by: ENTITY_ADMIN, note });
       setSessionCounts((c) => ({ ...c, escalated: c.escalated + 1 }));
@@ -181,7 +181,7 @@ export default function MinistryApprovals() {
           title: "Awaiting entity endorsement",
           headers: [
             "Project", "Learner", "Department", "State", "Impact", "Governance",
-            "Est. value (AED/yr)", "Hours saved/mo", "Submitted", "Line manager sign-off",
+            "Est. value (AED/yr)", "Hours saved/mo", "Submitted", "Department manager sign-off",
           ],
           rows: queueRows,
           notes: [`${ministry.name} — generated for the entity approvals queue`],
@@ -219,7 +219,7 @@ export default function MinistryApprovals() {
           tone="primary"
           icon={<ClipboardCheck className="h-7 w-7 text-primary" />}
           title="Entity Approvals"
-          description="Projects that cleared line manager sign-off arrive here for an entity decision. Endorse, return or escalate to FAHR — every decision persists for the session and lands in the trail."
+          description="Projects that cleared department manager sign-off arrive here for an entity decision. Endorse, return or escalate to FAHR — every decision persists for the session and lands in the trail."
           actions={
             <Button variant="outline" onClick={exportQueueAndTrail} data-testid="button-export-approvals">
               <Download className="mr-2 h-4 w-4" /> Export queue &amp; trail
@@ -324,7 +324,7 @@ export default function MinistryApprovals() {
                 <ReadOnlyList
                   items={returned}
                   emptyTitle="Nothing returned"
-                  emptyDescription="Projects you send back to a line manager show here until they are resubmitted."
+                  emptyDescription="Projects you send back to a department manager show here until they are resubmitted."
                   ownerName={ownerName}
                   departmentName={departmentName}
                   approvalsFor={approvalsFor}
@@ -388,7 +388,7 @@ export default function MinistryApprovals() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Decision trail</CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  Every entity decision this session — including what your line managers signed off elsewhere.
+                  Every entity decision this session — including what your department managers signed off elsewhere.
                 </p>
               </CardHeader>
               <CardContent>

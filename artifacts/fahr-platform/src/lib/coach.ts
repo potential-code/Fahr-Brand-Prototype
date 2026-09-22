@@ -60,7 +60,7 @@ function stuckAnswer(ctx: CoachContext): string {
 
 function evidenceAnswer(ctx: CoachContext): string {
   const area = ctx.competency ? ctx.competency.label : "this capability";
-  return `Everything you complete here feeds two places: your Capability Profile, where ${area} is tracked over time, and your line manager's view, where it appears as evidence rather than attendance. That is why the activities ask for output rather than a tick.`;
+  return `Everything you complete here feeds two places: your Capability Profile, where ${area} is tracked over time, and your department manager's view, where it appears as evidence rather than attendance. That is why the activities ask for output rather than a tick.`;
 }
 
 export function coachPrompts(ctx: CoachContext): CoachPrompt[] {

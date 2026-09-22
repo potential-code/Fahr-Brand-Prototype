@@ -45,7 +45,7 @@ export function HeatmapLegend() {
 }
 
 /**
- * People × competency matrix for a line manager's direct reports.
+ * People × competency matrix for a department manager's direct reports.
  *
  * Rows are direct reports, columns the five framework competencies. Clicking a
  * row opens that person's detail page; the strip beneath the table names the

@@ -47,14 +47,14 @@ export default function ManagerValidations() {
   const handleSignOff = () => {
     if (!selectedSubmission || !submissionOwner) return;
     
-    signOff(selectedSubmission.id, { by: "Line Manager" });
+    signOff(selectedSubmission.id, { by: "Department Manager" });
     issueCredential({
       personId: submissionOwner.id,
       personName: submissionOwner.name,
       title: "Workplace Project Validated: " + selectedSubmission.title,
       levelId: "practitioner",
       submissionId: selectedSubmission.id,
-      by: "Line Manager"
+      by: "Department Manager"
     });
     
     toast({
@@ -67,7 +67,7 @@ export default function ManagerValidations() {
   const handleRevision = () => {
     if (!selectedSubmission || !submissionOwner || !revisionNote) return;
     
-    requestRevision(selectedSubmission.id, { by: "Line Manager", note: revisionNote });
+    requestRevision(selectedSubmission.id, { by: "Department Manager", note: revisionNote });
     
     toast({
       title: "Revision Requested",

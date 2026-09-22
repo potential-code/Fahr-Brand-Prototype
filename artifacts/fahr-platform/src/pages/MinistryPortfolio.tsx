@@ -109,9 +109,9 @@ export default function MinistryPortfolio() {
   const handleReturn = (submissionId: string, title: string) => {
     returnToManager(submissionId, {
       by: ENTITY_ADMIN,
-      note: "Returned for the line manager to strengthen the evidence with the learner.",
+      note: "Returned for the department manager to strengthen the evidence with the learner.",
     });
-    toast({ title: "Returned to manager", description: `"${title}" is back with the line manager.` });
+    toast({ title: "Returned to manager", description: `"${title}" is back with the department manager.` });
   };
 
   const exportPortfolio = () => {
@@ -419,12 +419,12 @@ export default function MinistryPortfolio() {
                   )}
                   {selectedProject.state === "awaiting_manager" && (
                     <p className="text-sm text-muted-foreground">
-                      Waiting on the line manager's sign-off before this entity can endorse it.
+                      Waiting on the department manager's sign-off before this entity can endorse it.
                     </p>
                   )}
                   {selectedProject.state === "revision_requested" && (
                     <p className="text-sm text-muted-foreground">
-                      Returned for revision — with the line manager and learner until it is resubmitted.
+                      Returned for revision — with the department manager and learner until it is resubmitted.
                     </p>
                   )}
                   {selectedProject.state === "endorsed" && (

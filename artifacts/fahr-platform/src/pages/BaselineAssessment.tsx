@@ -192,7 +192,7 @@ export default function BaselineAssessment() {
               <ListChecks className="h-3.5 w-3.5" /> {answeredCount} of {total} answered
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5" /> Results visible to you and your line manager
+              <ShieldCheck className="h-3.5 w-3.5" /> Results visible to you and your department manager
             </span>
           </div>
         </div>

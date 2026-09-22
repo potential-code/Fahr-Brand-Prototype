@@ -270,7 +270,7 @@ const PROJECTS: Record<string, ProjectIdea> = {
     title: "Ship an assistant for one recurring team deliverable",
     brief:
       "Design, build and hand over a multi-step assistant that carries one repeating deliverable forward with defined human checkpoints.",
-    outcome: "A working assistant in departmental use, evaluated by AI and confirmed by your line manager",
+    outcome: "A working assistant in departmental use, evaluated by AI and confirmed by your department manager",
   },
   governance: {
     title: "Document the governance trail for one AI-assisted output",

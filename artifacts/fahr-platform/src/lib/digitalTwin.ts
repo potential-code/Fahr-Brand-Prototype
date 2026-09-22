@@ -37,8 +37,8 @@ export const GUARDRAILS: Guardrail[] = [
     id: "humanReview",
     label: { en: "Human review required", ar: "مراجعة بشرية إلزامية" },
     on: {
-      en: "Anything the twin drafts goes to your line manager before it reaches a resident.",
-      ar: "كل ما يصيغه التوأم يُرسل إلى مديرك المباشر قبل وصوله إلى المتعامل.",
+      en: "Anything the twin drafts goes to your department manager before it reaches a resident.",
+      ar: "كل ما يصيغه التوأم يُرسل إلى مدير إدارتك قبل وصوله إلى المتعامل.",
     },
     off: {
       en: "The twin publishes directly. No named person approves the output.",
@@ -590,8 +590,8 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
   // 4 — Decide who sees the output.
   if (guardrails.humanReview) {
     text += isAr
-      ? "\n\nأرسلتها إلى مديرتك المباشرة مريم الزعابي للاعتماد قبل النشر."
-      : "\n\nI have routed it to your line manager, Mariam Al Zaabi, for approval before it goes out.";
+      ? "\n\nأرسلتها إلى مديرة إدارتك مريم الزعابي للاعتماد قبل النشر."
+      : "\n\nI have routed it to your department manager, Mariam Al Zaabi, for approval before it goes out.";
     notes.push({
       id: "humanReview",
       kind: "held",
