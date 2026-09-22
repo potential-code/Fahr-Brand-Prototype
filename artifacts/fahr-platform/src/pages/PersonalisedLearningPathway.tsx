@@ -15,18 +15,7 @@ import { AGENTS } from "@/lib/constants";
 import { COURSE_BY_ID, type Course } from "@/lib/learningData";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { buildAdaptiveItem, buildPathway, derivePathwayStatuses, type PathwayItem } from "@/lib/pathway";
-import { buildRecommendations } from "@/lib/recommendations";
-import {
-  ArrowRight,
-  CalendarCheck,
-  ClipboardList,
-  Clock,
-  Dumbbell,
-  MessagesSquare,
-  Route,
-  Sparkles,
-  Target,
-} from "lucide-react";
+import { ArrowRight, ClipboardList, Route, Sparkles, Target } from "lucide-react";
 
 export default function PersonalisedLearningPathway() {
   const { toast } = useToast();
@@ -45,8 +34,6 @@ export default function PersonalisedLearningPathway() {
   const [openItem, setOpenItem] = useState<PathwayItem | null>(null);
 
   const baseItems = useMemo(() => (result ? buildPathway(result, answers) : []), [result, answers]);
-
-  const plan = useMemo(() => (result ? buildRecommendations(result, answers) : null), [result, answers]);
 
   // Derived rather than held in state, so a refresh keeps the adjusted pathway.
   const adaptiveItem = useMemo(
@@ -263,29 +250,6 @@ export default function PersonalisedLearningPathway() {
           </motion.div>
         )}
 
-        {/* Courses */}
-        {courses.length > 0 && (
-          <ScrollReveal className="mb-10">
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
-                  <Target className="h-3.5 w-3.5" /> Assigned by your {AGENTS.capability}
-                </p>
-                <h2 className="mt-1 text-lg font-bold text-foreground">Courses in your pathway</h2>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  Matched to your priority gaps and open at any time.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {courses.map((course, i) => (
-                <PathwayCourseCard key={course.id} course={course} percent={getCoursePercent(course.id)} index={i} />
-              ))}
-            </div>
-          </ScrollReveal>
-        )}
-
         {/* Ordered pathway */}
         <ScrollReveal>
           <div className="mb-4">
@@ -302,130 +266,25 @@ export default function PersonalisedLearningPathway() {
           <PathwayTimeline entries={entries} onOpen={openEntry} />
         </ScrollReveal>
 
-        {/* Extra rehearsal for the priorities the sequenced assignment does not cover */}
-        {plan && plan.practice.length > 1 && (
+        {/* Courses */}
+        {courses.length > 0 && (
           <ScrollReveal className="mt-10">
-            <div className="mb-4">
-              <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
-                <Dumbbell className="h-3.5 w-3.5" /> Assigned by your {AGENTS.practice}
-              </p>
-              <h2 className="mt-1 text-lg font-bold text-foreground">More practice, open any time</h2>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Short scenario exercises for your other priorities. They are not gated — use them whenever a real task
-                gives you the chance.
-              </p>
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
+                  <Target className="h-3.5 w-3.5" /> Assigned by your {AGENTS.capability}
+                </p>
+                <h2 className="mt-1 text-lg font-bold text-foreground">Additional courses</h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Matched to your priority gaps and open at any time, alongside your sequenced journey.
+                </p>
+              </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              {plan.practice.slice(1).map((activity) => (
-                <Card
-                  key={activity.competency.id}
-                  className="border-card-border"
-                  data-testid={`card-practice-${activity.competency.id}`}
-                >
-                  <CardContent className="flex gap-3 p-5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                      <Dumbbell className="h-4.5 w-4.5 text-primary" />
-                    </span>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold leading-snug text-foreground">{activity.title}</h3>
-                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{activity.scenario}</p>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <Badge variant="secondary" className="rounded-full text-xs">
-                          {activity.competency.short}
-                        </Badge>
-                        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Clock className="h-3.5 w-3.5" /> {activity.duration}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{activity.format}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {courses.map((course, i) => (
+                <PathwayCourseCard key={course.id} course={course} percent={getCoursePercent(course.id)} index={i} />
               ))}
-            </div>
-          </ScrollReveal>
-        )}
-
-        {/* Coaching plan and the checkpoint that closes the pathway */}
-        {plan && (
-          <ScrollReveal className="mt-10">
-            <div className="mb-4">
-              <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
-                <MessagesSquare className="h-3.5 w-3.5" /> Paced by your {AGENTS.learning}
-              </p>
-              <h2 className="mt-1 text-lg font-bold text-foreground">Your coaching plan and next checkpoint</h2>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Contextual coaching spaced to your capability level, and the targeted re-check that confirms the gaps
-                have actually closed.
-              </p>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
-              <Card className="border-card-border">
-                <CardContent className="p-6">
-                  <ol className="relative space-y-6">
-                    {plan.coaching.map((session, i) => (
-                      <li key={session.id} className="flex gap-4" data-testid={`row-coaching-${session.id}`}>
-                        <div className="flex flex-col items-center">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                            {i + 1}
-                          </span>
-                          {i < plan.coaching.length - 1 && <span className="mt-1 w-px flex-1 bg-border" />}
-                        </div>
-                        <div className="min-w-0 pb-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-semibold leading-snug text-foreground">{session.focus}</p>
-                            <Badge
-                              variant={session.kind === "strength" ? "outline" : "secondary"}
-                              className="rounded-full text-xs"
-                            >
-                              {session.competency.short}
-                            </Badge>
-                          </div>
-                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{session.detail}</p>
-                          <p className="mt-2 text-xs font-medium text-primary">{session.when}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                </CardContent>
-              </Card>
-
-              <Card className="border-card-border" data-testid="card-next-assessment">
-                <CardContent className="flex h-full flex-col p-6">
-                  <div className="flex items-center gap-2">
-                    <CalendarCheck className="h-4 w-4 text-primary" />
-                    <h3 className="text-sm font-semibold text-foreground">Next targeted assessment</h3>
-                  </div>
-
-                  <p className="mt-4 text-2xl font-bold leading-none text-foreground">
-                    {plan.nextAssessment.weeks} weeks
-                  </p>
-                  <p className="mt-1.5 text-sm text-muted-foreground">
-                    Scheduled for {plan.nextAssessment.dueLabel}
-                  </p>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {plan.nextAssessment.competencies.map((c) => (
-                      <Badge key={c.id} variant="secondary" className="rounded-full text-xs">
-                        {c.short}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div className="mt-4 rounded-lg bg-muted/60 p-3.5">
-                    <p className="text-xs font-semibold text-foreground">
-                      {plan.nextAssessment.questionCount} scenario questions
-                    </p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{plan.nextAssessment.note}</p>
-                  </div>
-
-                  <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-                    Your Capability Profile updates automatically when the re-check is scored.
-                  </p>
-                </CardContent>
-              </Card>
             </div>
           </ScrollReveal>
         )}
