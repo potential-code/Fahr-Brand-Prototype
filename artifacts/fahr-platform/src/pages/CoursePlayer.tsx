@@ -246,7 +246,7 @@ export default function CoursePlayer() {
   );
 
   return (
-    <Layout role="learner">
+    <Layout role="learner" hideConcierge>
       <div className="w-full max-w-6xl mx-auto">
         <Link
           href={backHref}

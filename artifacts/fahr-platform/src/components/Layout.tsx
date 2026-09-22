@@ -94,7 +94,20 @@ const ROLE_HOME: Record<Role, string> = {
 
 const ROLE_ORDER: Role[] = ["learner", "manager", "ministry", "fahr", "leadership"];
 
-export function Layout({ children, role }: { children: React.ReactNode; role: Role }) {
+export function Layout({
+  children,
+  role,
+  hideConcierge = false,
+}: {
+  children: React.ReactNode;
+  role: Role;
+  /**
+   * Suppress the Coaching Agent pill. Set by screens that already carry a
+   * dedicated agent surface — the course player has the Learning Agent dock,
+   * and two floating agents in one corner is one too many.
+   */
+  hideConcierge?: boolean;
+}) {
   const { t } = useLanguage();
   const [location, setLocation] = useLocation();
   const reduceMotion = useReducedMotion();
@@ -524,7 +537,7 @@ export function Layout({ children, role }: { children: React.ReactNode; role: Ro
       {/* The Coaching Agent is a learner surface — every one of its quick
           actions goes to /learner/*, so it has no business on a manager,
           entity or federal console. */}
-      {role === "learner" && <AIConcierge />}
+      {role === "learner" && !hideConcierge && <AIConcierge />}
     </div>
   );
 }
