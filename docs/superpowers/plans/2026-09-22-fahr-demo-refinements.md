@@ -1461,35 +1461,76 @@ Render only `reply.pii.redacted` — never the raw message — so the "not store
 
 - [ ] **Step 3: Replace the suggestion chips**
 
-Find the existing chips (the four in the screenshot, including "Pull up this patient's medical record"). Replace with four, one per behaviour, derived from the profile where possible:
+The chips are **not** in the component. `TwinTestChat` renders
+`suggestedQuestions(profile, isAr)` from `@/lib/digitalTwin` (around line 660),
+which returns `string[]` — including the two the client asked to replace,
+"Pull up this patient's medical record…" and "What is next year's federal
+budget forecast?".
 
-```tsx
-  const chips = [
+A plain string cannot express the personal-data chip, which needs a safe
+label on the button and a loaded message as the thing actually sent. So
+change the return type:
+
+```ts
+export type SuggestedQuestion = {
+  /** What the chip reads. */
+  label: string;
+  /** What is actually sent when it is clicked. Usually the same as `label`. */
+  prompt: string;
+};
+
+export function suggestedQuestions(profile: TwinProfile, isAr: boolean): SuggestedQuestion[] {
+```
+
+Return exactly four, one per behaviour, derived from the learner's own twin
+where possible so the chips stay true if the interview answers change:
+
+```ts
+  const task = (i: number) => profile.tasks[i];
+  return [
+    // 1 — grounded: something the learner taught it, so the answer cites a source.
     {
-      key: "grounded",
-      label: profile.tasks[0]
-        ? `How do I approach: ${profile.tasks[0]}?`
-        : "What does the FAHR tone guide say about this?",
+      label: task(0)
+        ? isAr ? `كيف أتعامل مع: ${task(0)}؟` : `How should I approach: ${task(0)}?`
+        : isAr ? "ماذا يقول دليل النبرة الرسمي للهيئة؟" : "What does the FAHR tone guide say?",
+      prompt: task(0)
+        ? isAr ? `كيف أتعامل مع: ${task(0)}؟` : `How should I approach: ${task(0)}?`
+        : isAr ? "ماذا يقول دليل النبرة الرسمي للهيئة؟" : "What does the FAHR tone guide say?",
     },
+    // 2 — outside approved knowledge: the honest refusal.
     {
-      key: "out-of-scope",
-      label: "What is next year's federal budget forecast?",
+      label: isAr ? "ما توقعات الميزانية الاتحادية للعام القادم؟" : "What is next year's federal budget forecast?",
+      prompt: isAr ? "ما توقعات الميزانية الاتحادية للعام القادم؟" : "What is next year's federal budget forecast?",
     },
+    // 3 — personal data: safe label, loaded prompt, so the block is one click.
     {
-      key: "pii",
-      label: "Try a message containing personal data",
-      prefill: "My name is Aisha Al Mansoori, my mobile is 0501234567 — draft a reply from me.",
+      label: isAr ? "جرّب رسالة تحتوي بيانات شخصية" : "Try a message containing personal data",
+      prompt: isAr
+        ? "اسمي عائشة المنصوري ورقم هاتفي 0501234567 — اكتب ردًا باسمي."
+        : "My name is Aisha Al Mansoori, my mobile is 0501234567 — draft a reply from me.",
     },
+    // 4 — real work: the twin being useful.
     {
-      key: "task",
-      label: profile.tasks[1]
-        ? `Draft a short brief for: ${profile.tasks[1]}`
-        : "Draft a two-line update for my department manager",
+      label: task(1)
+        ? isAr ? `اكتب موجزًا قصيرًا عن: ${task(1)}` : `Draft a short brief for: ${task(1)}`
+        : isAr ? "اكتب تحديثًا من سطرين لمدير إدارتي" : "Draft a two-line update for my department manager",
+      prompt: task(1)
+        ? isAr ? `اكتب موجزًا قصيرًا عن: ${task(1)}` : `Draft a short brief for: ${task(1)}`
+        : isAr ? "اكتب تحديثًا من سطرين لمدير إدارتي" : "Draft a two-line update for my department manager",
     },
   ];
 ```
 
-A chip with `prefill` puts that text in the input and submits it; a chip without one submits its own `label`.
+Then update the render at `TwinTestChat.tsx:109` — it currently maps
+`suggestions` as strings. It now maps objects: show `question.label`, send
+`question.prompt`. Keep the `data-testid="twin-suggested-question"`.
+
+`src/test/digital-twin.test.ts` asserts against the old strings
+("Pull up this patient's medical record", "What is next year's federal budget
+forecast?") by passing them to `answer()` directly, not through
+`suggestedQuestions`. Those tests keep working — the budget question is still
+out of scope and the medical-record question is still caught, now by the
+keyword detector in `piiScreen.ts`. Leave them alone.
 
 - [ ] **Step 4: Import the icons**
 
