@@ -9,19 +9,16 @@ import {
   ArrowLeft,
   ArrowRight,
   Sparkles,
-  TrendingUp,
-  TrendingDown,
   Target,
   RotateCcw,
   Clock,
   Layers,
   BookOpen,
-  CheckCircle2,
   Quote,
 } from "lucide-react";
 import { COMPETENCIES, COMPETENCY_BY_ID, COURSE_BY_ID } from "@/lib/learningData";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
-import { buildRecommendations, targetFor } from "@/lib/recommendations";
+import { buildRecommendations } from "@/lib/recommendations";
 import { AGENTS } from "@/lib/constants";
 
 const BASE = import.meta.env.BASE_URL;
@@ -204,63 +201,6 @@ export default function AssessmentReport() {
               {COMPETENCIES.map((c, i) => (
                 <CompetencyBar key={c.id} id={c.id} score={result.scores[c.id]} delay={0.1 * i} />
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 3. Strengths and gaps, side by side */}
-        <Card className="mt-6 border-card-border" data-testid="card-strengths-gaps">
-          <CardContent className="grid gap-8 p-6 md:grid-cols-2 md:gap-10 md:p-7">
-            <div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                <h2 className="text-base font-semibold text-foreground">What you already do well</h2>
-              </div>
-              <ul className="mt-4 space-y-4">
-                {result.strengths.map((id, i) => (
-                  <li key={id} className="flex items-start gap-2.5" data-testid={`row-strength-${id}`}>
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">
-                        {COMPETENCY_BY_ID[id].label}{" "}
-                        <span className="font-semibold tabular-nums text-primary">{result.scores[id]}%</span>
-                      </p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                        {i === 0
-                          ? "Your highest score, and the basis for the mentoring session in your coaching plan."
-                          : "Above your personal average, so it needs consolidation rather than new instruction."}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="md:border-s md:border-border md:ps-10">
-              <div className="flex items-center gap-2">
-                <TrendingDown className="h-4 w-4 text-accent" />
-                <h2 className="text-base font-semibold text-foreground">Where the gain is</h2>
-              </div>
-              <ul className="mt-4 space-y-4">
-                {result.gaps.map((id, i) => (
-                  <li key={id} className="flex items-start gap-2.5" data-testid={`row-gap-${id}`}>
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/15 text-[10px] font-bold text-accent">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">
-                        {COMPETENCY_BY_ID[id].label}{" "}
-                        <span className="font-semibold tabular-nums text-accent">{result.scores[id]}%</span>
-                      </p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                        {i === 0
-                          ? `Your weakest capability, so your pathway opens here — target ${targetFor(result.scores[id] ?? 0)}%.`
-                          : `Re-tested at your next checkpoint — target ${targetFor(result.scores[id] ?? 0)}%.`}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
             </div>
           </CardContent>
         </Card>
