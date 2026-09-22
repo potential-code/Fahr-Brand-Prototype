@@ -27,6 +27,7 @@ import {
   COURSE_BY_ID,
   COMPETENCY_BY_ID,
   courseLessons,
+  LESSON_TYPE_LABEL,
   type Lesson,
 } from "@/lib/learningData";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
@@ -63,7 +64,7 @@ function LessonBody({
     <div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
-        <span className="capitalize">{lesson.type}</span>
+        <span>{LESSON_TYPE_LABEL[lesson.type]}</span>
         <span>·</span>
         <span>{lesson.duration}</span>
       </div>
@@ -166,7 +167,7 @@ export default function CoursePlayer() {
     return {
       subject,
       competency: course ? COMPETENCY_BY_ID[course.competencyId] : undefined,
-      detail: lesson ? `${lesson.type} · ${lesson.duration}` : undefined,
+      detail: lesson ? `${LESSON_TYPE_LABEL[lesson.type]} · ${lesson.duration}` : undefined,
     };
   }, [active, course, lessons]);
 
@@ -361,7 +362,7 @@ export default function CoursePlayer() {
                         return outlineItem(
                           lesson.id,
                           lesson.title,
-                          `${lesson.type} · ${lesson.duration}`,
+                          `${LESSON_TYPE_LABEL[lesson.type]} · ${lesson.duration}`,
                           <Icon className="h-2.5 w-2.5 text-muted-foreground" />,
                           active.kind === "lesson" && active.id === lesson.id,
                           progress.completedLessonIds.includes(lesson.id),

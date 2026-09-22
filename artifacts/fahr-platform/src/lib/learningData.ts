@@ -219,6 +219,17 @@ export function bandForScore(score: number): Level {
 
 export type LessonType = "reading" | "video" | "activity";
 
+/**
+ * Display labels for lesson kinds. One source of truth so the outline and the
+ * lesson header can never disagree, and so the Arabic pass has somewhere to
+ * hang a translation.
+ */
+export const LESSON_TYPE_LABEL: Record<LessonType, string> = {
+  reading: "Reading",
+  video: "Video",
+  activity: "Activity",
+};
+
 export type Lesson = {
   id: string;
   title: string;
