@@ -17,6 +17,17 @@
 - **Typecheck from the repo root:** `pnpm typecheck`. It covers the whole workspace and must pass before any commit.
 - **The `@/` alias** resolves to `artifacts/fahr-platform/src/`. Use it in all imports; never write a relative path that climbs out of a directory.
 - **Vitest runs with `globals: true`** — `describe`, `it` and `expect` are still imported explicitly in this codebase's tests. Follow that.
+- **`@testing-library/jest-dom` is NOT installed.** Matchers like
+  `toBeInTheDocument()`, `toBeDisabled()` and `toHaveTextContent()` do not
+  exist here and adding them would mean a new dependency, which this plan
+  forbids. Assert with plain matchers instead — `expect(el).toBeTruthy()`,
+  `expect(el.textContent).toContain(...)`, `expect(el.hasAttribute("disabled")).toBe(true)`.
+  Any test snippet in this plan that uses a jest-dom matcher is a defect in
+  the plan: rewrite the assertion, never add the package.
+- **Type and selector names in this plan's test snippets are indicative, not
+  authoritative.** Open the component first and match its real types and
+  `data-testid`s. Adjust the test to the component, never the component to
+  the snippet.
 - **Agent names come from `AGENTS` in `@/lib/constants`.** Never hard-code an agent name in JSX; interpolate `AGENTS.assessment`, `AGENTS.content`, etc.
 - **RTL-safe spacing everywhere you touch:** use Tailwind logical properties (`ms-*`, `me-*`, `ps-*`, `pe-*`, `text-start`, `text-end`), not `ml-*`/`mr-*`/`text-left`. Directional icons get `rtl:rotate-180`.
 - **Copy rule:** the phrase is **"department manager"**, never "line manager". Capital only at the start of a sentence.
