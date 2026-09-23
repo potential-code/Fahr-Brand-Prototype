@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   AlertTriangle,
-  FileCheck2,
   Quote,
   Send,
   ShieldAlert,
@@ -202,13 +201,6 @@ function TwinTurn({ turn, isAr }: { turn: Extract<Turn, { who: "twin" }>; isAr: 
               </p>
             ))}
           </div>
-        )}
-
-        {reply.auditRef && (
-          <p className="mt-2.5 text-[10px] text-muted-foreground flex items-center gap-1.5">
-            <FileCheck2 className="w-3 h-3" />
-            {isAr ? "مرجع التدقيق" : "Audit reference"} · {reply.auditRef}
-          </p>
         )}
       </div>
     </div>

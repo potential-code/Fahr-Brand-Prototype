@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { AlertTriangle, Plus, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Lock, Plus, ShieldCheck, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
@@ -17,27 +16,17 @@ const SUGGESTED_RULES = [
 ];
 
 /**
- * The governance guardrails, as live switches rather than a list of claims.
+ * The governance guardrails, shown as enforced facts rather than switches.
  *
- * Every one of these changes what the twin does in the test chat, which is the
- * point: a government client can switch one off, ask the same question again
- * and watch the answer become something they would not accept.
+ * A federal audience should never be shown a control that switches federal
+ * policy off, so these two render read-only and always-on — there is no
+ * affordance anywhere in this component that can relax either one.
  */
 export function GuardrailControls({ compact = false }: { compact?: boolean }) {
   const { language } = useLanguage();
   const isAr = language === "ar";
-  const {
-    profile,
-    setGuardrail,
-    addCustomGuardrail,
-    setCustomGuardrail,
-    removeCustomGuardrail,
-  } = useDigitalTwin();
+  const { profile, addCustomGuardrail, removeCustomGuardrail } = useDigitalTwin();
   const [draft, setDraft] = useState("");
-
-  const relaxed =
-    GUARDRAILS.filter((g) => !profile.guardrails[g.id]).length +
-    profile.customGuardrails.filter((rule) => !rule.enabled).length;
 
   const addRule = (label: string) => {
     addCustomGuardrail(label);
@@ -46,73 +35,40 @@ export function GuardrailControls({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className="space-y-3" data-testid="guardrail-controls">
-      {relaxed > 0 && (
+      {GUARDRAILS.map((guardrail) => (
         <div
-          className="flex items-start gap-2.5 p-3 rounded-lg border border-destructive/30 bg-destructive/5"
-          data-testid="guardrail-warning"
+          key={guardrail.id}
+          className="p-3 rounded-xl border border-border bg-card transition-colors"
+          data-testid={`guardrail-${guardrail.id}`}
         >
-          <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-          <p className="text-xs text-destructive leading-relaxed">
-            {isAr
-              ? `${relaxed} من الضوابط معطّلة. التوأم يعمل خارج السياسة الاتحادية، وسترى الأثر في اختبار الاستجابة.`
-              : `${relaxed} ${relaxed === 1 ? "guardrail is" : "guardrails are"} switched off. The twin is operating outside federal policy — you will see the consequence in the test chat.`}
-          </p>
-        </div>
-      )}
-
-      {GUARDRAILS.map((guardrail) => {
-        const enabled = profile.guardrails[guardrail.id];
-        return (
-          <div
-            key={guardrail.id}
-            className={`p-3 rounded-xl border transition-colors ${
-              enabled ? "border-border bg-card" : "border-destructive/30 bg-destructive/5"
-            }`}
-            data-testid={`guardrail-${guardrail.id}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  {enabled ? (
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                  ) : (
-                    <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
-                  )}
-                  <p className="text-sm font-medium truncate">
-                    {isAr ? guardrail.label.ar : guardrail.label.en}
-                  </p>
-                </div>
-                <p
-                  className={`text-xs mt-1.5 leading-relaxed ${
-                    enabled ? "text-muted-foreground" : "text-destructive"
-                  }`}
-                >
-                  {isAr
-                    ? enabled
-                      ? guardrail.on.ar
-                      : guardrail.off.ar
-                    : enabled
-                      ? guardrail.on.en
-                      : guardrail.off.en}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <p className="text-sm font-medium truncate">
+                  {isAr ? guardrail.label.ar : guardrail.label.en}
                 </p>
-                {!compact && (
-                  <Badge variant="outline" className="mt-2 text-[10px] font-normal bg-background">
-                    {isAr ? guardrail.policy.ar : guardrail.policy.en}
-                  </Badge>
-                )}
               </div>
-              <Switch
-                checked={enabled}
-                onCheckedChange={(next) => setGuardrail(guardrail.id, next)}
-                aria-label={isAr ? guardrail.label.ar : guardrail.label.en}
-                data-testid={`switch-${guardrail.id}`}
-              />
+              <p className="text-xs mt-1.5 leading-relaxed text-muted-foreground">
+                {isAr ? guardrail.on.ar : guardrail.on.en}
+              </p>
+              {!compact && (
+                <Badge variant="outline" className="mt-2 text-[10px] font-normal bg-background">
+                  {isAr ? guardrail.policy.ar : guardrail.policy.en}
+                </Badge>
+              )}
             </div>
+            <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-600/10 px-2.5 py-1">
+              <Lock className="h-3 w-3 text-emerald-700" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+                {isAr ? "مفعّل دائمًا" : "Always on"}
+              </span>
+            </span>
           </div>
-        );
-      })}
+        </div>
+      ))}
 
-      {/* Rules the learner writes themselves. The four above are federal and
+      {/* Rules the learner writes themselves. The two above are federal and
           enforced in code; these are the entity's and the individual's own. */}
       <div className="pt-1" data-testid="custom-guardrails">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -122,25 +78,15 @@ export function GuardrailControls({ compact = false }: { compact?: boolean }) {
         {profile.customGuardrails.map((rule) => (
           <div
             key={rule.id}
-            className={`p-3 rounded-xl border mb-2 transition-colors ${
-              rule.enabled ? "border-primary/25 bg-primary/5" : "border-destructive/30 bg-destructive/5"
-            }`}
+            className="p-3 rounded-xl border mb-2 border-primary/25 bg-primary/5 transition-colors"
             data-testid={`custom-guardrail-${rule.id}`}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
-                <Sparkles
-                  className={`w-4 h-4 shrink-0 ${rule.enabled ? "text-primary" : "text-destructive"}`}
-                />
+                <Sparkles className="w-4 h-4 shrink-0 text-primary" />
                 <p className="text-sm font-medium truncate">{rule.label}</p>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <Switch
-                  checked={rule.enabled}
-                  onCheckedChange={(next) => setCustomGuardrail(rule.id, next)}
-                  aria-label={rule.label}
-                  data-testid={`switch-${rule.id}`}
-                />
                 <button
                   type="button"
                   onClick={() => removeCustomGuardrail(rule.id)}

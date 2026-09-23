@@ -61,7 +61,7 @@ export function TwinHandoff({
   }
 
   const activeFederal = GUARDRAILS.filter((guardrail) => profile.guardrails[guardrail.id]);
-  const ownRules = profile.customGuardrails.filter((rule) => rule.enabled);
+  const ownRules = profile.customGuardrails;
 
   return (
     <Card className="border-primary/25 bg-primary/5" data-testid="twin-handoff">

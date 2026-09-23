@@ -17,11 +17,7 @@ export type TwinFieldId = "role" | "tasks" | "briefs" | "tone" | "knowledge";
 /** The five things the interview captures, in the order it asks for them. */
 export const TWIN_FIELDS: TwinFieldId[] = ["role", "tasks", "briefs", "tone", "knowledge"];
 
-export type GuardrailId =
-  | "humanReview"
-  | "noPersonalData"
-  | "approvedKnowledgeOnly"
-  | "auditTrail";
+export type GuardrailId = "noPersonalData" | "approvedKnowledgeOnly";
 
 export type Guardrail = {
   id: GuardrailId;
@@ -35,22 +31,6 @@ export type Guardrail = {
 };
 
 export const GUARDRAILS: Guardrail[] = [
-  {
-    id: "humanReview",
-    label: { en: "Human review required", ar: "مراجعة بشرية إلزامية" },
-    on: {
-      en: "Anything the twin drafts goes to your department manager before it reaches a resident.",
-      ar: "كل ما يصيغه التوأم يُرسل إلى مدير إدارتك قبل وصوله إلى المتعامل.",
-    },
-    off: {
-      en: "The twin publishes directly. No named person approves the output.",
-      ar: "ينشر التوأم مباشرة. لا يوجد شخص مسؤول يعتمد المخرجات.",
-    },
-    policy: {
-      en: "Federal policy — human-in-the-loop for high-risk actions",
-      ar: "سياسة اتحادية — تدخل بشري في الإجراءات عالية المخاطر",
-    },
-  },
   {
     id: "noPersonalData",
     label: { en: "No sensitive personal data", ar: "لا بيانات شخصية حساسة" },
@@ -83,38 +63,25 @@ export const GUARDRAILS: Guardrail[] = [
       ar: "سياسة الجهة — مصادر المعرفة المعتمدة فقط",
     },
   },
-  {
-    id: "auditTrail",
-    label: { en: "Full audit trail", ar: "سجل تدقيق كامل" },
-    on: {
-      en: "Every exchange is recorded with a reference the governance console can retrieve.",
-      ar: "تُسجل كل محادثة برقم مرجعي يمكن لوحدة الحوكمة الرجوع إليه.",
-    },
-    off: {
-      en: "Nothing is recorded. There is no evidence of what the twin was asked.",
-      ar: "لا يُسجل شيء. لا يوجد دليل على ما طُلب من التوأم.",
-    },
-    policy: {
-      en: "Federal policy — immutable audit trail",
-      ar: "سياسة اتحادية — سجل تدقيق غير قابل للتعديل",
-    },
-  },
 ];
 
 /**
  * A rule the learner wrote themselves.
  *
- * The four federal guardrails are enforced in code — they change what
- * `answer()` does. A custom rule is a declared constraint instead: the twin
- * states it is operating under it, and it counts toward the governance score,
- * but the platform cannot enforce arbitrary prose. Worth having anyway,
- * because "my twin never quotes a price" is exactly the kind of local rule an
- * entity wants to capture.
+ * The two federal guardrails are enforced in code — they change what
+ * `answer()` does, and cannot be switched off. A custom rule is a declared
+ * constraint instead: the twin states it is operating under it, and it
+ * counts toward the governance score, but the platform cannot enforce
+ * arbitrary prose. Worth having anyway, because "my twin never quotes a
+ * price" is exactly the kind of local rule an entity wants to capture.
+ *
+ * A custom rule has no disabled state — the learner adds it or removes it.
+ * There is no in-between switch, for the same reason the federal guardrails
+ * no longer have one.
  */
 export type CustomGuardrail = {
   id: string;
   label: string;
-  enabled: boolean;
 };
 
 export type TwinProfile = {
@@ -138,10 +105,8 @@ export function emptyProfile(): TwinProfile {
     tone: "",
     knowledge: [],
     guardrails: {
-      humanReview: true,
       noPersonalData: true,
       approvedKnowledgeOnly: true,
-      auditTrail: true,
     },
     customGuardrails: [],
     trainedAt: null,
@@ -183,10 +148,16 @@ export function readiness(profile: TwinProfile): number {
   return described + (profile.trainedAt ? 20 : 0);
 }
 
-/** Every rule in force, federal and learner-authored. */
+/**
+ * Every rule in force, federal and learner-authored. The two federal
+ * guardrails are always on and every custom rule present is always active
+ * (see CustomGuardrail), so this is always equal to totalGuardrailCount —
+ * kept as its own function because callers ask "how many are in force", not
+ * "how many exist", and the two questions happened to have different
+ * answers before the federal guardrails became non-toggleable.
+ */
 export function activeGuardrailCount(profile: TwinProfile): number {
-  const federal = GUARDRAILS.filter((guardrail) => profile.guardrails[guardrail.id]).length;
-  return federal + profile.customGuardrails.filter((rule) => rule.enabled).length;
+  return GUARDRAILS.length + profile.customGuardrails.length;
 }
 
 export function totalGuardrailCount(profile: TwinProfile): number {
@@ -374,14 +345,17 @@ export function trainingLog(profile: TwinProfile, isAr: boolean): string[] {
     );
   }
 
-  const active = GUARDRAILS.filter((g) => profile.guardrails[g.id]);
+  // Both federal guardrails are enforced in code and cannot be switched off,
+  // so counting how many are "applied" is always the same number and reads
+  // as noise — name them instead.
+  const guardrailNames = GUARDRAILS.map((g) => (isAr ? g.label.ar : g.label.en));
   lines.push(
     isAr
-      ? `تم تطبيق ${active.length} من ${GUARDRAILS.length} ضوابط حوكمة`
-      : `Applied ${active.length} of ${GUARDRAILS.length} governance guardrails`,
+      ? `تعمل تحت ضوابط الحوكمة الاتحادية: ${guardrailNames.join("، ")}`
+      : `Operating under the federal governance guardrails: ${guardrailNames.join(", ")}`,
   );
 
-  const own = profile.customGuardrails.filter((rule) => rule.enabled);
+  const own = profile.customGuardrails;
   if (own.length > 0) {
     lines.push(
       isAr
@@ -413,8 +387,6 @@ export type TwinReply = {
   /** The learner's own tasks and sources this answer leaned on. */
   citations: string[];
   notes: GuardrailNote[];
-  /** Audit reference, when the audit trail is on. */
-  auditRef: string | null;
 };
 
 /** Trivial stop-word filter so scope matching keys off meaningful words. */
@@ -458,26 +430,15 @@ function matchScope(profile: TwinProfile, question: string): string[] {
  * Compose the twin's answer.
  *
  * The order matters and mirrors how a real guarded assistant behaves: screen
- * the prompt first, then check scope, then answer, then decide who sees the
- * output. Each guardrail that is switched off changes the outcome visibly
- * rather than silently — that is what makes the toggles worth demonstrating.
+ * the prompt first for personal data, then check it is in scope of what the
+ * learner taught the twin, then answer. Both guardrails are enforced in code
+ * and cannot be switched off — there is no user-reachable path that disables
+ * either one, so a real government audience never sees federal policy turned
+ * off on stage.
  */
 export function answer(profile: TwinProfile, question: string, isAr: boolean): TwinReply {
   const notes: GuardrailNote[] = [];
   const guardrails = profile.guardrails;
-  const auditRef = guardrails.auditTrail
-    ? `AUD-${Math.abs(hash(question)).toString(36).slice(0, 6).toUpperCase()}`
-    : null;
-
-  if (!guardrails.auditTrail) {
-    notes.push({
-      id: "auditTrail",
-      kind: "breach",
-      text: isAr
-        ? "لم تُسجَّل هذه المحادثة. لا يوجد دليل على ما طُلب."
-        : "This exchange was not recorded. There is no evidence of what was asked.",
-    });
-  }
 
   // 1 — Screen the prompt for personal data.
   // Pattern-based screening (lib/piiScreen.ts, Task 12) replaced the old
@@ -502,7 +463,6 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
               : "The guardrail stopped the prompt before it reached the model.",
           },
         ],
-        auditRef,
       };
     }
 
@@ -536,7 +496,6 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
               : "The twin declined rather than inventing an answer it could not cite.",
           },
         ],
-        auditRef,
       };
     }
 
@@ -564,32 +523,7 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
       : `Here is a general draft in the voice you described: ${tone}. I have no approved source to stand this on.`;
   }
 
-  // 4 — Decide who sees the output.
-  if (guardrails.humanReview) {
-    text += isAr
-      ? "\n\nأرسلتها إلى مديرة إدارتك مريم الزعابي للاعتماد قبل النشر."
-      : "\n\nI have routed it to your department manager, Mariam Al Zaabi, for approval before it goes out.";
-    notes.push({
-      id: "humanReview",
-      kind: "held",
-      text: isAr
-        ? "بانتظار اعتماد بشري — لم يصل شيء إلى المتعامل بعد."
-        : "Pending human approval — nothing has reached a resident yet.",
-    });
-  } else {
-    text += isAr
-      ? "\n\nنُشرت مباشرة. لم يعتمدها أحد."
-      : "\n\nPublished directly. Nobody approved it.";
-    notes.push({
-      id: "humanReview",
-      kind: "breach",
-      text: isAr
-        ? "خرجت المسودة دون اعتماد بشري. لا يوجد اسم مسؤول عنها."
-        : "The draft went out with no human approval. No named person stands behind it.",
-    });
-  }
-
-  for (const rule of profile.customGuardrails.filter((entry) => entry.enabled)) {
+  for (const rule of profile.customGuardrails) {
     notes.push({
       id: rule.id,
       kind: "held",
@@ -602,18 +536,7 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
     text,
     citations: matched.slice(0, 3),
     notes,
-    auditRef,
   };
-}
-
-/** Stable per-question audit reference, so replaying the demo looks consistent. */
-function hash(value: string): number {
-  let result = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    result = (result << 5) - result + value.charCodeAt(index);
-    result |= 0;
-  }
-  return result;
 }
 
 /**
@@ -661,20 +584,21 @@ export type TwinAssessment = {
 /**
  * Scores the twin the learner built, for the Assessment Agent.
  *
- * Guardrails carry real weight here: a twin that answers well but had its
- * human review or personal-data screen switched off is not a twin a federal
- * entity can deploy, and the score has to say so. This is what closes the loop
- * on the Lab — the switches the learner flipped follow them to evaluation.
+ * Governance no longer varies by configuration: both federal guardrails are
+ * enforced in code and cannot be switched off, so there is nothing left for
+ * a learner to relax and no penalty left to apply. Governance is therefore a
+ * fixed share of the score — what still varies is how well the twin is
+ * described, whether it was trained, and any rules the learner layered on
+ * top of the federal two.
  */
 export function assessTwin(profile: TwinProfile): TwinAssessment {
   const captured = capturedFields(profile);
-  const relaxed = GUARDRAILS.filter((guardrail) => !profile.guardrails[guardrail.id]);
-  const ownRules = profile.customGuardrails.filter((rule) => rule.enabled);
+  const ownRules = profile.customGuardrails;
 
   // Description carries 55, training 15, governance the remaining 30.
   const described = Math.round((captured.length / TWIN_FIELDS.length) * 55);
   const trained = profile.trainedAt ? 15 : 0;
-  const governance = Math.round(((GUARDRAILS.length - relaxed.length) / GUARDRAILS.length) * 30);
+  const governance = 30;
   const value = Math.max(35, described + trained + governance);
 
   const evidence: string[] = [];
@@ -692,11 +616,9 @@ export function assessTwin(profile: TwinProfile): TwinAssessment {
   );
 
   evidence.push(
-    relaxed.length === 0
-      ? `All ${GUARDRAILS.length} governance guardrails were left in place.`
-      : `${relaxed.length} of ${GUARDRAILS.length} guardrails were switched off: ${relaxed
-          .map((guardrail) => guardrail.label.en.toLowerCase())
-          .join(", ")}. This would not pass entity review as configured.`,
+    `Operates under FAHR's ${GUARDRAILS.length} enforced guardrails, always on: ${GUARDRAILS
+      .map((guardrail) => guardrail.label.en.toLowerCase())
+      .join(" and ")}.`,
   );
 
   if (ownRules.length > 0) {
@@ -709,7 +631,7 @@ export function assessTwin(profile: TwinProfile): TwinAssessment {
 
   return {
     value,
-    summary: "The digital twin the learner built, and the guardrails they left on it.",
+    summary: "The digital twin the learner built, operating under FAHR's enforced guardrails.",
     evidence,
   };
 }

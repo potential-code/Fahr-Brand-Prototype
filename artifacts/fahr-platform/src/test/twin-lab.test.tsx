@@ -92,27 +92,18 @@ describe("Agentic AI Lab — Stage 1", () => {
     expect(screen.getByTestId("twin-reply-blocked")).toBeTruthy();
   }, 20000);
 
-  it("switching a guardrail off changes the twin's behaviour and flags the breach", async () => {
+  it("the federal guardrails render locked, with no switch to turn either off", async () => {
     const user = userEvent.setup();
     renderScreen(<AgenticAILabTwin />, "/learner/lab/twin");
 
     await completeInterview(user);
     await screen.findByTestId("twin-summary", {}, TRAINED);
 
-    // Nothing to warn about while the twin is fully governed.
-    expect(screen.queryByTestId("guardrail-warning")).toBeNull();
+    // A federal audience must never see a control that can disable policy.
     expect(screen.getByTestId("twin-status").textContent).toContain("Live & governed");
-
-    await user.click(screen.getByTestId("switch-humanReview"));
-
-    expect(screen.getByTestId("guardrail-warning")).toBeTruthy();
-    expect(screen.getByTestId("twin-status").textContent).toContain("outside policy");
-
-    // The same question now publishes unreviewed, and the reply says so.
-    const chat = screen.getByTestId("twin-test-chat");
-    await ask(user, within(chat).getAllByTestId("twin-suggested-question")[0]);
-
-    expect(screen.getAllByTestId("guardrail-note-breach").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("switch-noPersonalData")).toBeNull();
+    expect(screen.queryByTestId("switch-approvedKnowledgeOnly")).toBeNull();
+    expect(screen.getAllByText("Always on").length).toBe(2);
   }, 20000);
 
   it("rebuilding clears the twin back to an empty interview", async () => {
@@ -149,7 +140,7 @@ describe("Agentic AI Lab — Stage 1", () => {
     expect(screen.getByText(/Your rule applied: Never quote a figure/)).toBeTruthy();
   }, 20000);
 
-  it("a learner's rule can be switched off and removed", async () => {
+  it("a learner's rule has no toggle, only a remove button, and can be removed", async () => {
     const user = userEvent.setup();
     renderScreen(<AgenticAILabTwin />, "/learner/lab/twin");
 
@@ -161,8 +152,7 @@ describe("Agentic AI Lab — Stage 1", () => {
     expect(rule).toBeTruthy();
 
     const id = rule!.getAttribute("data-testid")!.replace("custom-guardrail-", "");
-    await user.click(screen.getByTestId(`switch-${id}`));
-    expect(screen.getByTestId("guardrail-warning")).toBeTruthy();
+    expect(screen.queryByTestId(`switch-${id}`)).toBeNull();
 
     await user.click(screen.getByTestId(`remove-${id}`));
     expect(screen.queryByTestId(`custom-guardrail-${id}`)).toBeNull();

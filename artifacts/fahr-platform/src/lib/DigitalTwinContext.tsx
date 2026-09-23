@@ -3,7 +3,6 @@ import {
   emptyProfile,
   isTrainable,
   readiness,
-  type GuardrailId,
   type TwinFieldId,
   type TwinProfile,
 } from "@/lib/digitalTwin";
@@ -14,10 +13,8 @@ type Ctx = {
   capture: (field: TwinFieldId, value: string) => void;
   /** Remove one captured value — the learner can correct themselves mid-demo. */
   discard: (field: TwinFieldId, value: string) => void;
-  setGuardrail: (id: GuardrailId, enabled: boolean) => void;
-  /** Add a rule of the learner's own. */
+  /** Add a rule of the learner's own. A rule is present or removed — no disabled state. */
   addCustomGuardrail: (label: string) => void;
-  setCustomGuardrail: (id: string, enabled: boolean) => void;
   removeCustomGuardrail: (id: string) => void;
   /** Marks the training run complete; the twin only counts as live after this. */
   completeTraining: () => void;
@@ -76,13 +73,6 @@ export function DigitalTwinProvider({ children }: { children: React.ReactNode })
     });
   }, []);
 
-  const setGuardrail = useCallback((id: GuardrailId, enabled: boolean) => {
-    setProfile((current) => ({
-      ...current,
-      guardrails: { ...current.guardrails, [id]: enabled },
-    }));
-  }, []);
-
   const addCustomGuardrail = useCallback((label: string) => {
     const trimmed = label.trim();
     if (!trimmed) return;
@@ -102,18 +92,9 @@ export function DigitalTwinProvider({ children }: { children: React.ReactNode })
       }
       return {
         ...current,
-        customGuardrails: [...current.customGuardrails, { id, label: trimmed, enabled: true }],
+        customGuardrails: [...current.customGuardrails, { id, label: trimmed }],
       };
     });
-  }, []);
-
-  const setCustomGuardrail = useCallback((id: string, enabled: boolean) => {
-    setProfile((current) => ({
-      ...current,
-      customGuardrails: current.customGuardrails.map((rule) =>
-        rule.id === id ? { ...rule, enabled } : rule,
-      ),
-    }));
   }, []);
 
   const removeCustomGuardrail = useCallback((id: string) => {
@@ -134,9 +115,7 @@ export function DigitalTwinProvider({ children }: { children: React.ReactNode })
       profile,
       capture,
       discard,
-      setGuardrail,
       addCustomGuardrail,
-      setCustomGuardrail,
       removeCustomGuardrail,
       completeTraining,
       reset,
@@ -144,17 +123,7 @@ export function DigitalTwinProvider({ children }: { children: React.ReactNode })
       isTrainable: isTrainable(profile),
       isLive: profile.trainedAt !== null,
     }),
-    [
-      profile,
-      capture,
-      discard,
-      setGuardrail,
-      addCustomGuardrail,
-      setCustomGuardrail,
-      removeCustomGuardrail,
-      completeTraining,
-      reset,
-    ],
+    [profile, capture, discard, addCustomGuardrail, removeCustomGuardrail, completeTraining, reset],
   );
 
   return <DigitalTwinContext.Provider value={value}>{children}</DigitalTwinContext.Provider>;

@@ -1,10 +1,12 @@
-// The twin must only ever stand on what the learner taught it, and each
-// guardrail has to change the outcome visibly — that is the whole demo.
+// The twin must only ever stand on what the learner taught it. Its two
+// federal guardrails are enforced in code and cannot be switched off — a
+// federal audience should never see a control that disables federal policy.
 import { describe, it, expect } from "vitest";
 import {
   answer,
   assessTwin,
   emptyProfile,
+  GUARDRAILS,
   isTrainable,
   readiness,
   trainingLog,
@@ -32,6 +34,15 @@ describe("twin readiness", () => {
     expect(isTrainable(profile)).toBe(false);
   });
 
+  it("the two federal guardrails are on by default, and no others exist", () => {
+    const profile = emptyProfile();
+    expect(profile.guardrails).toEqual({ noPersonalData: true, approvedKnowledgeOnly: true });
+    expect(GUARDRAILS.map((guardrail) => guardrail.id)).toEqual([
+      "noPersonalData",
+      "approvedKnowledgeOnly",
+    ]);
+  });
+
   it("describing the twin cannot alone take it to 100 — training carries the last 20", () => {
     const described = { ...trainedProfile(), trainedAt: null };
     expect(readiness(described)).toBe(80);
@@ -52,11 +63,10 @@ describe("the training log quotes the learner back", () => {
     expect(log).toContain("Authoritative but reassuring");
   });
 
-  it("reports how many guardrails are actually applied", () => {
-    const relaxed = trainedProfile({
-      guardrails: { ...emptyProfile().guardrails, humanReview: false },
-    });
-    expect(trainingLog(relaxed, false).join("\n")).toContain("Applied 3 of 4");
+  it("names the two enforced guardrails rather than counting them", () => {
+    const log = trainingLog(trainedProfile(), false).join("\n");
+    expect(log).toContain("No sensitive personal data");
+    expect(log).toContain("Approved knowledge only");
   });
 });
 
@@ -99,38 +109,6 @@ describe("guardrails change the outcome, not just the wording", () => {
     expect(reply.status).not.toBe("blocked");
     expect(reply.notes.some((note) => note.id === "noPersonalData" && note.kind === "breach")).toBe(true);
   });
-
-  it("routes output to the department manager while human review is on", () => {
-    const reply = answer(trainedProfile(), "Draft the campaign brief", false);
-    expect(reply.text).toContain("Mariam Al Zaabi");
-    expect(reply.notes.some((note) => note.id === "humanReview" && note.kind === "held")).toBe(true);
-  });
-
-  it("publishes unreviewed once human review is switched off", () => {
-    const profile = trainedProfile({
-      guardrails: { ...emptyProfile().guardrails, humanReview: false },
-    });
-    const reply = answer(profile, "Draft the campaign brief", false);
-    expect(reply.text).toContain("Nobody approved it");
-    expect(reply.notes.some((note) => note.id === "humanReview" && note.kind === "breach")).toBe(true);
-  });
-
-  it("stamps an audit reference only while the audit trail is on", () => {
-    expect(answer(trainedProfile(), "Draft the campaign brief", false).auditRef).toMatch(/^AUD-/);
-
-    const profile = trainedProfile({
-      guardrails: { ...emptyProfile().guardrails, auditTrail: false },
-    });
-    const reply = answer(profile, "Draft the campaign brief", false);
-    expect(reply.auditRef).toBeNull();
-    expect(reply.notes.some((note) => note.id === "auditTrail" && note.kind === "breach")).toBe(true);
-  });
-
-  it("gives the same question the same audit reference, so a replayed demo is consistent", () => {
-    const first = answer(trainedProfile(), "Draft the campaign brief", false);
-    const second = answer(trainedProfile(), "Draft the campaign brief", false);
-    expect(first.auditRef).toBe(second.auditRef);
-  });
 });
 
 describe("Arabic", () => {
@@ -145,7 +123,7 @@ describe("Arabic", () => {
   it("answers in Arabic without leaking English scaffolding", () => {
     const reply = answer(arabicProfile, "ساعدني في صياغة موجزات الحملات", true);
     expect(reply.status).toBe("ok");
-    expect(reply.text).toContain("مريم الزعابي");
+    expect(reply.text).toContain("صياغة موجزات الحملات");
     expect(reply.text).not.toContain("routed");
   });
 
@@ -164,23 +142,11 @@ describe("Arabic", () => {
 });
 
 describe("the Assessment Agent scores the twin", () => {
-  it("a fully described, fully governed twin scores at the top", () => {
+  it("a fully described, fully trained twin scores at the top", () => {
     const assessed = assessTwin(trainedProfile());
     expect(assessed.value).toBe(100);
-    expect(assessed.evidence.join("\n")).toContain("All 4 governance guardrails were left in place");
-  });
-
-  it("switching guardrails off costs marks and names which ones", () => {
-    const governed = assessTwin(trainedProfile()).value;
-    const relaxed = assessTwin(
-      trainedProfile({
-        guardrails: { ...emptyProfile().guardrails, humanReview: false, auditTrail: false },
-      }),
-    );
-
-    expect(relaxed.value).toBeLessThan(governed);
-    expect(relaxed.evidence.join("\n")).toContain("human review required");
-    expect(relaxed.evidence.join("\n")).toContain("would not pass entity review");
+    expect(assessed.evidence.join("\n")).toContain("no sensitive personal data");
+    expect(assessed.evidence.join("\n")).toContain("approved knowledge only");
   });
 
   it("an ungrounded twin is marked down for having no task and no source", () => {
@@ -197,7 +163,6 @@ describe("the learner's own rules", () => {
       customGuardrails: labels.map((label, index) => ({
         id: `own-${index}`,
         label,
-        enabled: true,
       })),
     });
 
@@ -206,14 +171,6 @@ describe("the learner's own rules", () => {
     const own = reply.notes.find((note) => note.text.includes("Never quote a figure"));
     expect(own?.kind).toBe("held");
     expect(own?.text).toContain("Your rule applied");
-  });
-
-  it("are not stated once the learner switches them off", () => {
-    const profile = trainedProfile({
-      customGuardrails: [{ id: "own-0", label: "Always produce an Arabic version", enabled: false }],
-    });
-    const reply = answer(profile, "Draft the campaign brief", false);
-    expect(reply.notes.some((note) => note.text.includes("Arabic version"))).toBe(false);
   });
 
   it("are named in the training log and in the assessment", () => {

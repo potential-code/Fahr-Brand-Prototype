@@ -492,8 +492,8 @@ export default function AgenticAILabTwin() {
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {isAr
-                    ? "بدّل أي ضابط ثم اطرح السؤال نفسه — الإجابة تتغير."
-                    : "Switch one off, then ask the same question again — the answer changes."}
+                    ? "هذان الضابطان مطبّقان في الكود ولا يمكن إيقافهما. أضف قواعدك الخاصة أدناه."
+                    : "These two are enforced in code and cannot be switched off. Add your own rules below."}
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
