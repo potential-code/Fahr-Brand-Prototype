@@ -220,17 +220,23 @@ const NAME_STOPLIST_EN = new Set([
  * separate entries: stripArabicDefiniteArticle normalises them onto the bare
  * form before the lookup.
  *
- * Two accepted trade-offs, both false *negatives*, which this module
- * deliberately prefers over false positives:
+ * One accepted trade-off, a false *negative*, which this module
+ * deliberately prefers over a false positive:
  *   - "أمين" is both "secretary" and the given name Amin, so
  *     "اسمي أمين الشامسي" is rejected. It is on the required list, and a
  *     missed name is a smaller failure here than redacting a job title.
- *   - An honorific-led introduction that does carry a real name
- *     ("اسمي الدكتور أحمد الشامسي") is rejected whole rather than having the
- *     honorific stripped. Stripping was considered and rejected: peeling
- *     leading title words off and re-testing the remainder accepts
- *     "اسمي مدير الموارد البشرية" again ("الموارد" is not a title), i.e. it
- *     reintroduces the exact defect this set exists to close.
+ *
+ * An honorific-led introduction that does carry a real name ("اسمي الدكتور
+ * أحمد الشامسي") is handled separately, by NAME_HONORIFICS_AR below: an
+ * honorific is never itself the answer to "what is your name", so stripping
+ * *at most one* leading honorific and re-running this same first-word test
+ * on what remains does not reopen the "اسمي مدير الموارد البشرية" defect —
+ * "مدير" was never an honorific, so a role-led introduction is never
+ * stripped of anything and still fails this test on its own first word.
+ * (An earlier version of this file rejected honorific-led names outright,
+ * reasoning that stripping would have to come from this combined list —
+ * which is true and would reopen the defect. Scoped to the honorific-only
+ * subset below, it does not.)
  */
 const NAME_TITLE_FIRST_WORDS_AR = new Set([
   // Roles / posts (masculine)
@@ -258,6 +264,8 @@ const NAME_TITLE_FIRST_WORDS_AR = new Set([
   "قائد", // commander / leader
   "ضابط", // officer
   "سكرتير", // secretary (clerical)
+  "كبير", // chief / senior (as in "كبير المستشارين" -- chief advisors)
+  "قائم", // acting (as in "قائم بأعمال المدير" -- acting director)
   // Roles / posts (feminine)
   "مديرة",
   "مستشارة",
@@ -275,16 +283,7 @@ const NAME_TITLE_FIRST_WORDS_AR = new Set([
   "خبيرة",
   "محللة",
   "مساعدة",
-  // Honorifics / courtesy titles that precede a name
-  "معالي", // His/Her Excellency
-  "سعادة", // Your Excellency
-  "سمو", // His/Her Highness
-  "دكتور", // Dr. (الدكتور normalises to this)
-  "دكتورة",
-  "مهندس", // Eng. (المهندس)
-  "مهندسة",
-  "أستاذ", // Prof. / Mr.
-  "أستاذة",
+  "كبيرة",
   // Organisations / units -- "my name is [the] ministry ..." is not a person
   "وزارة", // ministry
   "هيئة", // authority
@@ -297,29 +296,91 @@ const NAME_TITLE_FIRST_WORDS_AR = new Set([
   "عام", // general (as in "مدير عام" -- director general)
 ]);
 
+/**
+ * Honorific / courtesy titles that may precede a real name in a self-
+ * introduction rather than standing in for one — "اسمي الدكتور أحمد
+ * الشامسي" is Dr. Ahmed Al Shamsi, a real name, not an introduction-by-title
+ * the way "اسمي مدير الموارد البشرية" is. Kept as a separate set from
+ * NAME_TITLE_FIRST_WORDS_AR (the file's own taxonomy already distinguishes
+ * "role/post/entity nouns" from "honorifics that precede a name" — see that
+ * set's comments) precisely so it can be stripped, at most once, before the
+ * role/post/entity test runs on whatever remains: an honorific is not the
+ * name being asked for, but a role is.
+ */
+const NAME_HONORIFICS_AR = new Set([
+  "معالي", // His/Her Excellency
+  "سعادة", // Your Excellency
+  "سمو", // His/Her Highness
+  "دكتور", // Dr. (الدكتور normalises to this)
+  "دكتورة",
+  "مهندس", // Eng. (المهندس)
+  "مهندسة",
+  "أستاذ", // Prof. / Mr.
+  "أستاذة",
+]);
+
 /** Arabic attaches its definite article directly to the noun (no space). */
 function stripArabicDefiniteArticle(word: string): string {
   return word.startsWith("ال") && word.length > 2 ? word.slice(2) : word;
 }
 
 /**
- * True when a name-detector capture is an introduction by title rather than
- * by name, and must therefore be discarded.
+ * True when an English (Latin-script) name-detector capture is an
+ * introduction by title rather than by name, and must therefore be
+ * discarded. English captures are bounded by capitalisation, so an
+ * all-words test ("Director General", "Federal Authority") is enough and
+ * has held up across review.
  *
- * The two scripts use different tests on purpose. English captures are
- * bounded by capitalisation, so an all-words test ("Director General",
- * "Federal Authority") is enough and has held up across review. Arabic has
- * no capitalisation to bound the capture, so an all-words test is too weak —
- * see NAME_TITLE_FIRST_WORDS_AR — and the positional first-word test is used
- * instead.
+ * The Arabic capture has no capitalisation to bound it, so it uses a
+ * different, positional test — see verdictForArabicName below — rather
+ * than this function.
  */
 function isTitleNotAName(value: string): boolean {
   const words = value.split(/\s+/).filter(Boolean);
   if (words.length === 0) return true;
-  if (/\p{Script=Arabic}/u.test(value)) {
-    return NAME_TITLE_FIRST_WORDS_AR.has(stripArabicDefiniteArticle(words[0]));
-  }
   return words.every((word) => NAME_STOPLIST_EN.has(word.toLowerCase()));
+}
+
+/** The verdict of testing an Arabic name-detector capture. */
+type ArabicNameVerdict = {
+  /** True when the capture is an introduction by title, not by name. */
+  reject: boolean;
+  /**
+   * The span to use if not rejected — the input, or the input with a
+   * leading honorific removed when a real name was found behind one.
+   */
+  value: string;
+};
+
+/**
+ * Tests an Arabic name-detector capture positionally, since Arabic has no
+ * capitalisation to bound the capture the way the English one is bounded
+ * (see NAME_TITLE_FIRST_WORDS_AR's own comment for why an all-words test is
+ * too weak here).
+ *
+ * Before that first-word test runs, at most one leading honorific
+ * (NAME_HONORIFICS_AR) is stripped: an honorific is never itself the name
+ * being asked for, so "اسمي الدكتور أحمد الشامسي" should be tested as
+ * "أحمد الشامسي", not rejected outright because the capture happens to
+ * start with "الدكتور". Only one token is stripped, and only when it is in
+ * the honorific set specifically — a role/post/entity word is never
+ * stripped, so "اسمي مدير الموارد البشرية" still fails the first-word test
+ * on its own first word, unchanged.
+ */
+function verdictForArabicName(value: string): ArabicNameVerdict {
+  const split = /^(\S+)(\s+)([\s\S]+)$/u.exec(value);
+  const firstWord = split ? split[1] : value;
+  const firstBare = stripArabicDefiniteArticle(firstWord);
+
+  if (split && NAME_HONORIFICS_AR.has(firstBare)) {
+    const remainder = split[3];
+    const remainderFirstWord = /^\S+/u.exec(remainder)?.[0] ?? "";
+    const remainderBare = stripArabicDefiniteArticle(remainderFirstWord);
+    const reject = NAME_TITLE_FIRST_WORDS_AR.has(remainderBare);
+    return { reject, value: reject ? value : remainder };
+  }
+
+  return { reject: NAME_TITLE_FIRST_WORDS_AR.has(firstBare), value };
 }
 
 /**
@@ -571,18 +632,29 @@ function candidateFindings(text: string): PiiFinding[] {
       // text repeats earlier in the match.
       const indices = (match as ExecWithIndices).indices;
       const capturedRange = captured ? indices?.[1] : undefined;
-      const start = capturedRange ? capturedRange[0] : match.index;
+      let start = capturedRange ? capturedRange[0] : match.index;
       let value = captured ?? match[0];
 
-      // The Arabic name detector's greedy word-count capture has nothing
-      // structural (no capitalisation) stopping it from sweeping a
-      // continuation word from the next clause into the match — trim it
-      // back to the real name before anything else looks at `value`.
       if (detector.kind === "name" && /\p{Script=Arabic}/u.test(value)) {
+        // The Arabic name detector's greedy word-count capture has nothing
+        // structural (no capitalisation) stopping it from sweeping a
+        // continuation word from the next clause into the match — trim it
+        // back to the real name before anything else looks at `value`.
         value = trimArabicNameCapture(value);
-      }
 
-      if (detector.kind === "name" && isTitleNotAName(value)) {
+        const verdict = verdictForArabicName(value);
+        if (verdict.reject) {
+          if (match[0].length === 0) regex.lastIndex++;
+          continue;
+        }
+        // A leading honorific was stripped off — shrink the span to match
+        // so the redaction covers the name only, not "[the honorific] +
+        // name".
+        if (verdict.value !== value) {
+          start += value.length - verdict.value.length;
+          value = verdict.value;
+        }
+      } else if (detector.kind === "name" && isTitleNotAName(value)) {
         if (match[0].length === 0) regex.lastIndex++;
         continue;
       }

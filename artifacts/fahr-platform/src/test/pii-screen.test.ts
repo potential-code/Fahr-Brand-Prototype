@@ -304,3 +304,57 @@ describe("the Arabic name detector captures the name and only the name", () => {
     expect(screen.findings.find((f) => f.kind === "name")?.match).toBe("محمد وليد");
   });
 });
+
+// Regression cases carried over from a prior task's review round, verified
+// empirically before being handed off.
+//
+// P1: an honorific-led introduction ("اسمي الدكتور أحمد الشامسي") does carry
+// a real name, and was being rejected wholesale along with true
+// introductions-by-title. Stripping at most one leading honorific before
+// the existing first-word role test fixes this without reopening the
+// title defect, because a role word (never an honorific) is never
+// stripped.
+//
+// P2: the role list was enumeration-bounded and missing compound-title
+// openers ("كبير", "قائم") that a FAHR official could plausibly open a
+// self-introduction with on stage.
+describe("Arabic honorific-led names and compound job titles", () => {
+  it("catches a real name behind an honorific, span excludes the honorific", () => {
+    const doctor = screenForPii("اسمي الدكتور أحمد الشامسي");
+    expect(doctor.hit).toBe(true);
+    expect(doctor.findings.find((f) => f.kind === "name")?.match).toBe("أحمد الشامسي");
+    // The honorific itself is not personal data, so it stays in the
+    // redacted text — only the name span is replaced.
+    expect(doctor.redacted).toBe("اسمي الدكتور [full name]");
+
+    const excellency = screenForPii("اسمي معالي أحمد الشامسي");
+    expect(excellency.hit).toBe(true);
+    expect(excellency.findings.find((f) => f.kind === "name")?.match).toBe("أحمد الشامسي");
+    expect(excellency.redacted).toBe("اسمي معالي [full name]");
+  });
+
+  it("still rejects an introduction by job title (no honorific involved)", () => {
+    for (const phrase of [
+      "اسمي مدير الموارد البشرية",
+      "اسمي مستشار السياسات",
+      "اسمي مدير الاتصال الحكومي",
+    ]) {
+      const screen = screenForPii(phrase);
+      expect(screen.findings.filter((f) => f.kind === "name"), phrase).toEqual([]);
+      expect(screen.hit, phrase).toBe(false);
+    }
+  });
+
+  it("rejects compound job titles that open with a chief/acting word", () => {
+    for (const phrase of [
+      "اسمي كبير المستشارين",
+      "اسمي كبير الخبراء",
+      "اسمي قائم بأعمال المدير",
+      "اسمي كبير موظفي التقنية",
+    ]) {
+      const screen = screenForPii(phrase);
+      expect(screen.findings.filter((f) => f.kind === "name"), phrase).toEqual([]);
+      expect(screen.hit, phrase).toBe(false);
+    }
+  });
+});
