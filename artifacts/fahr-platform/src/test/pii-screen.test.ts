@@ -61,3 +61,41 @@ describe("screenForPii does not cry wolf", () => {
     expect(screen.redacted).toBe("");
   });
 });
+
+// Regression cases from code review: realistic UAE-government phrasing that
+// the original detectors over-matched on. Each of these previously flagged
+// ordinary prose as personal data — unacceptable in front of a government
+// audience where passports and ministries are core, everyday subject matter.
+describe("screenForPii does not flag realistic government phrasing", () => {
+  it("mentioning a passport without a document number is not personal data", () => {
+    expect(screenForPii("Please renew your passport before the trip ends").hit).toBe(false);
+    expect(screenForPii("Passport control at the airport was slow today").hit).toBe(false);
+    expect(screenForPii("Draft a note about passport office hours next week").hit).toBe(false);
+  });
+
+  it("a job title or the client's own organisation is not a person's name", () => {
+    expect(screenForPii("I am Director General for policy at the Ministry").hit).toBe(false);
+    expect(screenForPii("This is Federal Authority guidance on remote work").hit).toBe(false);
+    expect(screenForPii("I am Deputy Chairman of the committee").hit).toBe(false);
+  });
+
+  it("a structured reference number is not a phone number or an Emirates ID", () => {
+    expect(screenForPii("PO-0501234567-2026 was approved yesterday").hit).toBe(false);
+    expect(screenForPii("Order reference 927841987123456713 confirmed").hit).toBe(false);
+  });
+
+  it("still catches a real passport number", () => {
+    const screen = screenForPii("Please note passport number: A1234567 was issued last year");
+    expect(screen.hit).toBe(true);
+    expect(screen.findings.some((f) => f.kind === "passport")).toBe(true);
+  });
+
+  it("still catches a real self-introduction, including the one-click demo prompt", () => {
+    const demo = screenForPii(
+      "My name is Aisha Al Mansoori, my mobile is 0501234567 — draft a reply from me.",
+    );
+    expect(demo.hit).toBe(true);
+    expect(demo.findings.some((f) => f.kind === "name")).toBe(true);
+    expect(demo.findings.some((f) => f.kind === "phone")).toBe(true);
+  });
+});
