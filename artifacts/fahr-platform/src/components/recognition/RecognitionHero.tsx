@@ -25,7 +25,7 @@ export function RecognitionHero({ record }: { record: RecognitionRecord }) {
   const stats = [
     { id: "points", label: "Impact points", value: points, suffix: "" },
     { id: "credentials", label: "Courses completed", value: earnedCount, suffix: "" },
-    { id: "badges", label: "Badges earned", value: record.achievementsEarned, suffix: "" },
+    { id: "badges", label: "Badges earned", value: record.badgesEarned, suffix: "" },
     { id: "rank", label: "Rank in entity", value: rank.entity, prefix: "#" },
   ];
 

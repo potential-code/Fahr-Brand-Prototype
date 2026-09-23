@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
 import { summariseParticipation } from "@/lib/profileAnalysis";
-import { buildRecognitionRecord } from "@/lib/recognitionRecord";
+import { buildRecognitionRecord, competencyBadges } from "@/lib/recognitionRecord";
 import { ANNOUNCEMENTS, POLLS, THREADS, type Reply, type Thread } from "@/lib/engagement";
 import { SEEDED_REGISTRATIONS, recommendedFirst, seatState, upcomingSessions, type Session } from "@/lib/events";
 import { LEARNER_PROFILE } from "@/lib/constants";
@@ -172,7 +172,7 @@ export default function Community() {
               <MyStanding
                 points={record.points}
                 rankEntity={record.rank.entity}
-                achievements={record.achievements}
+                badges={competencyBadges(result)}
               />
             </ScrollReveal>
             <ScrollReveal>

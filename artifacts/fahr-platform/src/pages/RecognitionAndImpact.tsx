@@ -10,7 +10,8 @@ import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
 import { summariseParticipation } from "@/lib/profileAnalysis";
 import { buildRecognitionRecord, competencyBadges, verifyId } from "@/lib/recognitionRecord";
-import { evaluateSubmission } from "@/lib/workplaceProject";
+import { buildRecommendations } from "@/lib/recommendations";
+import { demoSubmission, evaluateSubmission } from "@/lib/workplaceProject";
 import { LEARNER_PROFILE } from "@/lib/constants";
 
 /**
@@ -21,7 +22,7 @@ import { LEARNER_PROFILE } from "@/lib/constants";
  * screen can never claim credit for something that did not happen.
  */
 export default function RecognitionAndImpact() {
-  const { result, courseProgress, getCoursePercent } = useLearnerProgress();
+  const { result, answers, courseProgress, getCoursePercent } = useLearnerProgress();
   const { submission } = useWorkplaceProject();
   const { profile: twin } = useDigitalTwin();
 
@@ -30,6 +31,14 @@ export default function RecognitionAndImpact() {
     [courseProgress, getCoursePercent],
   );
 
+  const plan = useMemo(() => (result ? buildRecommendations(result, answers) : null), [result, answers]);
+
+  // Evaluates what the learner submitted this session; falls back to the same
+  // worked example Project Evaluation shows when nothing was submitted (or
+  // the draft was reopened and the submission cleared), so the two screens
+  // can never disagree about whether a certificate exists.
+  const evaluated = useMemo(() => submission ?? demoSubmission(plan?.project ?? null), [submission, plan]);
+
   const record = useMemo(
     () =>
       buildRecognitionRecord({
@@ -37,14 +46,21 @@ export default function RecognitionAndImpact() {
         participation,
         courseProgress,
         percentFor: getCoursePercent,
-        submission,
+        submission: evaluated,
       }),
-    [result, participation, courseProgress, getCoursePercent, submission],
+    [result, participation, courseProgress, getCoursePercent, evaluated],
   );
 
   // The certificate reads the same evaluation the Project Evaluation screen
   // shows, so the two screens can never disagree about what the project scored.
-  const evaluation = useMemo(() => (submission ? evaluateSubmission(submission, twin) : null), [submission, twin]);
+  const evaluation = useMemo(() => evaluateSubmission(evaluated, twin), [evaluated, twin]);
+
+  // Same verification id the workplace-project credential in the wallet was
+  // minted with — one artefact, one id, rather than two independent mintings
+  // of the same submission drifting apart.
+  const projectCredential = record.credentials.find((c) => c.id === "cred-workplace-project");
+  const certificateVerifyId =
+    projectCredential?.verifyId ?? verifyId(`project-${evaluated.submittedAt}`, new Date().getFullYear());
 
   return (
     <Layout role="learner">
@@ -53,17 +69,15 @@ export default function RecognitionAndImpact() {
 
         {/* The headline artefact of the screen — present as soon as the project
             is approved, so it is never scrolled to. */}
-        {submission && evaluation && (
-          <ProjectCertificate
-            learnerName={LEARNER_PROFILE.name}
-            projectTitle={submission.draft.title}
-            competencies={evaluation.dimensions.map((d) => d.label)}
-            score={evaluation.overall}
-            issuedOn={record.verifiedOn}
-            verifyId={verifyId(`certificate-${submission.submittedAt}`, new Date().getFullYear())}
-            reviewer="Fatima Al Suwaidi, Ministry Innovation Lead"
-          />
-        )}
+        <ProjectCertificate
+          learnerName={LEARNER_PROFILE.name}
+          projectTitle={evaluated.draft.title}
+          dimensions={evaluation.dimensions.map((d) => d.label)}
+          score={evaluation.overall}
+          issuedOn={record.verifiedOn}
+          verifyId={certificateVerifyId}
+          reviewer="Fatima Al Suwaidi, Ministry Innovation Lead"
+        />
 
         <ScrollReveal>
           <CompetencyBadges badges={competencyBadges(result)} />

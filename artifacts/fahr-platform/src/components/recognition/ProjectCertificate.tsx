@@ -9,7 +9,16 @@ const BASE = import.meta.env.BASE_URL;
 type CertificateProps = {
   learnerName: string;
   projectTitle: string;
-  competencies: string[];
+  /**
+   * The evaluation's scoring dimensions (Practical application, Innovation,
+   * Feasibility, …) — deliberately not the five AI competencies the badge
+   * grid below this certificate uses. The two are different vocabularies for
+   * different things (how the project was scored vs. which competencies the
+   * learner has reached Practitioner in), so this is labelled on the
+   * certificate face as what it is rather than left to be mistaken for the
+   * badge set.
+   */
+  dimensions: string[];
   score: number;
   issuedOn: string;
   verifyId: string;
@@ -25,7 +34,7 @@ type CertificateProps = {
 function CertificateFace({
   learnerName,
   projectTitle,
-  competencies,
+  dimensions,
   score,
   issuedOn,
   verifyId,
@@ -68,13 +77,16 @@ function CertificateFace({
             {projectTitle}
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:mt-4 sm:gap-2">
-            {competencies.map((competency) => (
+          <p className="mt-3 text-[8px] uppercase tracking-[0.2em] text-muted-foreground sm:mt-4 sm:text-[9px]">
+            Evaluated across
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+            {dimensions.map((dimension) => (
               <span
-                key={competency}
+                key={dimension}
                 className="rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[9px] font-medium text-foreground sm:px-2.5 sm:py-1 sm:text-[11px]"
               >
-                {competency}
+                {dimension}
               </span>
             ))}
           </div>

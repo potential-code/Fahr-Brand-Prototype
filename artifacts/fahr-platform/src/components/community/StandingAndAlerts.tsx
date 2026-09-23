@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
 import { COMMUNITY_NOTIFICATIONS, type CommunityNotification } from "@/lib/engagement";
-import type { Achievement } from "@/lib/recognitionRecord";
+import type { CompetencyBadge } from "@/lib/recognitionRecord";
 import {
   ArrowRight,
   AtSign,
@@ -24,18 +24,24 @@ const KIND_ICON: Record<CommunityNotification["kind"], typeof Bell> = {
   award: Award,
 };
 
-/** The learner's own points and badges, shown beside the leaderboard. */
+/**
+ * The learner's own points and badges, shown beside the leaderboard.
+ *
+ * `badges` is always `competencyBadges(result)` — the same call Recognition
+ * makes — so this panel can never show a badge count, or a badge name, that
+ * the learner's own recognition page does not.
+ */
 export function MyStanding({
   points,
   rankEntity,
-  achievements,
+  badges,
 }: {
   points: number;
   rankEntity: number;
-  achievements: Achievement[];
+  badges: CompetencyBadge[];
 }) {
-  const earned = achievements.filter((a) => a.earned);
-  const next = achievements.find((a) => !a.earned) ?? null;
+  const earned = badges.filter((b) => b.earned);
+  const next = badges.find((b) => !b.earned) ?? null;
 
   return (
     <Card className="border-card-border" data-testid="card-my-standing">
@@ -65,33 +71,33 @@ export function MyStanding({
         <ul className="mt-2.5 flex flex-wrap gap-1.5">
           {earned.map((badge, i) => (
             <motion.li
-              key={badge.id}
+              key={badge.competencyId}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.25, delay: i * 0.05 }}
               className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary"
-              data-testid={`standing-badge-${badge.id}`}
+              data-testid={`standing-badge-${badge.competencyId}`}
             >
-              {badge.label}
+              {badge.short}
             </motion.li>
           ))}
         </ul>
 
         {next && (
           <div className="mt-4 rounded-xl border border-dashed border-border p-3.5">
-            <p className="text-xs font-semibold text-foreground">Next badge: {next.label}</p>
+            <p className="text-xs font-semibold text-foreground">Next badge: {next.short}</p>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
               <motion.div
                 className="h-full rounded-full bg-accent"
                 initial={{ width: 0 }}
-                whileInView={{ width: `${next.percent}%` }}
+                whileInView={{ width: `${Math.min(100, Math.round((next.score / next.threshold) * 100))}%` }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
               />
             </div>
             <p className="mt-1.5 text-[11px] text-muted-foreground">
-              {next.criteria} · {next.percent}% there
+              Reach {next.threshold}% in {next.label} · {Math.max(0, next.threshold - next.score)}% to go
             </p>
           </div>
         )}

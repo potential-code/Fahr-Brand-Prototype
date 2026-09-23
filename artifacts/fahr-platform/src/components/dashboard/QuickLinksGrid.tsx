@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
-import { competencyBadges } from "@/lib/recognitionRecord";
+import { earnedBadgeCount } from "@/lib/recognitionRecord";
 
 type QuickLink = {
   href: string;
@@ -32,9 +32,10 @@ export function QuickLinksGrid() {
   const { result } = useLearnerProgress();
   const reduceMotion = useReducedMotion();
 
-  // Derived rather than typed, so the tile can never restate a badge count the
-  // competency set no longer has.
-  const badgeCount = competencyBadges(result).length;
+  // Derived from the same `earnedBadgeCount` every other "badges" number on
+  // the platform reads, so this tile can never disagree with the Recognition
+  // grid it links to.
+  const badgeCount = earnedBadgeCount(result);
 
   const links: QuickLink[] = [
     {

@@ -41,18 +41,13 @@ export type WalletCredential = {
   /** What the holder demonstrated to earn it. */
   evidence: string;
   href: string;
-};
-
-export type Achievement = {
-  id: string;
-  label: string;
-  description: string;
-  criteria: string;
-  points: number;
-  earned: boolean;
-  /** 0-100 toward earning it, when not earned yet. */
-  percent: number;
-  icon: "spark" | "flame" | "people" | "shield" | "target" | "trophy";
+  /**
+   * "course" credentials come from `COURSES`; "project" is the single
+   * workplace-project credential. Kept explicit so a stat that means
+   * "courses completed" can filter to `kind: "course"` rather than counting
+   * every earned credential, project included.
+   */
+  kind: "course" | "project";
 };
 
 export type CompetencyBadge = {
@@ -103,9 +98,14 @@ export type RecognitionRecord = {
   pointsEntries: PointsEntry[];
   rank: RecognitionRank;
   credentials: WalletCredential[];
+  /** Earned course credentials only — the project credential does not count as a course. */
   earnedCount: number;
-  achievements: Achievement[];
-  achievementsEarned: number;
+  /**
+   * The one number every "badges" surface on the platform must show. Always
+   * `earnedBadgeCount(result)` — see that function's doc comment for the
+   * guarantee this is meant to hold.
+   */
+  badgesEarned: number;
   verifiedOn: string;
 };
 
@@ -180,6 +180,7 @@ function buildCredentials(
             ? `${done} of ${lessonCount} lessons completed. The final assessment seals the credential.`
             : `Available in your pathway. ${course.hours} of learning and a final assessment.`,
       href: `/learner/course/${course.id}`,
+      kind: "course",
     });
   });
 
@@ -201,6 +202,7 @@ function buildCredentials(
       percent: 100,
       evidence: `Issued against your evaluated workplace project, saving an estimated ${submission.impact.hoursPerMonth} hours a month.`,
       href: "/learner/evaluation",
+      kind: "project",
     });
   }
 
@@ -232,93 +234,44 @@ export function competencyBadges(result: AssessmentResult | null): CompetencyBad
   });
 }
 
-// ---------------------------------------------------------------------------
-// Achievements
-// ---------------------------------------------------------------------------
-
-function buildAchievements(
-  result: AssessmentResult | null,
-  participation: ParticipationSummary,
-  submission: ProjectSubmission | null,
-): Achievement[] {
-  const { lessonsCompleted, coursesCompleted, coursesStarted } = participation;
-
-  return [
-    {
-      id: "ach-baseline",
-      label: "Baseline Measured",
-      description: "Completed the AI capability assessment and opened a capability profile.",
-      criteria: "Complete the baseline assessment",
-      points: 300,
-      earned: result !== null,
-      percent: result ? 100 : 0,
-      icon: "target",
-    },
-    {
-      id: "ach-first-steps",
-      label: "First Ten Lessons",
-      description: "Ten lessons of the federal AI curriculum completed.",
-      criteria: "Complete 10 lessons",
-      points: 400,
-      earned: lessonsCompleted >= 10,
-      percent: clamp(Math.round((lessonsCompleted / 10) * 100)),
-      icon: "spark",
-    },
-    {
-      id: "ach-course",
-      label: "Course Finisher",
-      description: "A full course completed including its final assessment.",
-      criteria: "Finish one course end to end",
-      points: 600,
-      earned: coursesCompleted >= 1,
-      percent: coursesCompleted >= 1 ? 100 : clamp(Math.round((coursesStarted / 1) * 60)),
-      icon: "flame",
-    },
-    {
-      id: "ach-governance",
-      label: "Governance Cleared",
-      description: "A project checked against all five federal AI policies with no open warnings.",
-      criteria: "Pass the governance check",
-      points: 500,
-      earned: submission ? submission.policies.every((p) => p.status === "pass") : false,
-      percent: submission
-        ? clamp(Math.round((submission.policies.filter((p) => p.status === "pass").length / submission.policies.length) * 100))
-        : 0,
-      icon: "shield",
-    },
-    {
-      id: "ach-impact",
-      label: "Impact Delivered",
-      description: "A workplace project submitted and evaluated with measurable time returned.",
-      criteria: "Submit a workplace project for evaluation",
-      points: 1200,
-      earned: submission !== null,
-      percent: submission ? 100 : 0,
-      icon: "trophy",
-    },
-    {
-      id: "ach-peer",
-      label: "Peer Contributor",
-      description: "Three answers marked helpful by colleagues in other federal entities.",
-      // Peer recognition is held in FAHR's programme records rather than
-      // produced on this platform, so the criteria says where it came from.
-      criteria: "3 answers marked helpful, from FAHR's community records",
-      points: 450,
-      earned: true,
-      percent: 100,
-      icon: "people",
-    },
-  ];
+/**
+ * The single owner of "how many badges has this learner earned".
+ *
+ * Recognition (hero stat + the badge grid), the dashboard quick-link tile,
+ * the points ledger and the Community standing panel all render a badge
+ * count. A whole-branch review found four of those disagreeing because each
+ * had been wired to a different definition (a deleted achievement set, the
+ * size of the badge set rather than the earned subset, etc.) by four
+ * different tasks that never talked to each other.
+ *
+ * The fix is not "make the four numbers agree today" — that survives exactly
+ * until the next task touches one of them. It is: there is now only one
+ * function that knows what "badges earned" means, every consumer calls it
+ * (directly, or via `RecognitionRecord.badgesEarned`, which is defined as
+ * nothing more than a memoised call to this function), and nothing else is
+ * allowed to compute its own badge count from `competencyBadges()`.
+ */
+export function earnedBadgeCount(result: AssessmentResult | null): number {
+  return competencyBadges(result).filter((badge) => badge.earned).length;
 }
 
 // ---------------------------------------------------------------------------
 // Points and standing
 // ---------------------------------------------------------------------------
 
+/**
+ * Points credited per competency badge earned at Practitioner level. Sits
+ * between an instructor-led session (200) and a full course (400) in
+ * `POINT_RULES` — reaching Practitioner in one of the five assessed
+ * competencies is real, demonstrated capability, but lighter than finishing
+ * a whole course end to end.
+ */
+const POINTS_PER_BADGE = 250;
+
 function buildPointsEntries(
   participation: ParticipationSummary,
   submission: ProjectSubmission | null,
-  achievements: Achievement[],
+  badgesEarned: number,
 ): PointsEntry[] {
   const entries: PointsEntry[] = [];
 
@@ -366,8 +319,16 @@ function buildPointsEntries(
     source: "record",
   });
 
-  const badgePoints = achievements.filter((a) => a.earned).reduce((n, a) => n + a.points, 0);
-  entries.push({ id: "pts-badges", label: "Badges earned", points: badgePoints, when: "To date", source: "activity" });
+  // Sourced from `earnedBadgeCount` — the same function the badge grid, the
+  // hero stat and the dashboard tile read, so this row can never credit
+  // points for a badge count the rest of the screen disagrees with.
+  entries.push({
+    id: "pts-badges",
+    label: `${badgesEarned} competency badge${badgesEarned === 1 ? "" : "s"} earned`,
+    points: badgesEarned * POINTS_PER_BADGE,
+    when: "To date",
+    source: "activity",
+  });
 
   return entries;
 }
@@ -405,8 +366,8 @@ export function buildRecognitionRecord(input: {
   const projectCompetencyId = result?.gaps[0] ?? "agentic";
 
   const credentials = buildCredentials(courseProgress, percentFor, submission, projectCompetencyId, now);
-  const achievements = buildAchievements(result, participation, submission);
-  const pointsEntries = buildPointsEntries(participation, submission, achievements);
+  const badgesEarned = earnedBadgeCount(result);
+  const pointsEntries = buildPointsEntries(participation, submission, badgesEarned);
 
   // The headline number stays the shared demo figure so recognition, profile and
   // the leaderboards agree; the ledger below it explains where it came from.
@@ -432,9 +393,11 @@ export function buildRecognitionRecord(input: {
     pointsEntries,
     rank,
     credentials,
-    earnedCount: credentials.filter((c) => c.state === "earned").length,
-    achievements,
-    achievementsEarned: competencyBadges(result).filter((b) => b.earned).length,
+    // Course credentials only — the workplace-project credential is real and
+    // earned, but it is not a course, and this stat is read as "courses
+    // completed" (RecognitionHero).
+    earnedCount: credentials.filter((c) => c.kind === "course" && c.state === "earned").length,
+    badgesEarned,
     verifiedOn: fullDate(now),
   };
 }
