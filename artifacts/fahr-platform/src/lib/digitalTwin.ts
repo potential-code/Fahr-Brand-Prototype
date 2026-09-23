@@ -8,6 +8,8 @@
 // no network, and a reply that cites the task the client just typed reads as
 // far more intelligent than a generic one.
 
+import { screenForPii } from "@/lib/piiScreen";
+
 export type LabelPair = { en: string; ar: string };
 
 export type TwinFieldId = "role" | "tasks" | "briefs" | "tone" | "knowledge";
@@ -478,11 +480,11 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
   }
 
   // 1 — Screen the prompt for personal data.
-  // TODO(Task 15): wire this to `screenForPii(question).hit` from lib/piiScreen.
-  // The keyword-only screen (and its `mentionsPersonalData` helper) moved to
-  // lib/piiScreen.ts as part of Task 12; this branch is intentionally
-  // unreachable until Task 15 rewires it, so this code keeps compiling only.
-  if (false) {
+  // Pattern-based screening (lib/piiScreen.ts, Task 12) replaced the old
+  // keyword-only mentionsPersonalData() check here. Task 15 will attach the
+  // richer pii findings/redaction to the blocked reply payload; for now this
+  // only swaps the predicate so the guardrail keeps working end to end.
+  if (screenForPii(question).hit) {
     if (guardrails.noPersonalData) {
       return {
         status: "blocked",
