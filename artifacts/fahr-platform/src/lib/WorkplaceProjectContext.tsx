@@ -1,5 +1,12 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { defaultDraft, type ImpactEstimate, type PolicyResult, type ProjectDraft, type ProjectSubmission } from "@/lib/workplaceProject";
+import {
+  defaultDraft,
+  demoSubmission,
+  type ImpactEstimate,
+  type PolicyResult,
+  type ProjectDraft,
+  type ProjectSubmission,
+} from "@/lib/workplaceProject";
 
 type Ctx = {
   draft: ProjectDraft;
@@ -18,13 +25,27 @@ const WorkplaceProjectContext = createContext<Ctx | undefined>(undefined);
 /**
  * Holds the workplace project between the build screen and the evaluation
  * screen. In-memory for the demo: closing the tab starts a fresh draft.
+ *
+ * `seedSubmission` defaults to true so the demo opens on an approved project —
+ * the certificate on Recognition and the score on Evaluation are on screen
+ * from the first load, both reading the same worked example rather than a
+ * second source of truth. Tests that need a genuinely empty project pass
+ * `seedSubmission={false}`.
  */
-export function WorkplaceProjectProvider({ children }: { children: React.ReactNode }) {
+export function WorkplaceProjectProvider({
+  children,
+  seedSubmission = true,
+}: {
+  children: React.ReactNode;
+  seedSubmission?: boolean;
+}) {
   const [draft, setDraft] = useState<ProjectDraft>(() => defaultDraft());
   // Until the learner types something, the project screen is free to reseed the
   // draft from their assessment result.
   const [pristine, setPristine] = useState(true);
-  const [submission, setSubmission] = useState<ProjectSubmission | null>(null);
+  const [submission, setSubmission] = useState<ProjectSubmission | null>(() =>
+    seedSubmission ? demoSubmission(null) : null,
+  );
 
   const seedDraft = useCallback(
     (next: ProjectDraft) => {

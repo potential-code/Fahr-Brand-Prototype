@@ -80,22 +80,6 @@ export type PointsEntry = {
   source: "activity" | "record";
 };
 
-export type ImpactMeasure = { id: string; label: string; value: string; note: string };
-
-export type RecognitionImpact = {
-  /** True when the numbers come from the learner's own submitted project. */
-  fromOwnProject: boolean;
-  projectTitle: string;
-  hoursPerMonth: number;
-  hoursPerYear: number;
-  workingDaysReturned: number;
-  cycleReductionPct: number;
-  band: string;
-  bandNote: string;
-  measures: ImpactMeasure[];
-  peopleAffected: number;
-};
-
 export type RecognitionRank = {
   entity: number;
   entityTotal: number;
@@ -122,7 +106,6 @@ export type RecognitionRecord = {
   earnedCount: number;
   achievements: Achievement[];
   achievementsEarned: number;
-  impact: RecognitionImpact;
   verifiedOn: string;
 };
 
@@ -138,7 +121,7 @@ const fullDate = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", mo
  * Verification ids are stable per credential so a learner can reopen a
  * credential and read back the same number they showed someone yesterday.
  */
-function verifyId(seed: string, year: number): string {
+export function verifyId(seed: string, year: number): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) % 90000;
   return `FAHR-${year}-${10000 + hash}`;
@@ -390,57 +373,6 @@ function buildPointsEntries(
 }
 
 // ---------------------------------------------------------------------------
-// Measured impact
-// ---------------------------------------------------------------------------
-
-function buildImpact(
-  submission: ProjectSubmission | null,
-  projectCompetencyId: string,
-): RecognitionImpact {
-  if (!submission) {
-    // Nothing evaluated yet — the screen is reachable from the sidebar, so it
-    // must say plainly that these numbers are not the learner's own.
-    return {
-      fromOwnProject: false,
-      projectTitle: "",
-      hoursPerMonth: 0,
-      hoursPerYear: 0,
-      workingDaysReturned: 0,
-      cycleReductionPct: 0,
-      band: "Not measured",
-      bandNote:
-        "Impact is measured from an evaluated workplace project. Build and submit yours and this section fills in from your own numbers.",
-      measures: [],
-      peopleAffected: 0,
-    };
-  }
-
-  const { impact, draft } = submission;
-
-  return {
-    fromOwnProject: true,
-    projectTitle: draft.title,
-    hoursPerMonth: impact.hoursPerMonth,
-    hoursPerYear: impact.hoursPerYear,
-    workingDaysReturned: impact.workingDaysReturned,
-    cycleReductionPct: impact.cycleReductionPct,
-    band: `${impact.band} impact`,
-    bandNote: impact.bandNote,
-    peopleAffected: draft.peopleAffected,
-    measures: draft.measures
-      .map((m) => m.trim())
-      .filter(Boolean)
-      .slice(0, 4)
-      .map((m, i) => ({
-        id: `measure-${i}`,
-        label: m,
-        value: "Tracked",
-        note: "Declared in your submission and reviewed by the evaluation panel.",
-      })),
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Builder
 // ---------------------------------------------------------------------------
 
@@ -503,7 +435,6 @@ export function buildRecognitionRecord(input: {
     earnedCount: credentials.filter((c) => c.state === "earned").length,
     achievements,
     achievementsEarned: competencyBadges(result).filter((b) => b.earned).length,
-    impact: buildImpact(submission, projectCompetencyId),
     verifiedOn: fullDate(now),
   };
 }

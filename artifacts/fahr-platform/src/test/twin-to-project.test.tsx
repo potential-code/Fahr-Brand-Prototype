@@ -16,7 +16,10 @@ beforeEach(() => {
 
 describe("the twin reaches the Workplace Project", () => {
   it("sends the learner back to the Lab when no twin exists yet", () => {
-    renderScreen(<AgenticAILabProject />, "/learner/lab/project");
+    // The demo normally seeds an approved project so Recognition and
+    // Evaluation are never empty; this test wants the builder's empty state,
+    // so it starts from an explicitly empty project instead.
+    renderScreen(<AgenticAILabProject />, "/learner/lab/project", { seedProject: false });
 
     expect(screen.getByTestId("twin-handoff-empty")).toBeTruthy();
     expect(screen.getByTestId("link-build-twin")).toBeTruthy();
