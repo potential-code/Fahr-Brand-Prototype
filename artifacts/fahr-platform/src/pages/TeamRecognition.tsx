@@ -251,8 +251,10 @@ export default function TeamRecognition() {
                 <Medal className="h-5 w-5 text-primary" /> Badges across the team
               </CardTitle>
               <CardDescription>
-                The same achievements a learner sees on their own recognition page, counted across your direct
-                reports.
+                Milestones across the learner journey — from the baseline assessment to reaching Practitioner —
+                counted across your direct reports. Distinct from the five competency badges a learner sees on
+                their own recognition page, which track mastery of each assessed competency rather than
+                progress through the journey.
               </CardDescription>
             </CardHeader>
             <CardContent>

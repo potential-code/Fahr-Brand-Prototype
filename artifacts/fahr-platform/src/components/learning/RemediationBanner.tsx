@@ -53,9 +53,9 @@ export function RemediationBanner({
               : `${unitCount} revision units added to this course`}
           </p>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-            You scored {correct} of {total}. {competencyShort} was the weakest area, so {unitCount} units
-            covering it have been added below the course content. Complete them and the final assessment
-            reopens.
+            {complete
+              ? `You scored ${correct} of ${total} on ${competencyShort}. All ${unitCount} revision units covering it are now complete, and the final assessment is unlocked.`
+              : `You scored ${correct} of ${total}. ${competencyShort} was the weakest area, so ${unitCount} units covering it have been added below the course content. Complete them and the final assessment reopens.`}
           </p>
         </div>
       </div>

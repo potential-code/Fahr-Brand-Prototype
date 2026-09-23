@@ -85,7 +85,7 @@ export function LandingHeader({ onRegister }: { onRegister: () => void }) {
             type="button"
             onClick={() => setLanguage(language === "ar" ? "en" : "ar")}
             className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
-            aria-label={language === "ar" ? "Switch to English" : "التبديل إلى العربية"}
+            aria-label={language === "ar" ? t("landing.header.switchToEnglish") : t("landing.header.switchToArabic")}
             data-testid="button-language-toggle"
           >
             {language === "ar" ? "EN" : "ع"}

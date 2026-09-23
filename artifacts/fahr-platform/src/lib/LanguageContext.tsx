@@ -46,6 +46,8 @@ const translations = {
     "landing.header.register": "Register",
     "landing.header.menuOpen": "Open menu",
     "landing.header.menuClose": "Close menu",
+    "landing.header.switchToArabic": "Switch to Arabic",
+    "landing.header.switchToEnglish": "Switch to English",
     // Hero
     "landing.hero.badge": "UAE Government Executive Platform",
     "landing.hero.headline.line1": "Federal Agentic AI",
@@ -312,6 +314,8 @@ const translations = {
     "landing.header.register": "التسجيل",
     "landing.header.menuOpen": "فتح القائمة",
     "landing.header.menuClose": "إغلاق القائمة",
+    "landing.header.switchToArabic": "التبديل إلى العربية",
+    "landing.header.switchToEnglish": "التبديل إلى الإنجليزية",
     // Hero
     "landing.hero.badge": "منصة تنفيذية لحكومة دولة الإمارات",
     "landing.hero.headline.line1": "المنصة الاتحادية",

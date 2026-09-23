@@ -230,16 +230,21 @@ describe("the four demo chips", () => {
     }
   });
 
-  it("chip 4 drafts against the learner's second task once one exists, else a department manager update", () => {
+  it("chip 4 drafts against the learner's second task once one exists, else falls back to the first — never an unrelated generic that trips the out-of-scope refusal", () => {
     const withTwoTasks = trainedProfile({ tasks: ["Drafting campaign briefs", "Writing social media copy"] });
     const [, , , fourthWithTasks] = suggestedQuestions(withTwoTasks, false);
     expect(fourthWithTasks.label).toContain("Writing social media copy");
 
     const withOneTask = trainedProfile({ tasks: ["Drafting campaign briefs"] });
     const [, , , fourthFallback] = suggestedQuestions(withOneTask, false);
-    expect(fourthFallback.label).toBe("Draft a two-line update for my department manager");
-    expect(fourthFallback.label).not.toContain("line manager");
+    // Falls back to the first task rather than an unrelated generic line, so
+    // the prompt stays inside what the twin was taught.
+    expect(fourthFallback.label).toBe("Draft a short brief for: Drafting campaign briefs");
     const reply = answer(withOneTask, fourthFallback.prompt, false);
+    // The point of chip 4 is to show the twin being useful — asserting only
+    // `text.length > 0` would pass just as well for the out-of-scope refusal
+    // text, which is exactly the bug this guards against.
+    expect(reply.status).toBe("ok");
     expect(reply.text.length).toBeGreaterThan(0);
   });
 });

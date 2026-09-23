@@ -1,18 +1,25 @@
 // Landing-page content for the platform's agents: the six specialised agents
 // of the proposal, plus the Practice Partner.
 //
-// Names come from `AGENTS` in `@/lib/constants` and the analytics figures come
-// from the federal data spine, so the marketing page can never quote a number
-// the consoles disagree with.
+// English names come from `AGENTS` in `@/lib/constants`, and the analytics
+// figures come from the federal data spine, so the marketing page can never
+// quote a number the consoles disagree with.
 //
 // Every rendered string here is a translation key rather than a literal —
 // `EcosystemSection` is the only consumer, and it resolves these through
 // `useLanguage().t()` at render time. Two things stay genuinely dynamic
 // through that indirection rather than being frozen into a key:
-//   - `nameKey` always resolves to the literal `AGENTS[key]` value via
-//     interpolation (`t(nameKey, { name: AGENTS[key] })`), never a translated
-//     copy of the name baked into the `en`/`ar` blocks. That keeps the
-//     landing page's agent names permanently in sync with `AGENTS`.
+//   - `nameKey` is always resolved as `t(nameKey, { name: AGENTS[key] })`,
+//     but the two language blocks use that call differently, by design.
+//     `AGENTS` is English-only, so the `en` block's value for every
+//     `*.name` key is the literal placeholder `"{{name}}"` — interpolation
+//     substitutes `AGENTS[key]` verbatim, which keeps the English landing
+//     page's agent names permanently in sync with `AGENTS` and unable to
+//     drift from it. The `ar` block instead holds a real, reviewed Arabic
+//     name per agent (e.g. "وكيل القدرات الذكي") and ignores the `name`
+//     param entirely — there is no Arabic form of `AGENTS` to interpolate
+//     from, and a literal English string spliced into an Arabic sentence
+//     via `{{name}}` would read as broken translation, not as a name.
 //   - `sample` is a function of `t`, not a string, because the analytics
 //     agent's sample line quotes live figures (`FEDERAL.*`, `nationalGaps()`)
 //     and has an optional trailing clause. Every other agent's `sample` is a

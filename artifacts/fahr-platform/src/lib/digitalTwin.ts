@@ -1,9 +1,11 @@
 // The Agentic AI Lab — Stage 1 Digital Twin.
 //
 // Everything the twin "knows" comes from what the learner types during the
-// interview, and everything it refuses to do comes from the guardrails they
-// leave switched on. There is no model behind this: `answer()` matches the
-// question against the learner's own words and composes a reply that quotes
+// interview, and everything it refuses to do comes from the two federal
+// guardrails that are always enforced (see `assessTwin` below — there is no
+// user-reachable switch that turns either one off). There is no model behind
+// this: `answer()` matches the question against the learner's own words and
+// composes a reply that quotes
 // them back. That is deliberate — a demo has to be repeatable in a room with
 // no network, and a reply that cites the task the client just typed reads as
 // far more intelligent than a generic one.
@@ -136,22 +138,6 @@ export function readiness(profile: TwinProfile): number {
   const captured = capturedFields(profile).length;
   const described = Math.round((captured / TWIN_FIELDS.length) * 80);
   return described + (profile.trainedAt ? 20 : 0);
-}
-
-/**
- * Every rule in force, federal and learner-authored. The two federal
- * guardrails are always on and every custom rule present is always active
- * (see CustomGuardrail), so this is always equal to totalGuardrailCount —
- * kept as its own function because callers ask "how many are in force", not
- * "how many exist", and the two questions happened to have different
- * answers before the federal guardrails became non-toggleable.
- */
-export function activeGuardrailCount(profile: TwinProfile): number {
-  return GUARDRAILS.length + profile.customGuardrails.length;
-}
-
-export function totalGuardrailCount(profile: TwinProfile): number {
-  return GUARDRAILS.length + profile.customGuardrails.length;
 }
 
 export function isTrainable(profile: TwinProfile): boolean {
@@ -566,6 +552,13 @@ export type SuggestedQuestion = {
  */
 export function suggestedQuestions(profile: TwinProfile, isAr: boolean): SuggestedQuestion[] {
   const task = (i: number) => profile.tasks[i];
+  // Chip 4 prefers the learner's second task so it reads differently from
+  // chip 1, but falls back to the first task rather than an unrelated
+  // generic line — a generic fallback shares no words with the knowledge
+  // pool `matchScope` checks against, so it would trip the
+  // approvedKnowledgeOnly guardrail and return the out-of-scope refusal
+  // instead of the useful answer this chip exists to demonstrate.
+  const chip4Task = task(1) ?? task(0);
   return [
     // 1 — grounded: something the learner taught it, so the answer cites a source.
     {
@@ -602,17 +595,17 @@ export function suggestedQuestions(profile: TwinProfile, isAr: boolean): Suggest
     },
     // 4 — real work: the twin being useful.
     {
-      label: task(1)
+      label: chip4Task
         ? isAr
-          ? `اكتب موجزًا قصيرًا عن: ${task(1)}`
-          : `Draft a short brief for: ${task(1)}`
+          ? `اكتب موجزًا قصيرًا عن: ${chip4Task}`
+          : `Draft a short brief for: ${chip4Task}`
         : isAr
           ? "اكتب تحديثًا من سطرين لمدير إدارتي"
           : "Draft a two-line update for my department manager",
-      prompt: task(1)
+      prompt: chip4Task
         ? isAr
-          ? `اكتب موجزًا قصيرًا عن: ${task(1)}`
-          : `Draft a short brief for: ${task(1)}`
+          ? `اكتب موجزًا قصيرًا عن: ${chip4Task}`
+          : `Draft a short brief for: ${chip4Task}`
         : isAr
           ? "اكتب تحديثًا من سطرين لمدير إدارتي"
           : "Draft a two-line update for my department manager",
