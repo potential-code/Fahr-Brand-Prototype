@@ -415,30 +415,6 @@ export type TwinReply = {
   auditRef: string | null;
 };
 
-/** Words that mean the question is reaching for someone's personal data. */
-const PERSONAL_DATA_TERMS = [
-  "emirates id",
-  "passport",
-  "medical record",
-  "patient",
-  "patients",
-  "diagnosis",
-  "phone number",
-  "home address",
-  "salary",
-  "personal data",
-  "resident's name",
-  "هوية",
-  "جواز",
-  "سجل طبي",
-  "مريض",
-  "تشخيص",
-  "رقم الهاتف",
-  "العنوان",
-  "الراتب",
-  "بيانات شخصية",
-];
-
 /** Trivial stop-word filter so scope matching keys off meaningful words. */
 const STOP_WORDS = new Set([
   "the", "a", "an", "and", "or", "for", "to", "of", "in", "on", "is", "are",
@@ -453,11 +429,6 @@ function words(value: string): string[] {
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .split(/\s+/)
     .filter((word) => word.length > 2 && !STOP_WORDS.has(word));
-}
-
-function mentionsPersonalData(question: string): boolean {
-  const lower = question.toLowerCase();
-  return PERSONAL_DATA_TERMS.some((term) => lower.includes(term));
 }
 
 /**
@@ -507,7 +478,11 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
   }
 
   // 1 — Screen the prompt for personal data.
-  if (mentionsPersonalData(question)) {
+  // TODO(Task 15): wire this to `screenForPii(question).hit` from lib/piiScreen.
+  // The keyword-only screen (and its `mentionsPersonalData` helper) moved to
+  // lib/piiScreen.ts as part of Task 12; this branch is intentionally
+  // unreachable until Task 15 rewires it, so this code keeps compiling only.
+  if (false) {
     if (guardrails.noPersonalData) {
       return {
         status: "blocked",
