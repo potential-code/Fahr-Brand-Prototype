@@ -134,8 +134,9 @@ export default function AgenticAIEvaluation() {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground">Your credential is ready</p>
               <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                This evaluation has issued a verifiable {toLevel.label} credential in your wallet, and added{" "}
-                {evaluated.impact.hoursPerMonth} hours a month of measured saving to the federal impact register.
+                This evaluation has issued a verifiable {toLevel.label} credential to your capability record and a
+                project certificate on Recognition, and added {evaluated.impact.hoursPerMonth} hours a month of
+                measured saving to the federal impact register.
               </p>
             </div>
             <Button className="shrink-0 gap-2" onClick={() => setLocation("/learner/recognition")} data-testid="button-view-recognition">
