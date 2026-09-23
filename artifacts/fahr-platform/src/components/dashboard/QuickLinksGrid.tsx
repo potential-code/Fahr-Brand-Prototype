@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
+import { competencyBadges } from "@/lib/recognitionRecord";
 
 type QuickLink = {
   href: string;
@@ -30,6 +31,10 @@ type QuickLink = {
 export function QuickLinksGrid() {
   const { result } = useLearnerProgress();
   const reduceMotion = useReducedMotion();
+
+  // Derived rather than typed, so the tile can never restate a badge count the
+  // competency set no longer has.
+  const badgeCount = competencyBadges(result).length;
 
   const links: QuickLink[] = [
     {
@@ -72,7 +77,7 @@ export function QuickLinksGrid() {
       label: "Recognition & Impact",
       description: "Badges and hours saved",
       icon: Award,
-      status: "6 badges",
+      status: `${badgeCount} badges`,
     },
     {
       href: "/learner/community",
