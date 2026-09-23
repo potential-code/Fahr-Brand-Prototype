@@ -383,7 +383,7 @@ const translations = {
       "يعمل الوكلاء الستة داخل كل بوابة، وفق معايير البيانات الاتحادية والذكاء الاصطناعي المسؤول في دولة الإمارات.",
     // Lab
     "landing.lab.points.simulate": "محاكاة آمنة لسيناريوهات خاصة بجهتك",
-    "landing.lab.points.collaborate": "التعاون مع {{agent}}",
+    "landing.lab.points.collaborate": "التعاون مع شريك التدريب الذكي",
     "landing.lab.points.translate": "تحويل القدرات إلى مكاسب كفاءة حقيقية",
     "landing.lab.points.governed": "محكوم بمعايير خصوصية البيانات في دولة الإمارات",
     "landing.lab.imageAlt": "موظفون اتحاديون يعملون في مختبر الذكاء الاصطناعي",
