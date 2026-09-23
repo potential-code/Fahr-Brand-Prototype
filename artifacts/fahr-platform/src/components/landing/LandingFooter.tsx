@@ -3,6 +3,7 @@
 import React from "react";
 import { Link } from "wouter";
 import { ArrowUp } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { STAKEHOLDERS } from "@/lib/constants";
 import { FEDERAL } from "@/lib/federal";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,15 @@ import { TYPE } from "./typography";
 const scrollTo = (id: string) =>
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
+const PLATFORM_LINKS = [
+  { id: "pathways", key: "landing.footer.links.pathways" },
+  { id: "journey", key: "landing.footer.links.journey" },
+  { id: "ecosystem", key: "landing.footer.links.ecosystem" },
+  { id: "lab", key: "landing.footer.links.lab" },
+];
+
 export function LandingFooter() {
+  const { t } = useLanguage();
   return (
     <footer className="bg-[#2a2825] pt-14 pb-8 text-white md:pt-16">
       <div className={TYPE.gutter}>
@@ -21,35 +30,31 @@ export function LandingFooter() {
             <span className="mb-5 inline-block rounded-md bg-white px-2.5 py-1.5">
               <img
                 src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`}
-                alt="Federal Authority for Government Human Resources"
+                alt={t("landing.footer.logoAlt")}
                 className="h-9 object-contain"
                 loading="lazy"
               />
             </span>
             <p className="max-w-xs text-sm leading-relaxed text-white/65">
-              Empowering federal government employees with the capability required for an AI-enabled
-              future — across {FEDERAL.ministriesTotal} entities and{" "}
-              {FEDERAL.employees.toLocaleString("en-US")} employees.
+              {t("landing.footer.blurb", {
+                entities: FEDERAL.ministriesTotal,
+                employees: FEDERAL.employees.toLocaleString("en-US"),
+              })}
             </p>
           </RevealItem>
 
           <RevealItem>
             <h2 className="mb-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-white/90">
-              Platform
+              {t("landing.footer.platformHeading")}
             </h2>
             <ul className="space-y-2.5 text-sm text-white/65">
-              {[
-                { id: "pathways", label: "Pathways" },
-                { id: "journey", label: "Learner journey" },
-                { id: "ecosystem", label: "AI agents" },
-                { id: "lab", label: "AI Lab" },
-              ].map((link) => (
+              {PLATFORM_LINKS.map((link) => (
                 <li key={link.id}>
                   <button
                     onClick={() => scrollTo(link.id)}
                     className="transition-colors hover:text-white"
                   >
-                    {link.label}
+                    {t(link.key)}
                   </button>
                 </li>
               ))}
@@ -58,7 +63,7 @@ export function LandingFooter() {
 
           <RevealItem>
             <h2 className="mb-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-white/90">
-              Portals
+              {t("landing.footer.portalsHeading")}
             </h2>
             <ul className="space-y-2.5 text-sm text-white/65">
               {STAKEHOLDERS.map((s) => (
@@ -73,22 +78,22 @@ export function LandingFooter() {
 
           <RevealItem>
             <h2 className="mb-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-white/90">
-              Access
+              {t("landing.footer.accessHeading")}
             </h2>
             <ul className="space-y-2.5 text-sm text-white/65">
               <li>
                 <Link href="/login" className="transition-colors hover:text-white">
-                  Sign in
+                  {t("landing.footer.signIn")}
                 </Link>
               </li>
               <li>
                 <Link href="/signup" className="transition-colors hover:text-white">
-                  Register
+                  {t("landing.footer.register")}
                 </Link>
               </li>
               <li>
                 <button onClick={() => scrollTo("ecosystem")} className="transition-colors hover:text-white">
-                  Responsible AI
+                  {t("landing.footer.responsibleAi")}
                 </button>
               </li>
             </ul>
@@ -103,14 +108,13 @@ export function LandingFooter() {
           )}
         >
           <p className="text-xs text-white/45">
-            &copy; {new Date().getFullYear()} Federal Authority for Government Human Resources. All
-            rights reserved.
+            {t("landing.footer.copyright", { year: new Date().getFullYear() })}
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3.5 py-1.5 text-xs font-medium text-white/70 transition-colors hover:border-white/35 hover:text-white"
           >
-            Back to top
+            {t("landing.footer.backToTop")}
             <ArrowUp className="h-3.5 w-3.5" />
           </button>
         </Reveal>

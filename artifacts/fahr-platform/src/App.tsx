@@ -3,7 +3,7 @@ import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { LanguageProvider } from "@/lib/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/lib/LanguageContext";
 import { LearnerProgressProvider } from "@/lib/LearnerProgressContext";
 import { FederalDataProvider } from "@/lib/FederalDataContext";
 import { FahrConsoleProvider } from "@/lib/FahrConsoleContext";
@@ -81,6 +81,26 @@ export function ScrollToTop() {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
+
+  return null;
+}
+
+/** The landing page's own route — the only path the language toggle governs. */
+const LANDING_PATH = "/";
+
+/**
+ * The bilingual toggle lives on the landing page only. Everything past it is
+ * English and LTR, so this resets on the route rather than on a click handler
+ * — a deep link straight into the app, the back button, and a programmatic
+ * navigation out of the landing page all land in the same English/LTR state.
+ */
+export function ResetLanguageOutsideLanding() {
+  const [location] = useLocation();
+  const { language, setLanguage } = useLanguage();
+
+  useEffect(() => {
+    if (location !== LANDING_PATH && language !== "en") setLanguage("en");
+  }, [location, language, setLanguage]);
 
   return null;
 }
@@ -174,6 +194,7 @@ function App() {
                         base={import.meta.env.BASE_URL.replace(/\/$/, "")}
                       >
                         <ScrollToTop />
+                        <ResetLanguageOutsideLanding />
                         <Router />
                       </WouterRouter>
                     </DigitalTwinProvider>

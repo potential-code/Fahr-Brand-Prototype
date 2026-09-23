@@ -9,6 +9,7 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, Sparkles } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { cn } from "@/lib/utils";
 import { JOURNEY_STAGES, SPECIALISED_AGENTS } from "./agents";
 import { LANDING_MOTION, Parallax, useAutoRotate } from "./motion";
@@ -19,6 +20,7 @@ const ROTATE_MS = 6200;
 export function EcosystemSection() {
   const [paused, setPaused] = useState(false);
   const reduced = useReducedMotion();
+  const { t } = useLanguage();
   const { index, select, progress } = useAutoRotate({
     count: SPECIALISED_AGENTS.length,
     intervalMs: ROTATE_MS,
@@ -31,9 +33,12 @@ export function EcosystemSection() {
     <section id="ecosystem" className={cn("border-y border-border bg-white", TYPE.section)}>
       <div className={TYPE.gutter}>
         <SectionHeading
-          eyebrow="The Capability Ecosystem"
-          segments={["Powered by", { t: "six AI agents", accent: true }]}
-          description="Move beyond static courses. A suite of specialised agents provides continuous coaching, dynamic content, safe practice and real-time evaluation — embedded in the flow of work."
+          eyebrow={t("landing.ecosystem.eyebrow")}
+          segments={[
+            t("landing.ecosystem.headline.line1"),
+            { t: t("landing.ecosystem.headline.accent"), accent: true },
+          ]}
+          description={t("landing.ecosystem.description")}
           className="mb-9 md:mb-12"
         />
 
@@ -73,7 +78,7 @@ export function EcosystemSection() {
             />
 
             <span className="absolute end-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/35 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/85 backdrop-blur-sm">
-              Agent
+              {t("landing.ecosystem.agentLabel")}
               <span className="tabular-nums text-primary">
                 {String(index + 1).padStart(2, "0")}
               </span>
@@ -209,7 +214,7 @@ export function EcosystemSection() {
 
                 <div className="mt-5">
                   <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Present in
+                    {t("landing.ecosystem.presentIn")}
                   </span>
                   <ul className="mt-2 flex flex-wrap gap-1.5">
                     {JOURNEY_STAGES.map((stage) => {
@@ -238,7 +243,7 @@ export function EcosystemSection() {
                   <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Sparkles className="h-3 w-3" />
                   </span>
-                  Sample output
+                  {t("landing.ecosystem.sampleOutput")}
                 </figcaption>
                 <blockquote className="text-sm leading-relaxed text-foreground/90 md:text-[0.9375rem]">
                   {reduced ? (
@@ -273,7 +278,7 @@ export function EcosystemSection() {
                     )}
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
                   </span>
-                  Generated in the flow of work, in Arabic or English
+                  {t("landing.ecosystem.generatedNote")}
                 </div>
               </figure>
             </motion.div>
@@ -281,7 +286,7 @@ export function EcosystemSection() {
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          All six agents operate inside every portal, under UAE federal data and responsible-AI standards.
+          {t("landing.ecosystem.footnote")}
         </p>
       </div>
     </section>

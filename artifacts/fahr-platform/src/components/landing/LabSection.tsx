@@ -6,26 +6,29 @@ import React from "react";
 import { useReducedMotion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { CountUp } from "@/components/CountUp";
+import { useLanguage } from "@/lib/LanguageContext";
+import { AGENTS } from "@/lib/constants";
 import { FEDERAL } from "@/lib/federal";
 import { cn } from "@/lib/utils";
 import { LANDING_MOTION, LightSweep, Reveal, RevealGroup, RevealItem, SandGrid } from "./motion";
 import { SectionHeading, TYPE } from "./typography";
 
-const POINTS = [
-  "Safely simulate entity-specific scenarios",
-  "Collaborate with the AI Practice Partner",
-  "Translate capability into real efficiency gains",
-  "Governed by UAE data privacy standards",
+const POINTS: { key: string; params?: Record<string, string> }[] = [
+  { key: "landing.lab.points.simulate" },
+  { key: "landing.lab.points.collaborate", params: { agent: AGENTS.practice } },
+  { key: "landing.lab.points.translate" },
+  { key: "landing.lab.points.governed" },
 ];
 
 const LAB_STATS = [
-  { value: FEDERAL.twins, label: "AI digital twins built" },
-  { value: FEDERAL.projectsSubmitted, label: "Workplace projects submitted" },
-  { value: FEDERAL.hoursSavedPerMonth, label: "Hours saved each month" },
+  { value: FEDERAL.twins, key: "landing.lab.stats.twins" },
+  { value: FEDERAL.projectsSubmitted, key: "landing.lab.stats.projects" },
+  { value: FEDERAL.hoursSavedPerMonth, key: "landing.lab.stats.hours" },
 ];
 
 export function LabSection() {
   const reduced = useReducedMotion();
+  const { t } = useLanguage();
 
   return (
     <section
@@ -44,7 +47,7 @@ export function LabSection() {
             <div className="relative overflow-hidden rounded-2xl border border-border shadow-xl md:rounded-3xl">
               <img
                 src={`${import.meta.env.BASE_URL}brand/landing/section-lab.jpg`}
-                alt="Federal employees working in the Agentic AI Lab"
+                alt={t("landing.lab.imageAlt")}
                 loading="lazy"
                 decoding="async"
                 className="h-auto w-full"
@@ -63,7 +66,7 @@ export function LabSection() {
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
                   </span>
                   <span className="font-mono text-[10px] font-semibold tracking-[0.16em] text-white">
-                    SECURE SANDBOX ACTIVE
+                    {t("landing.lab.sandboxActive")}
                   </span>
                 </span>
               </div>
@@ -73,18 +76,21 @@ export function LabSection() {
           <div className="order-1 lg:order-2">
             <SectionHeading
               align="start"
-              eyebrow="Practical Application"
-              segments={["The Agentic AI Lab", { t: "& Digital Twin", accent: true }]}
-              description="Learning becomes measurable outcomes. The Lab is a secure, sandboxed environment where federal employees build, test and refine real agentic workflows — without touching production data."
+              eyebrow={t("landing.lab.eyebrow")}
+              segments={[
+                t("landing.lab.headline.line1"),
+                { t: t("landing.lab.headline.accent"), accent: true },
+              ]}
+              description={t("landing.lab.description")}
               className="mb-6"
             />
 
             <RevealGroup as="ul" className="space-y-2.5" stagger={LANDING_MOTION.stagger.tight}>
               {POINTS.map((point) => (
-                <RevealItem as="li" key={point} className="flex items-start gap-3">
+                <RevealItem as="li" key={point.key} className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-primary" />
                   <span className="text-sm font-medium text-foreground/90 md:text-[0.9375rem]">
-                    {point}
+                    {t(point.key, point.params)}
                   </span>
                 </RevealItem>
               ))}
@@ -92,12 +98,12 @@ export function LabSection() {
 
             <RevealGroup className="mt-7 grid grid-cols-3 gap-3 border-t border-border pt-6">
               {LAB_STATS.map((stat) => (
-                <RevealItem key={stat.label}>
+                <RevealItem key={stat.key}>
                   <p className="text-lg font-bold text-foreground md:text-2xl">
                     <CountUp to={stat.value} />
                   </p>
                   <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                    {stat.label}
+                    {t(stat.key)}
                   </p>
                 </RevealItem>
               ))}

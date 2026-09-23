@@ -6,15 +6,16 @@ import { Link } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/LanguageContext";
 import { cn } from "@/lib/utils";
 import { LANDING_MOTION, ScrollProgressBar, useActiveSection, useScrolledPast } from "./motion";
 
 const NAV_LINKS = [
-  { id: "pathways", label: "Pathways" },
-  { id: "journey", label: "Journey" },
-  { id: "ecosystem", label: "Ecosystem" },
-  { id: "lab", label: "AI Lab" },
-];
+  { id: "pathways", key: "landing.header.nav.pathways" },
+  { id: "journey", key: "landing.header.nav.journey" },
+  { id: "ecosystem", key: "landing.header.nav.ecosystem" },
+  { id: "lab", key: "landing.header.nav.lab" },
+] as const;
 
 const scrollToSection = (id: string) =>
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -23,6 +24,7 @@ export function LandingHeader({ onRegister }: { onRegister: () => void }) {
   const condensed = useScrolledPast(32);
   const active = useActiveSection(NAV_LINKS.map((l) => l.id));
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t, language, setLanguage } = useLanguage();
 
   return (
     <header
@@ -38,12 +40,12 @@ export function LandingHeader({ onRegister }: { onRegister: () => void }) {
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            aria-label="Back to top"
+            aria-label={t("landing.header.backToTop")}
             className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <img
               src={`${import.meta.env.BASE_URL}brand/fahr-logo.png`}
-              alt="Federal Authority for Government Human Resources"
+              alt={t("landing.header.logoAlt")}
               className={cn(
                 "object-contain transition-[height] duration-300",
                 condensed ? "h-7 md:h-8" : "h-8 md:h-10",
@@ -72,20 +74,29 @@ export function LandingHeader({ onRegister }: { onRegister: () => void }) {
                     transition={{ type: "spring", stiffness: 320, damping: 28 }}
                   />
                 )}
-                <span className="relative">{link.label}</span>
+                <span className="relative">{t(link.key)}</span>
               </button>
             );
           })}
         </nav>
 
         <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setLanguage(language === "ar" ? "en" : "ar")}
+            className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+            aria-label={language === "ar" ? "Switch to English" : "التبديل إلى العربية"}
+            data-testid="button-language-toggle"
+          >
+            {language === "ar" ? "EN" : "ع"}
+          </button>
           <Button
             variant="ghost"
             className="hidden font-medium text-foreground hover:bg-primary/5 hover:text-primary md:inline-flex"
             asChild
           >
             <Link href="/login" data-testid="link-signin">
-              Sign In
+              {t("landing.header.signIn")}
             </Link>
           </Button>
           <Button
@@ -93,13 +104,13 @@ export function LandingHeader({ onRegister }: { onRegister: () => void }) {
             data-testid="button-register-header"
             className="hidden rounded-full bg-primary px-5 text-primary-foreground shadow-sm hover:bg-primary/90 sm:inline-flex"
           >
-            Register
+            {t("landing.header.register")}
           </Button>
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label={menuOpen ? t("landing.header.menuClose") : t("landing.header.menuOpen")}
             data-testid="button-landing-menu"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground lg:hidden"
           >
@@ -128,12 +139,12 @@ export function LandingHeader({ onRegister }: { onRegister: () => void }) {
                   }}
                   className="block w-full rounded-lg px-3 py-2.5 text-start text-sm font-medium text-foreground hover:bg-primary/5"
                 >
-                  {link.label}
+                  {t(link.key)}
                 </button>
               ))}
               <div className="flex gap-2 pt-2">
                 <Button variant="outline" className="flex-1 rounded-full" asChild>
-                  <Link href="/login">Sign In</Link>
+                  <Link href="/login">{t("landing.header.signIn")}</Link>
                 </Button>
                 <Button
                   className="flex-1 rounded-full bg-primary text-primary-foreground"
@@ -142,7 +153,7 @@ export function LandingHeader({ onRegister }: { onRegister: () => void }) {
                     onRegister();
                   }}
                 >
-                  Register
+                  {t("landing.header.register")}
                 </Button>
               </div>
             </div>
