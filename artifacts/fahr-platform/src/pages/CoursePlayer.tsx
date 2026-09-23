@@ -34,6 +34,7 @@ import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { CoachDock } from "@/components/coach/CoachDock";
 import { StepQuiz } from "@/components/learning/StepQuiz";
 import { VideoEmbed } from "@/components/learning/VideoEmbed";
+import { RemediationBanner } from "@/components/learning/RemediationBanner";
 import { AGENTS } from "@/lib/constants";
 import type { CoachContext } from "@/lib/coach";
 
@@ -125,6 +126,9 @@ export default function CoursePlayer() {
   const { toast } = useToast();
   const {
     result,
+    remediation,
+    openRemediation,
+    revisionDone,
     getCourseProgress,
     getCoursePercent,
     toggleLessonComplete,
@@ -134,16 +138,26 @@ export default function CoursePlayer() {
 
   const course = params?.courseId ? COURSE_BY_ID[params.courseId] : undefined;
   const progress = course ? getCourseProgress(course.id) : undefined;
+  const remediationFor = course ? remediation[course.id] : undefined;
 
-  const lessons = useMemo(() => (course ? courseLessons(course) : []), [course]);
+  // `courseLessons` is deliberately left alone (it also drives the federal
+  // roll-up), so the revision units are appended locally and only while
+  // remediation is open.
+  const lessons = useMemo(
+    () =>
+      course ? [...courseLessons(course), ...(remediationFor ? course.revisionUnits : [])] : [],
+    [course, remediationFor],
+  );
 
   const initialItem = useCallback((): ActiveItem => {
     if (!course) return { kind: "pretest" };
     const p = getCourseProgress(course.id);
     if (!p.pretestDone) return { kind: "pretest" };
-    const next = courseLessons(course).find((l) => !p.completedLessonIds.includes(l.id));
+    const remFor = remediation[course.id];
+    const allLessons = [...courseLessons(course), ...(remFor ? course.revisionUnits : [])];
+    const next = allLessons.find((l) => !p.completedLessonIds.includes(l.id));
     return next ? { kind: "lesson", id: next.id } : { kind: "final" };
-  }, [course, getCourseProgress]);
+  }, [course, getCourseProgress, remediation]);
 
   const [active, setActive] = useState<ActiveItem>(initialItem);
   const [coachOpen, setCoachOpen] = useState(false);
@@ -193,6 +207,7 @@ export default function CoursePlayer() {
   const percent = getCoursePercent(course.id);
   const lessonsDone = progress.completedLessonIds.length;
   const allLessonsDone = lessonsDone === lessons.length;
+  const finalOpen = allLessonsDone && (!remediationFor || revisionDone(course.id));
   const backHref = result ? "/learner/assessment/report" : "/learner";
   const backLabel = result ? "Back to my report" : "Back to Dashboard";
 
@@ -324,6 +339,18 @@ export default function CoursePlayer() {
           </div>
         </div>
 
+        {remediationFor && (
+          <div className="mt-6">
+            <RemediationBanner
+              competencyShort={COMPETENCY_BY_ID[remediationFor.competencyId]?.short ?? "this capability"}
+              correct={remediationFor.lastScore}
+              total={course.finalAssessment.questions.length}
+              unitCount={course.revisionUnits.length}
+              complete={revisionDone(course.id)}
+            />
+          </div>
+        )}
+
         <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr] items-start">
           {/* Outline */}
           <div className="space-y-5 lg:sticky lg:top-20">
@@ -366,16 +393,41 @@ export default function CoursePlayer() {
                   </div>
                 ))}
 
+                {remediationFor && (
+                  <div className="mt-4">
+                    <p className="flex items-center gap-1.5 px-3 pb-1.5 text-xs font-semibold text-primary">
+                      <Sparkles className="h-3 w-3" /> Revision
+                    </p>
+                    <p className="px-3 pb-2 text-[11px] text-muted-foreground">
+                      Added by the {AGENTS.content}
+                    </p>
+                    <div className="space-y-1">
+                      {course.revisionUnits.map((lesson) => {
+                        const Icon = LESSON_ICON[lesson.type];
+                        return outlineItem(
+                          lesson.id,
+                          lesson.title,
+                          `${LESSON_TYPE_LABEL[lesson.type]} · ${lesson.duration}`,
+                          <Icon className="h-2.5 w-2.5 text-muted-foreground" />,
+                          active.kind === "lesson" && active.id === lesson.id,
+                          progress.completedLessonIds.includes(lesson.id),
+                          () => setActive({ kind: "lesson", id: lesson.id }),
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-4 pt-3 border-t border-border space-y-1">
                   {outlineItem(
                     "final",
                     course.finalAssessment.title,
-                    allLessonsDone ? "3 questions · unlocks certificate" : "Complete all lessons to unlock",
+                    finalOpen ? "3 questions · unlocks certificate" : "Complete all lessons to unlock",
                     <Award className="h-2.5 w-2.5 text-muted-foreground" />,
                     active.kind === "final",
                     progress.finalDone,
                     () => setActive({ kind: "final" }),
-                    !allLessonsDone,
+                    !finalOpen,
                   )}
                 </div>
               </CardContent>
@@ -448,7 +500,7 @@ export default function CoursePlayer() {
 
                   {active.kind === "final" && (
                     <div>
-                      {!allLessonsDone ? (
+                      {!finalOpen ? (
                         <div className="text-center py-10">
                           <Lock className="h-8 w-8 text-muted-foreground mx-auto" />
                           <h2 className="mt-4 text-lg font-semibold text-foreground">
@@ -500,6 +552,11 @@ export default function CoursePlayer() {
                               passMark={2}
                               submitLabel="Claim your credential"
                               passNote="Strong result. Your credential is ready to claim."
+                              failNote="Below the pass mark. Your Content Agent is adding revision units."
+                              onAttempt={(correct) => {
+                                if (correct >= 2) return;
+                                openRemediation(course.id, course.competencyId, correct);
+                              }}
                               onPass={() => {
                                 setFinalDone(course.id);
                                 toast({
