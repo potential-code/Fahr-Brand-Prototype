@@ -22,10 +22,8 @@ export type GuardrailId = "noPersonalData" | "approvedKnowledgeOnly";
 export type Guardrail = {
   id: GuardrailId;
   label: LabelPair;
-  /** What the guardrail does while it is on. */
+  /** What the guardrail does — always, since neither can be switched off. */
   on: LabelPair;
-  /** What the learner is accepting by switching it off. */
-  off: LabelPair;
   /** Federal policy this mirrors in the FAHR governance console. */
   policy: LabelPair;
 };
@@ -38,10 +36,6 @@ export const GUARDRAILS: Guardrail[] = [
       en: "Prompts are screened for personal data before they reach the model.",
       ar: "تُفحص الطلبات بحثًا عن بيانات شخصية قبل وصولها إلى النموذج.",
     },
-    off: {
-      en: "Personal data reaches the model unscreened — a PDPL exposure.",
-      ar: "تصل البيانات الشخصية إلى النموذج دون فحص — مخالفة لقانون حماية البيانات.",
-    },
     policy: {
       en: "Federal policy — block personal data from AI prompts",
       ar: "سياسة اتحادية — منع البيانات الشخصية في طلبات الذكاء الاصطناعي",
@@ -53,10 +47,6 @@ export const GUARDRAILS: Guardrail[] = [
     on: {
       en: "The twin answers only from the sources you connected, and says so when it cannot.",
       ar: "يجيب التوأم من المصادر التي ربطتها فقط، ويوضح عندما لا يستطيع.",
-    },
-    off: {
-      en: "The twin answers from general knowledge with nothing to cite.",
-      ar: "يجيب التوأم من معرفة عامة دون مصدر يمكن الاستناد إليه.",
     },
     policy: {
       en: "Entity policy — approved knowledge sources only",

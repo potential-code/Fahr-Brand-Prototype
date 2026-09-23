@@ -84,6 +84,9 @@ describe("the twin answers only from what it was taught", () => {
     expect(reply.text).toContain("Drafting campaign briefs");
   });
 
+  // No UI path can ever set this false (setGuardrail was removed) — this
+  // documents answer()'s pure-function contract for the boolean, not a
+  // state a learner can reach.
   it("answers out of scope anyway once approved-knowledge-only is switched off", () => {
     const profile = trainedProfile({
       guardrails: { ...emptyProfile().guardrails, approvedKnowledgeOnly: false },
@@ -101,6 +104,8 @@ describe("guardrails change the outcome, not just the wording", () => {
     expect(reply.notes.some((note) => note.id === "noPersonalData" && note.kind === "refused")).toBe(true);
   });
 
+  // Same note as above: exercises answer()'s own contract for the boolean,
+  // not a state reachable through the UI any more.
   it("lets the same prompt through, flagged, once the screen is switched off", () => {
     const profile = trainedProfile({
       guardrails: { ...emptyProfile().guardrails, noPersonalData: false },

@@ -223,8 +223,6 @@ export default function AgenticAILabTwin() {
     setPhase("interview");
   };
 
-  const relaxed = Object.values(profile.guardrails).filter((on) => !on).length;
-
   return (
     <Layout role="learner">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto pb-12">
@@ -300,26 +298,20 @@ export default function AgenticAILabTwin() {
                   <span
                     className={`inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border backdrop-blur-sm ${
                       isLive
-                        ? relaxed > 0
-                          ? "bg-destructive/10 border-destructive/40 text-destructive"
-                          : "bg-green-500/15 border-green-400/40 text-green-700"
+                        ? "bg-green-500/15 border-green-400/40 text-green-700"
                         : "bg-background/80 border-border text-muted-foreground"
                     }`}
                     data-testid="twin-status"
                   >
                     <span
                       className={`w-2 h-2 rounded-full ${
-                        isLive ? (relaxed > 0 ? "bg-destructive" : "bg-green-500") : "bg-primary animate-pulse"
+                        isLive ? "bg-green-500" : "bg-primary animate-pulse"
                       }`}
                     />
                     {isLive
-                      ? relaxed > 0
-                        ? isAr
-                          ? "نشط — خارج السياسة"
-                          : "Live — outside policy"
-                        : isAr
-                          ? "نشط ومحكوم"
-                          : "Live & governed"
+                      ? isAr
+                        ? "نشط ومحكوم"
+                        : "Live & governed"
                       : phase === "training"
                         ? isAr
                           ? "جارٍ التدريب..."

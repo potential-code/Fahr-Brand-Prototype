@@ -634,7 +634,8 @@ export function evaluateSubmission(
   ];
 
   // The twin the learner built in the Lab is assessed alongside the project it
-  // was built for — including the guardrails they left on it.
+  // was built for — including the federal guardrails it always operates
+  // under, both of which are permanently enforced rather than left on.
   if (twin && twin.trainedAt) {
     const assessed = assessTwin(twin);
     dimensions.push({
