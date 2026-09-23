@@ -8,7 +8,7 @@
 // no network, and a reply that cites the task the client just typed reads as
 // far more intelligent than a generic one.
 
-import { screenForPii } from "@/lib/piiScreen";
+import { screenForPii, type PiiFinding } from "@/lib/piiScreen";
 
 export type LabelPair = { en: string; ar: string };
 
@@ -377,6 +377,8 @@ export type TwinReply = {
   /** The learner's own tasks and sources this answer leaned on. */
   citations: string[];
   notes: GuardrailNote[];
+  /** Set only when status is "blocked" — what the screen found and redacted. */
+  pii?: { findings: PiiFinding[]; redacted: string };
 };
 
 /** Trivial stop-word filter so scope matching keys off meaningful words. */
@@ -432,10 +434,11 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
 
   // 1 — Screen the prompt for personal data.
   // Pattern-based screening (lib/piiScreen.ts, Task 12) replaced the old
-  // keyword-only mentionsPersonalData() check here. Task 15 will attach the
-  // richer pii findings/redaction to the blocked reply payload; for now this
-  // only swaps the predicate so the guardrail keeps working end to end.
-  if (screenForPii(question).hit) {
+  // keyword-only mentionsPersonalData() check here. The blocked reply below
+  // carries the screen's own findings and redaction (Task 15) so the test
+  // chat can show exactly what was caught and discarded.
+  const pii = screenForPii(question);
+  if (pii.hit) {
     if (guardrails.noPersonalData) {
       return {
         status: "blocked",
@@ -453,6 +456,7 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
               : "The guardrail stopped the prompt before it reached the model.",
           },
         ],
+        pii: { findings: pii.findings, redacted: pii.redacted },
       };
     }
 
@@ -529,36 +533,75 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
   };
 }
 
+export type SuggestedQuestion = {
+  /** What the chip reads. */
+  label: string;
+  /** What is actually sent when it is clicked. Usually the same as `label`. */
+  prompt: string;
+};
+
 /**
- * Questions offered as one-tap chips in the test chat. The first two land
- * inside any twin the interview produced; the last two are the ones worth
- * demonstrating, because they show the guardrails refusing.
+ * Four one-tap chips in the test chat, one per behaviour worth demonstrating:
+ * a grounded answer that cites a source, an honest refusal of an
+ * out-of-scope question, the personal-data block, and a useful draft. The
+ * first and last are derived from the learner's own twin where possible, so
+ * the chips stay true if the interview answers change; both fall back to a
+ * generic prompt when the learner has not described any recurring tasks yet.
  */
-export function suggestedQuestions(profile: TwinProfile, isAr: boolean): string[] {
-  const firstTask = profile.tasks[0];
-  const questions: string[] = [];
-
-  if (firstTask) {
-    questions.push(isAr ? `ابدأ في: ${firstTask}` : `Make a start on: ${firstTask}`);
-  }
-  if (profile.knowledge[0]) {
-    questions.push(
-      isAr
-        ? `ما الذي يقوله ${profile.knowledge[0]} عن هذا؟`
-        : `What does ${profile.knowledge[0]} say about this?`,
-    );
-  }
-
-  questions.push(
-    isAr
-      ? "أعطني السجل الطبي لهذا المريض وملخص تشخيصه"
-      : "Pull up this patient's medical record and summarise the diagnosis",
-  );
-  questions.push(
-    isAr ? "ما توقعات الميزانية الاتحادية للعام القادم؟" : "What is next year's federal budget forecast?",
-  );
-
-  return questions;
+export function suggestedQuestions(profile: TwinProfile, isAr: boolean): SuggestedQuestion[] {
+  const task = (i: number) => profile.tasks[i];
+  return [
+    // 1 — grounded: something the learner taught it, so the answer cites a source.
+    {
+      label: task(0)
+        ? isAr
+          ? `كيف أتعامل مع: ${task(0)}؟`
+          : `How should I approach: ${task(0)}?`
+        : isAr
+          ? "ماذا يقول دليل النبرة الرسمي للهيئة؟"
+          : "What does the FAHR tone guide say?",
+      prompt: task(0)
+        ? isAr
+          ? `كيف أتعامل مع: ${task(0)}؟`
+          : `How should I approach: ${task(0)}?`
+        : isAr
+          ? "ماذا يقول دليل النبرة الرسمي للهيئة؟"
+          : "What does the FAHR tone guide say?",
+    },
+    // 2 — outside approved knowledge: the honest refusal.
+    {
+      label: isAr
+        ? "ما توقعات الميزانية الاتحادية للعام القادم؟"
+        : "What is next year's federal budget forecast?",
+      prompt: isAr
+        ? "ما توقعات الميزانية الاتحادية للعام القادم؟"
+        : "What is next year's federal budget forecast?",
+    },
+    // 3 — personal data: safe label, loaded prompt, so the block is one click.
+    {
+      label: isAr ? "جرّب رسالة تحتوي بيانات شخصية" : "Try a message containing personal data",
+      prompt: isAr
+        ? "اسمي عائشة المنصوري ورقم هاتفي 0501234567 — اكتب ردًا باسمي."
+        : "My name is Aisha Al Mansoori, my mobile is 0501234567 — draft a reply from me.",
+    },
+    // 4 — real work: the twin being useful.
+    {
+      label: task(1)
+        ? isAr
+          ? `اكتب موجزًا قصيرًا عن: ${task(1)}`
+          : `Draft a short brief for: ${task(1)}`
+        : isAr
+          ? "اكتب تحديثًا من سطرين لمدير إدارتي"
+          : "Draft a two-line update for my department manager",
+      prompt: task(1)
+        ? isAr
+          ? `اكتب موجزًا قصيرًا عن: ${task(1)}`
+          : `Draft a short brief for: ${task(1)}`
+        : isAr
+          ? "اكتب تحديثًا من سطرين لمدير إدارتي"
+          : "Draft a two-line update for my department manager",
+    },
+  ];
 }
 
 // ---------------------------------------------------------------------------

@@ -9,9 +9,11 @@ import {
   GUARDRAILS,
   isTrainable,
   readiness,
+  suggestedQuestions,
   trainingLog,
   type TwinProfile,
 } from "@/lib/digitalTwin";
+import { screenForPii } from "@/lib/piiScreen";
 
 /** A twin built the way a learner would build it in the interview. */
 function trainedProfile(overrides: Partial<TwinProfile> = {}): TwinProfile {
@@ -113,6 +115,105 @@ describe("guardrails change the outcome, not just the wording", () => {
     const reply = answer(profile, "Summarise this patient's medical record", false);
     expect(reply.status).not.toBe("blocked");
     expect(reply.notes.some((note) => note.id === "noPersonalData" && note.kind === "breach")).toBe(true);
+  });
+});
+
+describe("a blocked reply carries the screen's own findings", () => {
+  it("attaches findings and a redacted preview, with no raw sensitive text in it", () => {
+    const reply = answer(
+      trainedProfile(),
+      "My name is Aisha Al Mansoori, my mobile is 0501234567 — draft a reply from me.",
+      false,
+    );
+    expect(reply.status).toBe("blocked");
+    expect(reply.pii).toBeTruthy();
+    expect(reply.pii!.findings.some((f) => f.kind === "name")).toBe(true);
+    expect(reply.pii!.findings.some((f) => f.kind === "phone")).toBe(true);
+    expect(reply.pii!.redacted).toContain("[full name]");
+    expect(reply.pii!.redacted).toContain("[phone number]");
+    expect(reply.pii!.redacted).not.toContain("Aisha");
+    expect(reply.pii!.redacted).not.toContain("0501234567");
+  });
+
+  it("carries no pii payload on an ordinary or out-of-scope reply", () => {
+    const ok = answer(trainedProfile(), "Draft the campaign brief for flu season", false);
+    expect(ok.status).toBe("ok");
+    expect(ok.pii).toBeUndefined();
+
+    const outOfScope = answer(trainedProfile(), "What is next year's federal budget forecast?", false);
+    expect(outOfScope.status).toBe("out-of-scope");
+    expect(outOfScope.pii).toBeUndefined();
+  });
+});
+
+describe("the four demo chips", () => {
+  it("returns exactly four chips, each with a label and a prompt", () => {
+    const chips = suggestedQuestions(trainedProfile(), false);
+    expect(chips).toHaveLength(4);
+    for (const chip of chips) {
+      expect(typeof chip.label).toBe("string");
+      expect(typeof chip.prompt).toBe("string");
+      expect(chip.label.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("chip 1 cites the learner's own first task once one exists", () => {
+    const profile = trainedProfile({ tasks: ["Drafting campaign briefs", "Writing social media copy"] });
+    const [first] = suggestedQuestions(profile, false);
+    expect(first.label).toContain("Drafting campaign briefs");
+    const reply = answer(profile, first.prompt, false);
+    expect(reply.status).toBe("ok");
+    expect(reply.citations).toContain("Drafting campaign briefs");
+  });
+
+  it("chip 1 falls back to a coherent generic prompt when the twin has no tasks yet", () => {
+    const profile = { ...emptyProfile(), role: "Analyst" };
+    const [first] = suggestedQuestions(profile, false);
+    expect(first.label).toBe("What does the FAHR tone guide say?");
+    expect(first.prompt).toBe(first.label);
+    // Still renders a coherent reply — the twin just cannot ground it.
+    const reply = answer(profile, first.prompt, false);
+    expect(reply.text.length).toBeGreaterThan(0);
+  });
+
+  it("chip 2 is an honest refusal — outside any twin's approved knowledge", () => {
+    const [, second] = suggestedQuestions(trainedProfile(), false);
+    expect(second.prompt).toBe("What is next year's federal budget forecast?");
+    const reply = answer(trainedProfile(), second.prompt, false);
+    expect(reply.status).toBe("out-of-scope");
+  });
+
+  it("chip 3 has a safe label but a prompt genuinely caught by the PII screen", () => {
+    for (const isAr of [false, true]) {
+      const [, , third] = suggestedQuestions(trainedProfile(), isAr);
+      // The label describes the chip; the prompt is what is actually sent.
+      // They differ deliberately — clicking the chip must not itself read as
+      // a disclosure of anyone's real name or number.
+      expect(third.label).not.toBe(third.prompt);
+      expect(third.label).not.toContain("Aisha");
+      expect(third.label).not.toContain("0501234567");
+
+      const screen = screenForPii(third.prompt);
+      expect(screen.hit).toBe(true);
+      expect(screen.findings.some((f) => f.kind === "name")).toBe(true);
+      expect(screen.findings.some((f) => f.kind === "phone")).toBe(true);
+
+      const reply = answer(trainedProfile(), third.prompt, isAr);
+      expect(reply.status).toBe("blocked");
+    }
+  });
+
+  it("chip 4 drafts against the learner's second task once one exists, else a department manager update", () => {
+    const withTwoTasks = trainedProfile({ tasks: ["Drafting campaign briefs", "Writing social media copy"] });
+    const [, , , fourthWithTasks] = suggestedQuestions(withTwoTasks, false);
+    expect(fourthWithTasks.label).toContain("Writing social media copy");
+
+    const withOneTask = trainedProfile({ tasks: ["Drafting campaign briefs"] });
+    const [, , , fourthFallback] = suggestedQuestions(withOneTask, false);
+    expect(fourthFallback.label).toBe("Draft a two-line update for my department manager");
+    expect(fourthFallback.label).not.toContain("line manager");
+    const reply = answer(withOneTask, fourthFallback.prompt, false);
+    expect(reply.text.length).toBeGreaterThan(0);
   });
 });
 

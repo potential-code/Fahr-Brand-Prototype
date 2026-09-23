@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  X,
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
@@ -103,18 +104,19 @@ export function TwinTestChat({ onAsked }: { onAsked?: () => void } = {}) {
         <div ref={endRef} />
       </div>
 
-      {/* One-tap questions — the last two are the ones that show the guardrails working */}
+      {/* One-tap questions, one behaviour each: a grounded answer, an honest
+          refusal, the personal-data block, and a useful draft. */}
       <div className="flex flex-wrap gap-2 pt-3 border-t border-border mt-3">
         {suggestions.map((question) => (
           <button
-            key={question}
+            key={question.label}
             type="button"
-            onClick={() => ask(question)}
+            onClick={() => ask(question.prompt)}
             disabled={thinking}
             className="text-xs px-3 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:border-primary/40 hover:text-foreground hover:bg-primary/5 transition-colors disabled:opacity-50 text-start max-w-full truncate"
             data-testid="twin-suggested-question"
           >
-            {question}
+            {question.label}
           </button>
         ))}
       </div>
@@ -144,21 +146,70 @@ export function TwinTestChat({ onAsked }: { onAsked?: () => void } = {}) {
 function TwinTurn({ turn, isAr }: { turn: Extract<Turn, { who: "twin" }>; isAr: boolean }) {
   const { reply } = turn;
 
+  if (reply.status === "blocked") {
+    return (
+      <div className="flex gap-2.5" data-testid={`twin-reply-${reply.status}`}>
+        <span className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+          <ShieldAlert className="w-3.5 h-3.5 text-destructive" />
+        </span>
+
+        <div
+          className="rounded-2xl border border-destructive/30 bg-destructive/[0.04] p-4 max-w-[88%]"
+          data-testid="pii-block"
+        >
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="h-4 w-4 shrink-0 text-destructive" />
+            <p className="text-sm font-semibold text-destructive">
+              {isAr ? "أُوقف قبل وصوله إلى النموذج" : "Blocked before it reached the model"}
+            </p>
+          </div>
+
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {isAr ? "ما أرسلته، بعد التنقيح" : "What you sent, redacted"}
+          </p>
+          <p className="mt-1.5 rounded-lg bg-background p-3 text-sm leading-relaxed text-foreground">
+            {reply.pii?.redacted}
+          </p>
+
+          <ul className="mt-3 space-y-1.5">
+            {reply.pii?.findings.map((finding, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                <X className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
+                <span>
+                  {isAr ? "حُذف" : "Discarded"}: {finding.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {[
+              isAr ? "لم يصل إلى النموذج" : "Not sent to the model",
+              isAr ? "لم يُخزَّن" : "Not stored",
+              isAr ? "لم يُسجَّل" : "Not written to any log",
+            ].map((claim) => (
+              <span
+                key={claim}
+                className="rounded-full bg-emerald-600/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-700"
+              >
+                {claim}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const tone =
-    reply.status === "blocked"
-      ? "border-destructive/30 bg-destructive/5"
-      : reply.status === "out-of-scope"
-        ? "border-amber-500/30 bg-amber-500/5"
-        : "border-border bg-muted";
+    reply.status === "out-of-scope"
+      ? "border-amber-500/30 bg-amber-500/5"
+      : "border-border bg-muted";
 
   return (
     <div className="flex gap-2.5" data-testid={`twin-reply-${reply.status}`}>
       <span className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-        {reply.status === "blocked" ? (
-          <ShieldAlert className="w-3.5 h-3.5 text-destructive" />
-        ) : (
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-        )}
+        <Sparkles className="w-3.5 h-3.5 text-primary" />
       </span>
 
       <div className={`px-3.5 py-3 rounded-2xl rounded-ss-sm max-w-[88%] text-sm border ${tone}`}>

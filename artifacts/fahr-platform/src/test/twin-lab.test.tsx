@@ -85,11 +85,62 @@ describe("Agentic AI Lab — Stage 1", () => {
     // The personal-data chip must be refused outright.
     const personalData = within(chat)
       .getAllByTestId("twin-suggested-question")
-      .find((node) => (node.textContent ?? "").includes("medical record"));
+      .find((node) => (node.textContent ?? "").includes("personal data"));
     expect(personalData).toBeTruthy();
 
     await ask(user, personalData!);
     expect(screen.getByTestId("twin-reply-blocked")).toBeTruthy();
+
+    // The block renders as its own card, showing only the redacted preview —
+    // never the name or number the learner's own chip carries.
+    const block = screen.getByTestId("pii-block");
+    expect(block.textContent).toContain("[full name]");
+    expect(block.textContent).toContain("[phone number]");
+    expect(block.textContent).not.toContain("Aisha");
+    expect(block.textContent).not.toContain("0501234567");
+    expect(block.textContent).toContain("Discarded: full name");
+    expect(block.textContent).toContain("Discarded: phone number");
+    expect(block.textContent).toContain("Not sent to the model");
+    expect(block.textContent).toContain("Not stored");
+    expect(block.textContent).toContain("Not written to any log");
+  }, 20000);
+
+  it("the other two chips demonstrate an honest refusal and a useful draft", async () => {
+    const user = userEvent.setup();
+    renderScreen(<AgenticAILabTwin />, "/learner/lab/twin");
+
+    // Role.
+    await user.click(screen.getAllByTestId("twin-interview-suggestion")[0]);
+    await user.click(screen.getByTestId("button-interview-next"));
+
+    // Tasks — take two, so chip 4 has a second task to ground itself in.
+    await user.click(screen.getAllByTestId("twin-interview-suggestion")[0]);
+    await user.click(screen.getAllByTestId("twin-interview-suggestion")[0]);
+    await user.click(screen.getByTestId("button-interview-next"));
+
+    // Remaining fields — one answer each is enough.
+    for (let question = 0; question < 3; question += 1) {
+      await user.click(screen.getAllByTestId("twin-interview-suggestion")[0]);
+      await user.click(screen.getByTestId("button-interview-next"));
+    }
+
+    await screen.findByTestId("twin-summary", {}, TRAINED);
+
+    const chat = screen.getByTestId("twin-test-chat");
+    const chips = within(chat).getAllByTestId("twin-suggested-question");
+    expect(chips).toHaveLength(4);
+
+    // Chip 2: outside any twin's connected sources — an honest refusal.
+    expect(chips[1].textContent ?? "").toContain("federal budget");
+    await ask(user, chips[1]);
+    expect(screen.getByTestId("twin-reply-out-of-scope")).toBeTruthy();
+
+    // Chip 4: the twin doing real, useful work, grounded in the learner's
+    // second task ("Writing social media copy").
+    expect(chips[3].textContent ?? "").toContain("Writing social media copy");
+    await ask(user, chips[3]);
+    expect(screen.getByTestId("twin-reply-ok")).toBeTruthy();
+    expect(within(chat).getByText("Writing social media copy")).toBeTruthy();
   }, 20000);
 
   it("the federal guardrails render locked, with no switch to turn either off", async () => {
