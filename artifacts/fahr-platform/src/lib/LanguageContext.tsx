@@ -434,11 +434,12 @@ const translations = {
     "landing.ecosystem.stages.recognitionImpact": "التقدير والأثر",
 
     // --- Landing: the six (plus one supporting) specialised agents ---
-    // `name` stays the `{{name}}` passthrough in Arabic too: the agent
-    // names come from `AGENTS` in `@/lib/constants`, which is shared with
-    // the app and is English there. Translating the passthrough would
-    // break the interpolation, so the names render in Latin script.
-    "landing.agents.capability.name": "{{name}}",
+    // Unlike `en`, these are literal Arabic names rather than the
+    // `{{name}}` passthrough: `AGENTS` in `@/lib/constants` is shared with
+    // the app and stays English, so passing it through would print Latin
+    // agent names inside Arabic copy. The interpolation param is simply
+    // unused here, which `t` tolerates.
+    "landing.agents.capability.name": "وكيل القدرات الذكي",
     "landing.agents.capability.tagline": "يربط الدور بالقدرات",
     "landing.agents.capability.description":
       "يوصي بمسار التعلم الذي يناسب الدور الاتحادي وأولويات الجهة وسلّم القدرات.",
@@ -446,7 +447,7 @@ const translations = {
       "بالنسبة لأخصائي تسويق في فريق اتصال اتحادي، أسرع طريق إلى مستوى الممارس هو صياغة الأوامر لمحتوى الحملات، ثم تلخيص البيانات، ثم مراجعة الذكاء الاصطناعي المسؤول.",
     "landing.agents.capability.capabilities.0": "مسارات مراعية للدور",
     "landing.agents.capability.capabilities.1": "متوافقة مع سلّم القدرات",
-    "landing.agents.learning.name": "{{name}}",
+    "landing.agents.learning.name": "وكيل التعلم الذكي",
     "landing.agents.learning.tagline": "يوجّه الموظف",
     "landing.agents.learning.description":
       "يفسّر نتائج التقييم ويحوّلها إلى خطة أسبوعية يستطيع الموظف الالتزام بها فعلًا.",
@@ -454,7 +455,7 @@ const translations = {
       "يضعك تقييم خط الأساس عند مستوى ممارس ناشئ. تصميم الأوامر نقطة قوتك، والإشراف على مخرجات الذكاء الاصطناعي هو الفجوة. وضعت على رأس أسبوعك وحدة مدتها 20 دقيقة عن إبقاء الإنسان في الحلقة.",
     "landing.agents.learning.capabilities.0": "يقرأ كل تقييم",
     "landing.agents.learning.capabilities.1": "يعيد التخطيط مع تقدّمك",
-    "landing.agents.assessment.name": "{{name}}",
+    "landing.agents.assessment.name": "وكيل التقييم الذكي",
     "landing.agents.assessment.tagline": "يضع الاختبار ويصحّحه",
     "landing.agents.assessment.description":
       "يعدّ التقييم القبلي والبعدي لكل مسار، ثم يقيس تطور القدرات وجودة العمل المسلَّم.",
@@ -462,7 +463,7 @@ const translations = {
       "أظهر تقييمك القبلي تقدّم تصميم الأوامر على الإشراف، لذا يضاعف التقييم البعدي وزن الإشراف. جودة التنفيذ 4/5: لسير العمل معتمِد محدد وخطة بديلة، لكن لا يوجد ما يقيس ما وفّره.",
     "landing.agents.assessment.capabilities.0": "تقييم قبلي وبعدي",
     "landing.agents.assessment.capabilities.1": "معايير تصحيح مع تتبّع للاستدلال",
-    "landing.agents.content.name": "{{name}}",
+    "landing.agents.content.name": "وكيل المحتوى الذكي",
     "landing.agents.content.tagline": "يبني المواد التعليمية",
     "landing.agents.content.description":
       "يبني محتوى مسار التعلم من الدورات التي ينشئها مديرو الجهات، ويولّد سيناريوهات وحالات دراسية واختبارات معرفية إضافية عند الطلب، بالعربية والإنجليزية.",
@@ -470,7 +471,7 @@ const translations = {
       "نشر مدير جهتك ثلاث دورات هذا الشهر. أدرجت اثنتين منها في مسارك بالترتيب المناسب، وأعددت دراسة حالة من ست خطوات عن حملة التوعية المجتمعية لديك، مع نسخة عربية واختبار معرفي.",
     "landing.agents.content.capabilities.0": "يبني من دورات مديري الجهات",
     "landing.agents.content.capabilities.1": "ثنائي اللغة بشكل افتراضي",
-    "landing.agents.coaching.name": "{{name}}",
+    "landing.agents.coaching.name": "وكيل الإرشاد الذكي",
     "landing.agents.coaching.tagline": "متاح دائمًا",
     "landing.agents.coaching.description":
       "يرشدك في المنصة، ويتابع ما هو معلّق، ويجيب عن أسئلتك ضمن سياق العمل.",
@@ -478,7 +479,7 @@ const translations = {
       "لديك مشروعان تطبيقيان بانتظار اعتماد مدير إدارتك، واعتماد واحد جاهز للاستلام. هل أفتح لك عمليات التحقق، أم شهادتك في صفحة التقدير؟",
     "landing.agents.coaching.capabilities.0": "إجابات مدركة للسياق",
     "landing.agents.coaching.capabilities.1": "يتابع نيابة عنك",
-    "landing.agents.analytics.name": "{{name}}",
+    "landing.agents.analytics.name": "وكيل التحليلات الذكي",
     "landing.agents.analytics.tagline": "يرفع التقارير للقيادة",
     "landing.agents.analytics.description":
       "يجمّع قدرات الأفراد على مستوى الإدارة والجهة والمستوى الاتحادي، لخدمة المديرين ومديري الجهات والقيادة.",
@@ -488,7 +489,7 @@ const translations = {
       " وتذكر {{ministries}} جهة أن {{competency}} أكبر فجوة في قدراتها.",
     "landing.agents.analytics.capabilities.0": "تجميع من الفرد إلى المستوى الاتحادي",
     "landing.agents.analytics.capabilities.1": "مخرجات جاهزة للعرض على القيادة",
-    "landing.agents.practice.name": "{{name}}",
+    "landing.agents.practice.name": "شريك التدريب الذكي",
     "landing.agents.practice.tagline": "مكان آمن للتجربة",
     "landing.agents.practice.description":
       "يشغّل سيناريوهات عمل محاكاة وتوائم رقمية لتُمارَس القدرات قبل استخدامها في العمل الحقيقي.",
