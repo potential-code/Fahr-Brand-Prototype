@@ -8,14 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
 import { AGENTS } from "@/lib/constants";
-import {
-  assessTwin,
-  capturedFields,
-  fieldValues,
-  trainingLog,
-  TWIN_FIELDS,
-  type TwinFieldId,
-} from "@/lib/digitalTwin";
+import { capturedFields, fieldValues, trainingLog, TWIN_FIELDS, type TwinFieldId } from "@/lib/digitalTwin";
 import { TwinInterview } from "@/components/twin/TwinInterview";
 import { TwinTestChat } from "@/components/twin/TwinTestChat";
 import { GuardrailControls } from "@/components/twin/GuardrailControls";
@@ -31,7 +24,6 @@ import {
   MessageSquareQuote,
   Database,
   FlaskConical,
-  Lock,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -186,8 +178,6 @@ export default function AgenticAILabTwin() {
 
   const captured = useMemo(() => new Set<NodeId>(capturedFields(profile)), [profile]);
   const log = useMemo(() => trainingLog(profile, isAr), [profile, isAr]);
-  // Recomputed on every guardrail change, which is the point.
-  const twinScore = useMemo(() => assessTwin(profile), [profile]);
 
   /** Which canvas nodes are lit. During training the sweep drives it. */
   const built = useMemo(() => {
@@ -498,40 +488,6 @@ export default function AgenticAILabTwin() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <GuardrailControls />
-
-                {/* What the Assessment Agent makes of the twin as configured.
-                    Moves the moment a guardrail is toggled, so the cost of
-                    switching one off is visible before evaluation. */}
-                <div
-                  className="rounded-xl border border-primary/20 bg-primary/5 p-3.5"
-                  data-testid="twin-assessment-preview"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">
-                        {AGENTS.assessment}
-                      </p>
-                      <p className="text-sm font-medium mt-0.5">
-                        {isAr ? "درجة حوكمة التوأم" : "Twin governance score"}
-                      </p>
-                    </div>
-                    <p
-                      className={`text-2xl font-bold tabular-nums shrink-0 ${
-                        twinScore.value >= 85
-                          ? "text-emerald-600"
-                          : twinScore.value >= 65
-                            ? "text-primary"
-                            : "text-destructive"
-                      }`}
-                      data-testid="twin-assessment-score"
-                    >
-                      {twinScore.value}
-                    </p>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                    {twinScore.evidence[twinScore.evidence.length - 1]}
-                  </p>
-                </div>
               </CardContent>
             </Card>
 
@@ -580,36 +536,6 @@ export default function AgenticAILabTwin() {
             </CardContent>
           </Card>
         )}
-        {/* Lab Stage 2 — shown so the roadmap is visible, locked so it is not oversold */}
-        {phase === "live" && (
-          <Card className="border-dashed border-border bg-muted/30" data-testid="lab-stage-2">
-            <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <span className="w-10 h-10 rounded-xl bg-muted border border-border flex items-center justify-center shrink-0">
-                  <Lock className="w-4.5 h-4.5 text-muted-foreground" />
-                </span>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <p className="text-sm font-semibold text-muted-foreground">
-                      {isAr
-                        ? "المرحلة 2: ابنِ عملية وكيلية كاملة"
-                        : "Stage 2: Build a full agentic process"}
-                    </p>
-                    <Badge variant="outline" className="bg-background text-[10px]">
-                      {isAr ? "خارطة الطريق — المرحلة الثانية" : "Phase 2 roadmap"}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground max-w-2xl">
-                    {isAr
-                      ? "سلسلة وكلاء متعددة الخطوات تنفّذ عملية حكومية كاملة، مع تدخل بشري في نقاط القرار. ضمن نطاق ارتباط المرحلة الثانية."
-                      : "A multi-step agent chain that runs an entire government process end to end, with a human in the loop at each decision point. Scoped to a Phase-2 engagement."}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
       </div>
     </Layout>
   );
