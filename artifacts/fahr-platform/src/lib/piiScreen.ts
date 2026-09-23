@@ -40,32 +40,105 @@ export type PiiScreen = { hit: boolean; findings: PiiFinding[]; redacted: string
 /**
  * Words that mean the question is reaching for someone's personal data.
  *
- * Note: the bare word "passport" was removed from this list. It matched any
- * ordinary sentence that merely mentions passports ("renew your passport",
- * "passport control", "passport office hours") — exactly the kind of core
- * UAE-government subject matter this screen must not flag. The dedicated
- * `passport` pattern detector below supersedes it: it only fires on a real
- * document-number mention (a meaningful marker plus a digit-bearing token).
+ * Several bare, single-concept terms were removed or narrowed after review
+ * found they over-matched on ordinary UAE-government / FAHR-platform prose —
+ * the same failure mode as the bare "passport" term below, just less
+ * obvious because the terms are common words with an innocent everyday
+ * sense as well as a personal-data one. Each note below names the specific
+ * innocent phrase that used to trip the term, in the language it was found
+ * in, and its counterpart was checked (and narrowed the same way, or left
+ * as a deliberate judgement call) in the other language — this platform is
+ * bilingual and the client is Arabic-speaking, so an inconsistency between
+ * the two would be exactly as embarrassing on stage regardless of which
+ * language the sentence happens to be in.
+ *
+ * - "passport" / "جواز" — removed entirely (English previously, Arabic
+ *   here). "renew your passport"/"يرجى تجديد جواز السفر" both merely
+ *   mention a passport, they do not disclose a number. The dedicated
+ *   `passport` pattern detector supersedes both: it only fires on a real
+ *   document-number mention (a meaningful marker plus a digit-bearing
+ *   token), in either script.
+ * - "patient" (bare) — narrowed to "the patient" / "a patient". Bare
+ *   "patient" is also the ordinary English adjective ("please be patient",
+ *   "thank you for your patience", "impatient", "outpatient"), which is
+ *   extremely common, innocuous phrasing for any service-facing government
+ *   text. "patients" (plural) has no such adjective form and was left as
+ *   is. Arabic "مريض" has no equivalent innocent sense — it always denotes
+ *   someone unwell — so it was left unchanged.
+ * - "diagnosis" / "تشخيص" — both narrowed to "medical diagnosis" /
+ *   "تشخيص طبي". Bare "diagnosis" is also ordinary organisational/technical
+ *   language ("a diagnosis of service-delivery bottlenecks"), and its
+ *   Arabic equivalent is standard Gulf strategic-planning terminology
+ *   ("تشخيص مؤسسي" / "دراسة تشخيصية" — institutional diagnosis / diagnostic
+ *   study) — arguably more entrenched in Arabic bureaucratic usage than in
+ *   English, so both were narrowed rather than just the one a reviewer
+ *   happened to test in English.
+ * - "salary" / "الراتب" — narrowed to possessive-specific phrasing ("his
+ *   salary", "her salary", "my salary", "your salary", "employee's salary"
+ *   / "راتبه", "راتبها", "راتبي", "راتبك", "راتب الموظف"). FAHR is the
+ *   Federal Authority for Government Human Resources — "salary structure
+ *   reform" or "سياسة الراتب الأساسي" (basic salary policy) is core,
+ *   non-personal policy subject matter, not a disclosure of any one
+ *   person's pay.
+ * - "هوية" (bare "identity") — narrowed to "رقم الهوية" (ID number) and
+ *   "بطاقة الهوية" (ID card). Bare "هوية" is a substring of "الهوية
+ *   البصرية" (visual identity/brand identity) and "الهوية المؤسسية"
+ *   (corporate identity) — exactly the kind of brand terminology likely on
+ *   a FAHR-branded platform. English never had an equivalent bare
+ *   "identity" term (only the already-specific "emirates id"), so no
+ *   English-side narrowing was needed here.
+ * - "العنوان" (bare "address") — narrowed to "العنوان السكني" (residential
+ *   address) and "عنوان المنزل" (home address). "العنوان" equally means
+ *   "title"/"heading" in ordinary Arabic ("العنوان الرئيسي للتقرير" — the
+ *   report's main heading) — a document-drafting assistant is exactly the
+ *   context where that sense comes up. English "home address" is already
+ *   specific to a residence and has no such homograph, so it was left
+ *   unchanged.
+ *
+ * Note on "diagnosis": English "diagnosis" alone would have been a
+ * defensible leave-it-be call on its own — but it is narrowed above anyway,
+ * for parity with the Arabic fix, so an equivalent sentence produces the
+ * same outcome in either language regardless of which one a reviewer
+ * happened to test first.
+ *
+ * Judged fine as-is (considered, not changed): "personal data" /
+ * "بيانات شخصية" is the generic name for the whole concept this screen
+ * exists to catch and is intentionally broad on both sides — mirrored, not
+ * asymmetric. "phone number" is the term the module's own motivating
+ * example is built around (see the header comment) and is specific enough
+ * that it has no plausible innocent reading. "emirates id", "medical
+ * record", and "سجل طبي" are already two/three-word compounds with no
+ * innocuous alternate sense.
  */
 const PERSONAL_DATA_TERMS = [
   "emirates id",
   "medical record",
-  "patient",
+  "the patient",
+  "a patient",
   "patients",
-  "diagnosis",
+  "medical diagnosis",
   "phone number",
   "home address",
-  "salary",
+  "his salary",
+  "her salary",
+  "my salary",
+  "your salary",
+  "employee's salary",
   "personal data",
   "resident's name",
-  "هوية",
-  "جواز",
+  "رقم الهوية",
+  "بطاقة الهوية",
   "سجل طبي",
   "مريض",
-  "تشخيص",
+  "تشخيص طبي",
   "رقم الهاتف",
-  "العنوان",
-  "الراتب",
+  "العنوان السكني",
+  "عنوان المنزل",
+  "راتبه",
+  "راتبها",
+  "راتبي",
+  "راتبك",
+  "راتب الموظف",
   "بيانات شخصية",
 ];
 

@@ -99,3 +99,67 @@ describe("screenForPii does not flag realistic government phrasing", () => {
     expect(demo.findings.some((f) => f.kind === "phone")).toBe(true);
   });
 });
+
+// Regression cases from a second review round: the English keyword list had
+// its worst offender ("passport") removed, but the Arabic half of the list
+// was never scrutinised, and several other English terms were common nouns
+// with an innocent everyday sense as well as a personal-data one. This
+// platform is bilingual and the client is Arabic-speaking, so an
+// inconsistency between the two languages is exactly as embarrassing on
+// stage regardless of which language the sentence happens to be in.
+describe("screenForPii treats English and Arabic keywords with the same scrutiny", () => {
+  it("mentioning a passport is not personal data, in either language (parity)", () => {
+    const en = screenForPii("Please renew your passport before the trip ends").hit;
+    const ar = screenForPii("يرجى تجديد جواز السفر قبل انتهاء الرحلة").hit;
+    expect(ar).toBe(en);
+    expect(ar).toBe(false);
+  });
+
+  it("brand/visual identity is not a person's ID (Arabic)", () => {
+    expect(screenForPii("راجع إرشادات الهوية البصرية للمنصة").hit).toBe(false);
+  });
+
+  it("still catches a real Emirates ID reference by number, in Arabic", () => {
+    expect(screenForPii("يرجى تحديث رقم الهوية في النظام").hit).toBe(true);
+    expect(screenForPii("أرسل صورة بطاقة الهوية الخاصة به").hit).toBe(true);
+  });
+
+  it("a document title/heading is not a home address (Arabic 'العنوان' also means 'title')", () => {
+    expect(screenForPii("راجع العنوان الرئيسي للتقرير").hit).toBe(false);
+  });
+
+  it("still catches a real residential address, in Arabic", () => {
+    expect(screenForPii("سجل العنوان السكني في النظام").hit).toBe(true);
+    expect(screenForPii("أرسل عنوان المنزل بالكامل").hit).toBe(true);
+  });
+
+  it("salary policy discussion is not one person's pay, in either language", () => {
+    expect(screenForPii("Draft a note about salary review timelines for next year").hit).toBe(false);
+    expect(screenForPii("راجع سياسة الراتب الأساسي للموظفين").hit).toBe(false);
+  });
+
+  it("still catches one specific person's salary, in either language", () => {
+    expect(screenForPii("His salary was delayed this month").hit).toBe(true);
+    expect(screenForPii("تم تأخير راتبه هذا الشهر").hit).toBe(true);
+  });
+
+  it("an organisational diagnosis is not a medical one, in either language", () => {
+    expect(screenForPii("Run a diagnosis of the service delivery bottlenecks").hit).toBe(false);
+    expect(screenForPii("قدم تشخيصًا مؤسسيًا لأداء الخدمة").hit).toBe(false);
+  });
+
+  it("still catches a real medical diagnosis, in either language", () => {
+    expect(screenForPii("The medical diagnosis was shared with the family").hit).toBe(true);
+    expect(screenForPii("تم تسجيل تشخيص طبي للمريض").hit).toBe(true);
+  });
+
+  it("being asked to wait patiently is not a medical patient (English 'patient' is also an adjective)", () => {
+    expect(
+      screenForPii("Please be patient while we process this, and thank you for your patience").hit,
+    ).toBe(false);
+  });
+
+  it("still catches a real reference to a patient", () => {
+    expect(screenForPii("The patient was examined this morning").hit).toBe(true);
+  });
+});
