@@ -159,7 +159,78 @@ describe("screenForPii treats English and Arabic keywords with the same scrutiny
     ).toBe(false);
   });
 
-  it("still catches a real reference to a patient", () => {
-    expect(screenForPii("The patient was examined this morning").hit).toBe(true);
+  it("still catches a real reference to a patient (possessive, or plural)", () => {
+    expect(screenForPii("The patient's file was updated this morning").hit).toBe(true);
+    expect(screenForPii("The patients were transferred to another ward").hit).toBe(true);
+  });
+});
+
+// Regression cases from a third review round.
+//
+// Finding 6: narrowing bare "patient" to "the patient" / "a patient" (round
+// 2) was aimed at the adjective sense ("please be patient"), but English
+// uses the *article* form adjectivally too — "a patient approach", "the
+// patient support team". Re-narrowed to the possessive "patient's", which
+// the adjective sense cannot produce.
+//
+// Finding 7: the name detector's Latin-only capture group meant no
+// realistic, monolingual Arabic self-introduction could ever be caught —
+// every prior "Arabic" test paired the Arabic trigger with a Latin-script
+// name (a code-mixed sentence). Split into a separate Arabic-script
+// detector with its own stoplist and over-capture guard.
+describe("screenForPii's narrowing does not go too far, round 3", () => {
+  it("a patient/calm demeanour is not a medical patient, even with an article", () => {
+    expect(screenForPii("He always takes a patient approach to difficult conversations").hit).toBe(
+      false,
+    );
+    expect(
+      screenForPii("Thank you for being so understanding — the patient support team appreciates it")
+        .hit,
+    ).toBe(false);
+  });
+
+  it("still catches a patient's record by the possessive, and patients by the plural", () => {
+    expect(screenForPii("The patient's file was updated this morning").hit).toBe(true);
+    expect(screenForPii("The patients were transferred to another ward").hit).toBe(true);
+  });
+
+  it("catches a real, monolingual Arabic self-introduction", () => {
+    const screen = screenForPii("اسمي أحمد الشامسي");
+    expect(screen.hit).toBe(true);
+    expect(
+      screen.findings.some((f) => f.kind === "name" && f.match === "أحمد الشامسي"),
+    ).toBe(true);
+  });
+
+  it("does not let the Arabic name capture run on into the next clause", () => {
+    const screen = screenForPii("اسمي أحمد الشامسي وأنا أعمل في الاتصالات");
+    const nameFinding = screen.findings.find((f) => f.kind === "name");
+    expect(nameFinding?.match).toBe("أحمد الشامسي");
+    expect(screen.redacted).toContain("[full name]");
+    expect(screen.redacted).not.toContain("أحمد");
+    expect(screen.redacted).not.toContain("الشامسي");
+  });
+
+  it("rejects an all-title Arabic capture after the self-introduction trigger", () => {
+    expect(screenForPii("اسمي مدير عام الهيئة").hit).toBe(false);
+  });
+
+  it("does not fire on an entity/title sentence that never declares a name", () => {
+    expect(screenForPii("هذه إرشادات وزارة الصحة والوقاية").hit).toBe(false);
+  });
+
+  it("existing Latin self-introduction behaviour is unchanged", () => {
+    const screen = screenForPii("My name is Aisha Al Mansoori and I work in communications");
+    expect(screen.hit).toBe(true);
+    expect(
+      screen.findings.some((f) => f.kind === "name" && f.match === "Aisha Al Mansoori"),
+    ).toBe(true);
+  });
+
+  it("English and Arabic self-introductions produce the same hit (parity)", () => {
+    const en = screenForPii("My name is Ahmed Al Shamsi and I work in communications").hit;
+    const ar = screenForPii("اسمي أحمد الشامسي وأنا أعمل في الاتصالات").hit;
+    expect(ar).toBe(en);
+    expect(ar).toBe(true);
   });
 });

@@ -58,13 +58,20 @@ export type PiiScreen = { hit: boolean; findings: PiiFinding[]; redacted: string
  *   `passport` pattern detector supersedes both: it only fires on a real
  *   document-number mention (a meaningful marker plus a digit-bearing
  *   token), in either script.
- * - "patient" (bare) — narrowed to "the patient" / "a patient". Bare
- *   "patient" is also the ordinary English adjective ("please be patient",
- *   "thank you for your patience", "impatient", "outpatient"), which is
- *   extremely common, innocuous phrasing for any service-facing government
- *   text. "patients" (plural) has no such adjective form and was left as
- *   is. Arabic "مريض" has no equivalent innocent sense — it always denotes
- *   someone unwell — so it was left unchanged.
+ * - "patient" (bare) — narrowed to "patient's" (possessive only). A first
+ *   attempt narrowed it to "the patient" / "a patient", but English also
+ *   uses the *article* form adjectivally — "a patient approach to difficult
+ *   conversations", "the patient support team" — so that narrowing was
+ *   still catching ordinary, innocuous government-facing phrasing. The
+ *   possessive "patient's" is not produced by the adjective sense at all
+ *   ("a patient's approach" is not idiomatic English), so it keys on
+ *   grammar that only the noun sense produces. "patients" (plural, no
+ *   adjective form) was already safe and is unchanged. Arabic "مريض" was
+ *   checked for the same ambiguity and has none: Arabic's adjective for
+ *   "patient" (calm, even-tempered) is a different word entirely
+ *   ("صبور"), not "مريض" — "مريض" only ever means sick/unwell/a patient,
+ *   so it has no innocuous everyday reading to guard against and was left
+ *   unchanged.
  * - "diagnosis" / "تشخيص" — both narrowed to "medical diagnosis" /
  *   "تشخيص طبي". Bare "diagnosis" is also ordinary organisational/technical
  *   language ("a diagnosis of service-delivery bottlenecks"), and its
@@ -113,8 +120,7 @@ export type PiiScreen = { hit: boolean; findings: PiiFinding[]; redacted: string
 const PERSONAL_DATA_TERMS = [
   "emirates id",
   "medical record",
-  "the patient",
-  "a patient",
+  "patient's",
   "patients",
   "medical diagnosis",
   "phone number",
@@ -162,12 +168,8 @@ const HUMAN_LABEL: Record<PiiKind, string> = {
  * (all of them followed a bare "I am" / "this is", now removed); this
  * stoplist additionally guards the case where "my name is" itself is
  * followed by a title rather than a name.
- *
- * Arabic equivalents are deliberately not included: the name-capture regex
- * only matches Latin-script words (`[A-Z][a-zA-Z']+`), so an Arabic title
- * word could never appear in a captured value regardless of a stoplist.
  */
-const NAME_STOPLIST = new Set([
+const NAME_STOPLIST_EN = new Set([
   "general",
   "chairman",
   "authority",
@@ -181,9 +183,95 @@ const NAME_STOPLIST = new Set([
   "excellency",
 ]);
 
+/**
+ * The Arabic equivalent of NAME_STOPLIST_EN, for the same defense-in-depth
+ * reason: "اسمي مدير عام الهيئة الاتحادية" ("my name is Director General of
+ * the Federal Authority") should not be captured as a name just because it
+ * follows the unambiguous "اسمي" trigger.
+ */
+const NAME_STOPLIST_AR = new Set([
+  "وزارة", // ministry
+  "هيئة", // authority
+  "مدير", // director
+  "رئيس", // chairman / president / head
+  "معالي", // Excellency (honorific)
+  "سعادة", // Excellency / Your Excellency (honorific)
+  "دائرة", // department
+  "وزير", // minister
+  "نائب", // deputy
+  "عام", // general (as in "مدير عام" -- director general)
+  "أمين", // secretary (as in "أمين عام" -- secretary general)
+  "اتحادي",
+  "اتحادية", // federal (masc./fem.)
+  "قسم", // department (alternate word)
+]);
+
+/** Arabic attaches its definite article directly to the noun (no space). */
+function stripArabicDefiniteArticle(word: string): string {
+  return word.startsWith("ال") && word.length > 2 ? word.slice(2) : word;
+}
+
 function isAllStoplisted(value: string): boolean {
   const words = value.split(/\s+/).filter(Boolean);
-  return words.length > 0 && words.every((word) => NAME_STOPLIST.has(word.toLowerCase()));
+  if (words.length === 0) return false;
+  if (/\p{Script=Arabic}/u.test(value)) {
+    return words.every((word) => NAME_STOPLIST_AR.has(stripArabicDefiniteArticle(word)));
+  }
+  return words.every((word) => NAME_STOPLIST_EN.has(word.toLowerCase()));
+}
+
+/**
+ * Closed-class Arabic words that commonly continue a sentence right after a
+ * name ("و" prefixed onto the next word, "أنا", a preposition, ...). Arabic
+ * has no letter case, so unlike the Latin name capture (bounded by
+ * capitalisation), a greedy word-count capture has nothing structural to
+ * stop it from sweeping the next clause's opening word in as if it were
+ * part of the name. trimArabicNameCapture peels off a trailing word drawn
+ * from this set, so a captured span never extends past the real name into
+ * "...الشامسي وأنا أعمل" territory.
+ */
+const ARABIC_NAME_CONTINUATION_WORDS = new Set([
+  "و",
+  "وأنا",
+  "وأنت",
+  "وهو",
+  "وهي",
+  "أنا",
+  "نحن",
+  "هو",
+  "هي",
+  "هذا",
+  "هذه",
+  "ذلك",
+  "من",
+  "في",
+  "على",
+  "عن",
+  "إلى",
+  "مع",
+  "ثم",
+  "لكن",
+  "أو",
+]);
+
+/**
+ * Trim a trailing continuation word from a captured Arabic name, never
+ * shrinking below 2 words (the minimum a real name capture requires). Kept
+ * separate from isAllStoplisted: that function rejects a title-only
+ * capture outright, this one repairs a genuine name capture that over-ran
+ * into the next clause.
+ */
+function trimArabicNameCapture(value: string): string {
+  let result = value;
+  for (;;) {
+    const match = /^(.*?)(\s+)(\p{Script=Arabic}+)$/su.exec(result);
+    if (!match) break;
+    const [, head, , lastWord] = match;
+    const headWordCount = head.trim().split(/\s+/).filter(Boolean).length;
+    if (headWordCount < 2 || !ARABIC_NAME_CONTINUATION_WORDS.has(lastWord)) break;
+    result = head;
+  }
+  return result;
 }
 
 type Detector = {
@@ -248,13 +336,30 @@ const DETECTORS: Detector[] = [
       /(?<![\p{L}\p{N}])(?:born|dob|date of birth|مواليد)(?![\p{L}\p{N}])[^.\n]{0,20}?\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b/gdiu,
   },
   {
-    // Name: anchored to an unambiguous self-introduction only — "my name
-    // is" or "اسمي" — not any capitalised pair, and not a bare "I am" or
-    // "this is" (dropped: those are far too common outside self-
-    // introduction, e.g. "I am Director General for policy...", "This is
-    // Federal Authority guidance...").
+    // Name (Latin script): anchored to an unambiguous self-introduction
+    // only — "my name is" — not any capitalised pair, and not a bare "I
+    // am" or "this is" (dropped: those are far too common outside
+    // self-introduction, e.g. "I am Director General for policy...",
+    // "This is Federal Authority guidance..."). Capitalisation is what
+    // bounds the capture to 2-3 words: a following lowercase word (e.g.
+    // "and I work...") cannot extend the match.
     kind: "name",
-    regex: /(?<![\p{L}\p{N}])(?:[Mm]y name is|اسمي)\s+([A-Z][a-zA-Z']+(?:\s+[A-Z][a-zA-Z']+){1,2})/gdu,
+    regex: /(?<![\p{L}\p{N}])[Mm]y name is\s+([A-Z][a-zA-Z']+(?:\s+[A-Z][a-zA-Z']+){1,2})/gdu,
+  },
+  {
+    // Name (Arabic script): a separate detector, not a second alternative
+    // squeezed into the Latin regex above. The Latin capture group
+    // ([A-Z][a-zA-Z']+) is Latin-script only, so "اسمي أحمد الشامسي" — a
+    // realistic, monolingual Arabic self-introduction — could never be
+    // captured by it; every "Arabic" case that regex could pass was
+    // actually a code-mixed sentence pairing the Arabic trigger with a
+    // Latin-script name. Arabic has no letter case, so the trigger phrase
+    // and the script class (\p{Script=Arabic}) are what anchor this
+    // detector instead of capitalisation; trimArabicNameCapture (below,
+    // applied in candidateFindings) then repairs the over-capture that
+    // capitalisation would otherwise have prevented.
+    kind: "name",
+    regex: /(?<![\p{L}\p{N}])اسمي\s+(\p{Script=Arabic}+(?:\s+\p{Script=Arabic}+){1,2})/gdu,
   },
 ];
 
@@ -302,7 +407,15 @@ function candidateFindings(text: string): PiiFinding[] {
       const indices = (match as ExecWithIndices).indices;
       const capturedRange = captured ? indices?.[1] : undefined;
       const start = capturedRange ? capturedRange[0] : match.index;
-      const value = captured ?? match[0];
+      let value = captured ?? match[0];
+
+      // The Arabic name detector's greedy word-count capture has nothing
+      // structural (no capitalisation) stopping it from sweeping a
+      // continuation word from the next clause into the match — trim it
+      // back to the real name before anything else looks at `value`.
+      if (detector.kind === "name" && /\p{Script=Arabic}/u.test(value)) {
+        value = trimArabicNameCapture(value);
+      }
 
       if (detector.kind === "name" && isAllStoplisted(value)) {
         if (match[0].length === 0) regex.lastIndex++;
