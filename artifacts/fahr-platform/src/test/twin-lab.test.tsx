@@ -103,6 +103,20 @@ describe("Agentic AI Lab — Stage 1", () => {
     expect(block.textContent).toContain("Not sent to the model");
     expect(block.textContent).toContain("Not stored");
     expect(block.textContent).toContain("Not written to any log");
+
+    // The learner's own bubble is redacted too, with a quiet marker that the
+    // message was screened before it was sent.
+    expect(chat.textContent).toContain("[full name]");
+    expect(chat.textContent).toContain("[phone number]");
+    expect(screen.getByText("Screened before it reached the model")).toBeTruthy();
+
+    // The strongest proof of the whole feature: after submitting a message
+    // carrying a real name and phone number, neither the learner's own bubble
+    // nor the assistant's card holds the raw sensitive text anywhere in the
+    // rendered tree — checked over the whole chat container, not just the
+    // one card.
+    expect(chat.textContent ?? "").not.toContain("Aisha");
+    expect(chat.textContent ?? "").not.toContain("0501234567");
   }, 20000);
 
   it("the other two chips demonstrate an honest refusal and a useful draft", async () => {

@@ -14,9 +14,10 @@ import {
 import { useLanguage } from "@/lib/LanguageContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
 import { answer, suggestedQuestions, type TwinReply } from "@/lib/digitalTwin";
+import { screenForPii } from "@/lib/piiScreen";
 
 type Turn =
-  | { who: "learner"; text: string }
+  | { who: "learner"; text: string; blocked?: boolean }
   | { who: "twin"; text: string; reply: TwinReply };
 
 /**
@@ -44,7 +45,14 @@ export function TwinTestChat({ onAsked }: { onAsked?: () => void } = {}) {
     const trimmed = question.trim();
     if (!trimmed || thinking) return;
 
-    setTurns((current) => [...current, { who: "learner", text: trimmed }]);
+    // Screen on submit — the learner's own bubble must never hold the raw
+    // text either, so only the redacted form (when the screen fires) is what
+    // ever reaches state.
+    const screen = screenForPii(trimmed);
+    setTurns((current) => [
+      ...current,
+      { who: "learner", text: screen.hit ? screen.redacted : trimmed, blocked: screen.hit },
+    ]);
     setDraft("");
     setThinking(true);
     onAsked?.();
@@ -76,9 +84,21 @@ export function TwinTestChat({ onAsked }: { onAsked?: () => void } = {}) {
         {turns.map((turn, index) =>
           turn.who === "learner" ? (
             <div key={index} className="flex justify-end">
-              <div className="bg-primary text-primary-foreground px-3.5 py-2.5 rounded-2xl rounded-ee-sm max-w-[85%] text-sm">
-                {turn.text}
-              </div>
+              {turn.blocked ? (
+                <div className="flex max-w-[85%] flex-col items-end gap-1">
+                  <div className="bg-primary text-primary-foreground px-3.5 py-2.5 rounded-2xl rounded-ee-sm text-sm">
+                    {turn.text}
+                  </div>
+                  <p className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <ShieldCheck className="h-3 w-3 shrink-0" />
+                    {isAr ? "فُحصت قبل وصولها إلى النموذج" : "Screened before it reached the model"}
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-primary text-primary-foreground px-3.5 py-2.5 rounded-2xl rounded-ee-sm max-w-[85%] text-sm">
+                  {turn.text}
+                </div>
+              )}
             </div>
           ) : (
             <TwinTurn key={index} turn={turn} isAr={isAr} />
