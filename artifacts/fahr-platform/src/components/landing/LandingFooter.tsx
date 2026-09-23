@@ -8,6 +8,7 @@ import { STAKEHOLDERS } from "@/lib/constants";
 import { FEDERAL } from "@/lib/federal";
 import { cn } from "@/lib/utils";
 import { Reveal, RevealGroup, RevealItem } from "./motion";
+import { ROLE_TITLE_KEYS } from "./roles";
 import { TYPE } from "./typography";
 
 const scrollTo = (id: string) =>
@@ -69,7 +70,7 @@ export function LandingFooter() {
               {STAKEHOLDERS.map((s) => (
                 <li key={s.id}>
                   <Link href={s.route} className="transition-colors hover:text-white">
-                    {s.title}
+                    {t(ROLE_TITLE_KEYS[s.id])}
                   </Link>
                 </li>
               ))}

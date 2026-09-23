@@ -158,6 +158,127 @@ const translations = {
     "landing.footer.copyright":
       "© {{year}} Federal Authority for Government Human Resources. All rights reserved.",
     "landing.footer.backToTop": "Back to top",
+
+    // --- Landing: ecosystem journey-stage labels (agents.ts, EcosystemSection) ---
+    "landing.ecosystem.stages.onboarding": "Onboarding",
+    "landing.ecosystem.stages.personalisedPathway": "Personalised pathway",
+    "landing.ecosystem.stages.experientialLearning": "Experiential learning",
+    "landing.ecosystem.stages.buildTrain": "Build & train",
+    "landing.ecosystem.stages.assessValidate": "Assess & validate",
+    "landing.ecosystem.stages.recognitionImpact": "Recognition & impact",
+
+    // --- Landing: the six (plus one supporting) specialised agents (agents.ts) ---
+    // `name` is always a passthrough — resolved as
+    // `t(nameKey, { name: AGENTS[key] })` — so the landing page's agent names
+    // can never drift from `AGENTS` in `@/lib/constants`. Task 20 may replace
+    // it with a literal Arabic name (the interpolation param is then simply
+    // unused) rather than translate the passthrough itself.
+    "landing.agents.capability.name": "{{name}}",
+    "landing.agents.capability.tagline": "Maps role to capability",
+    "landing.agents.capability.description":
+      "Recommends the pathway that matches the federal role, the entity's priorities and the capability ladder.",
+    "landing.agents.capability.sample":
+      "For a Marketing Specialist in a federal communications team, the fastest route to Practitioner is Prompting for Campaign Copy, then Data Summarisation, then Responsible AI Review.",
+    "landing.agents.capability.capabilities.0": "Role-aware pathways",
+    "landing.agents.capability.capabilities.1": "Aligned to the ladder",
+    "landing.agents.learning.name": "{{name}}",
+    "landing.agents.learning.tagline": "Guides the individual",
+    "landing.agents.learning.description":
+      "Interprets assessment outcomes and turns them into a weekly plan the employee can actually follow.",
+    "landing.agents.learning.sample":
+      "Your baseline puts you at Emerging Practitioner. Prompt design is your strength; oversight of AI output is the gap. I have put a 20-minute human-in-the-loop module at the top of this week.",
+    "landing.agents.learning.capabilities.0": "Reads every assessment",
+    "landing.agents.learning.capabilities.1": "Replans as you progress",
+    "landing.agents.assessment.name": "{{name}}",
+    "landing.agents.assessment.tagline": "Sets and marks the test",
+    "landing.agents.assessment.description":
+      "Prepares the pre- and post-assessment for each pathway, then evaluates capability progression and the quality of the work delivered.",
+    "landing.agents.assessment.sample":
+      "Your pre-assessment put prompt design ahead of oversight, so the post-assessment weights oversight twice. Implementation quality 4/5: the workflow has a named approver and a fallback, but nothing measuring what it saved.",
+    "landing.agents.assessment.capabilities.0": "Pre- and post-assessment",
+    "landing.agents.assessment.capabilities.1": "Rubric with a reasoning trace",
+    "landing.agents.content.name": "{{name}}",
+    "landing.agents.content.tagline": "Builds the material",
+    "landing.agents.content.description":
+      "Builds the learning-path content from the courses entity admins create, and generates extra scenarios, cases and knowledge checks on demand, in Arabic and English.",
+    "landing.agents.content.sample":
+      "Your entity admin published three courses this month. I have sequenced two of them into your pathway and generated a six-step case study on your public-awareness campaign, with an Arabic version and a knowledge check.",
+    "landing.agents.content.capabilities.0": "Builds from admin courses",
+    "landing.agents.content.capabilities.1": "Bilingual by default",
+    "landing.agents.coaching.name": "{{name}}",
+    "landing.agents.coaching.tagline": "Always on hand",
+    "landing.agents.coaching.description":
+      "Navigates the platform, chases what is outstanding and answers questions in the flow of work.",
+    "landing.agents.coaching.sample":
+      "You have two workplace submissions waiting on your department manager and one credential ready to claim. Shall I open the validations, or your certificate on Recognition?",
+    "landing.agents.coaching.capabilities.0": "Context-aware answers",
+    "landing.agents.coaching.capabilities.1": "Follows up for you",
+    "landing.agents.analytics.name": "{{name}}",
+    "landing.agents.analytics.tagline": "Answers to leadership",
+    "landing.agents.analytics.description":
+      "Rolls individual capability up to department, entity and federal level for managers, entity admins and leadership.",
+    // Two sentences, not one: `sample` is always shown; `sampleGap` is an
+    // optional second sentence appended only when a national capability gap
+    // exists (see `agents.ts`'s `sample` resolver). Keeping them separate
+    // lets Task 20 translate each as a whole sentence in its own right.
+    "landing.agents.analytics.sample":
+      "National readiness is at {{readiness}}, with {{onTrack}} of {{total}} entities on track.",
+    "landing.agents.analytics.sampleGap":
+      " {{ministries}} entities name {{competency}} as their biggest capability gap.",
+    "landing.agents.analytics.capabilities.0": "Individual to federal roll-up",
+    "landing.agents.analytics.capabilities.1": "Briefing-ready outputs",
+    // Not currently rendered anywhere (see agents.ts) — kept keyed for type
+    // consistency and so it is translation-ready if it becomes rendered.
+    "landing.agents.practice.name": "{{name}}",
+    "landing.agents.practice.tagline": "Safe place to try",
+    "landing.agents.practice.description":
+      "Runs simulated workplace scenarios and digital twins so capability is practised before it is used on real work.",
+    "landing.agents.practice.sample":
+      "Scenario: a resident disputes an AI-drafted reply from your department. Draft your response and I will score it against the federal responsible-AI checklist, line by line.",
+    "landing.agents.practice.capabilities.0": "Sandboxed scenarios",
+    "landing.agents.practice.capabilities.1": "Scored against policy",
+
+    // --- Landing: role titles (roles.ts) ---
+    // `STAKEHOLDERS` in `@/lib/constants` stays English (shared with the
+    // app); these are the landing page's own copy of the same five titles,
+    // used by PathwaysSection, LandingFooter and RegistrationDialog.
+    "landing.pathways.learner.title": "Federal Employee / Learner",
+    "landing.pathways.manager.title": "Department Manager",
+    "landing.pathways.entity.title": "Entity Admin",
+    "landing.pathways.fahrTeam.title": "FAHR Programme Team",
+    "landing.pathways.leadership.title": "Federal Leadership",
+
+    // --- Landing: registration dialog (RegistrationDialog.tsx) ---
+    "landing.registration.nameLabel": "Full Name",
+    "landing.registration.namePlaceholder": "E.g. Aisha Al Mansoori",
+    "landing.registration.emailLabel": "Government Email",
+    "landing.registration.emailPlaceholder": "aisha@mohap.gov.ae",
+    "landing.registration.entityLabel": "Federal Entity",
+    "landing.registration.entityPlaceholder": "Select your entity",
+    "landing.registration.entities.mohap": "Ministry of Health and Prevention",
+    "landing.registration.entities.moe": "Ministry of Education",
+    "landing.registration.entities.mof": "Ministry of Finance",
+    "landing.registration.entities.moei": "Ministry of Economy",
+    "landing.registration.entities.fahr": "FAHR",
+    "landing.registration.jobTitleLabel": "Job Title",
+    "landing.registration.learner.jobTitlePlaceholder": "E.g. Marketing Specialist",
+    "landing.registration.manager.jobTitlePlaceholder": "E.g. Head of Digital Communications",
+    "landing.registration.manager.teamSizeLabel": "Team Size",
+    "landing.registration.manager.teamSizePlaceholder": "E.g. 5",
+    "landing.registration.entity.adminCodeLabel": "Admin Access Code",
+    "landing.registration.entity.adminCodePlaceholder": "••••••••",
+    "landing.registration.fahrTeam.programmeIdLabel": "FAHR Programme ID",
+    "landing.registration.fahrTeam.programmeIdPlaceholder": "E.g. FAHR-2026-X",
+    "landing.registration.leadership.execTitleLabel": "Executive Title",
+    "landing.registration.leadership.execTitlePlaceholder": "E.g. Undersecretary",
+    "landing.registration.doneTitle": "Registration complete",
+    "landing.registration.doneDescription": "Your profile has been provisioned. Opening your workspace…",
+    "landing.registration.createProfileTitle": "Create profile",
+    "landing.registration.registeringAs": "Registering as {{title}}",
+    "landing.registration.fallbackRole": "a federal user",
+    "landing.registration.cancel": "Cancel",
+    "landing.registration.submit": "Access platform",
+    "landing.registration.submitting": "Provisioning…",
   },
   ar: {
     "nav.learner": "المتعلم",
@@ -295,6 +416,109 @@ const translations = {
     "landing.footer.copyright":
       "© {{year}} Federal Authority for Government Human Resources. All rights reserved.",
     "landing.footer.backToTop": "Back to top",
+
+    "landing.ecosystem.stages.onboarding": "Onboarding",
+    "landing.ecosystem.stages.personalisedPathway": "Personalised pathway",
+    "landing.ecosystem.stages.experientialLearning": "Experiential learning",
+    "landing.ecosystem.stages.buildTrain": "Build & train",
+    "landing.ecosystem.stages.assessValidate": "Assess & validate",
+    "landing.ecosystem.stages.recognitionImpact": "Recognition & impact",
+
+    "landing.agents.capability.name": "{{name}}",
+    "landing.agents.capability.tagline": "Maps role to capability",
+    "landing.agents.capability.description":
+      "Recommends the pathway that matches the federal role, the entity's priorities and the capability ladder.",
+    "landing.agents.capability.sample":
+      "For a Marketing Specialist in a federal communications team, the fastest route to Practitioner is Prompting for Campaign Copy, then Data Summarisation, then Responsible AI Review.",
+    "landing.agents.capability.capabilities.0": "Role-aware pathways",
+    "landing.agents.capability.capabilities.1": "Aligned to the ladder",
+    "landing.agents.learning.name": "{{name}}",
+    "landing.agents.learning.tagline": "Guides the individual",
+    "landing.agents.learning.description":
+      "Interprets assessment outcomes and turns them into a weekly plan the employee can actually follow.",
+    "landing.agents.learning.sample":
+      "Your baseline puts you at Emerging Practitioner. Prompt design is your strength; oversight of AI output is the gap. I have put a 20-minute human-in-the-loop module at the top of this week.",
+    "landing.agents.learning.capabilities.0": "Reads every assessment",
+    "landing.agents.learning.capabilities.1": "Replans as you progress",
+    "landing.agents.assessment.name": "{{name}}",
+    "landing.agents.assessment.tagline": "Sets and marks the test",
+    "landing.agents.assessment.description":
+      "Prepares the pre- and post-assessment for each pathway, then evaluates capability progression and the quality of the work delivered.",
+    "landing.agents.assessment.sample":
+      "Your pre-assessment put prompt design ahead of oversight, so the post-assessment weights oversight twice. Implementation quality 4/5: the workflow has a named approver and a fallback, but nothing measuring what it saved.",
+    "landing.agents.assessment.capabilities.0": "Pre- and post-assessment",
+    "landing.agents.assessment.capabilities.1": "Rubric with a reasoning trace",
+    "landing.agents.content.name": "{{name}}",
+    "landing.agents.content.tagline": "Builds the material",
+    "landing.agents.content.description":
+      "Builds the learning-path content from the courses entity admins create, and generates extra scenarios, cases and knowledge checks on demand, in Arabic and English.",
+    "landing.agents.content.sample":
+      "Your entity admin published three courses this month. I have sequenced two of them into your pathway and generated a six-step case study on your public-awareness campaign, with an Arabic version and a knowledge check.",
+    "landing.agents.content.capabilities.0": "Builds from admin courses",
+    "landing.agents.content.capabilities.1": "Bilingual by default",
+    "landing.agents.coaching.name": "{{name}}",
+    "landing.agents.coaching.tagline": "Always on hand",
+    "landing.agents.coaching.description":
+      "Navigates the platform, chases what is outstanding and answers questions in the flow of work.",
+    "landing.agents.coaching.sample":
+      "You have two workplace submissions waiting on your department manager and one credential ready to claim. Shall I open the validations, or your certificate on Recognition?",
+    "landing.agents.coaching.capabilities.0": "Context-aware answers",
+    "landing.agents.coaching.capabilities.1": "Follows up for you",
+    "landing.agents.analytics.name": "{{name}}",
+    "landing.agents.analytics.tagline": "Answers to leadership",
+    "landing.agents.analytics.description":
+      "Rolls individual capability up to department, entity and federal level for managers, entity admins and leadership.",
+    "landing.agents.analytics.sample":
+      "National readiness is at {{readiness}}, with {{onTrack}} of {{total}} entities on track.",
+    "landing.agents.analytics.sampleGap":
+      " {{ministries}} entities name {{competency}} as their biggest capability gap.",
+    "landing.agents.analytics.capabilities.0": "Individual to federal roll-up",
+    "landing.agents.analytics.capabilities.1": "Briefing-ready outputs",
+    "landing.agents.practice.name": "{{name}}",
+    "landing.agents.practice.tagline": "Safe place to try",
+    "landing.agents.practice.description":
+      "Runs simulated workplace scenarios and digital twins so capability is practised before it is used on real work.",
+    "landing.agents.practice.sample":
+      "Scenario: a resident disputes an AI-drafted reply from your department. Draft your response and I will score it against the federal responsible-AI checklist, line by line.",
+    "landing.agents.practice.capabilities.0": "Sandboxed scenarios",
+    "landing.agents.practice.capabilities.1": "Scored against policy",
+
+    "landing.pathways.learner.title": "Federal Employee / Learner",
+    "landing.pathways.manager.title": "Department Manager",
+    "landing.pathways.entity.title": "Entity Admin",
+    "landing.pathways.fahrTeam.title": "FAHR Programme Team",
+    "landing.pathways.leadership.title": "Federal Leadership",
+
+    "landing.registration.nameLabel": "Full Name",
+    "landing.registration.namePlaceholder": "E.g. Aisha Al Mansoori",
+    "landing.registration.emailLabel": "Government Email",
+    "landing.registration.emailPlaceholder": "aisha@mohap.gov.ae",
+    "landing.registration.entityLabel": "Federal Entity",
+    "landing.registration.entityPlaceholder": "Select your entity",
+    "landing.registration.entities.mohap": "Ministry of Health and Prevention",
+    "landing.registration.entities.moe": "Ministry of Education",
+    "landing.registration.entities.mof": "Ministry of Finance",
+    "landing.registration.entities.moei": "Ministry of Economy",
+    "landing.registration.entities.fahr": "FAHR",
+    "landing.registration.jobTitleLabel": "Job Title",
+    "landing.registration.learner.jobTitlePlaceholder": "E.g. Marketing Specialist",
+    "landing.registration.manager.jobTitlePlaceholder": "E.g. Head of Digital Communications",
+    "landing.registration.manager.teamSizeLabel": "Team Size",
+    "landing.registration.manager.teamSizePlaceholder": "E.g. 5",
+    "landing.registration.entity.adminCodeLabel": "Admin Access Code",
+    "landing.registration.entity.adminCodePlaceholder": "••••••••",
+    "landing.registration.fahrTeam.programmeIdLabel": "FAHR Programme ID",
+    "landing.registration.fahrTeam.programmeIdPlaceholder": "E.g. FAHR-2026-X",
+    "landing.registration.leadership.execTitleLabel": "Executive Title",
+    "landing.registration.leadership.execTitlePlaceholder": "E.g. Undersecretary",
+    "landing.registration.doneTitle": "Registration complete",
+    "landing.registration.doneDescription": "Your profile has been provisioned. Opening your workspace…",
+    "landing.registration.createProfileTitle": "Create profile",
+    "landing.registration.registeringAs": "Registering as {{title}}",
+    "landing.registration.fallbackRole": "a federal user",
+    "landing.registration.cancel": "Cancel",
+    "landing.registration.submit": "Access platform",
+    "landing.registration.submitting": "Provisioning…",
   }
 };
 

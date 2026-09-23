@@ -6,12 +6,13 @@
 // that the visitor can take over, and hovering anywhere in the section pauses
 // it so nothing moves out from under a reader.
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { AGENTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { JOURNEY_STAGES, SPECIALISED_AGENTS } from "./agents";
+import { JOURNEY_STAGES, SPECIALISED_AGENTS, STAGE_LABEL_KEYS } from "./agents";
 import { LANDING_MOTION, Parallax, useAutoRotate } from "./motion";
 import { SectionHeading, TYPE } from "./typography";
 
@@ -21,12 +22,28 @@ export function EcosystemSection() {
   const [paused, setPaused] = useState(false);
   const reduced = useReducedMotion();
   const { t } = useLanguage();
+
+  // Resolve each agent's translatable fields once per render, keeping the
+  // interpolated name/sample genuinely computed (not frozen into a key).
+  const agents = useMemo(
+    () =>
+      SPECIALISED_AGENTS.map((agent) => ({
+        ...agent,
+        name: t(agent.nameKey, { name: AGENTS[agent.key] }),
+        tagline: t(agent.taglineKey),
+        description: t(agent.descriptionKey),
+        sampleText: agent.sample(t),
+        capabilities: agent.capabilitiesKeys.map((key) => t(key)) as [string, string],
+      })),
+    [t],
+  );
+
   const { index, select, progress } = useAutoRotate({
-    count: SPECIALISED_AGENTS.length,
+    count: agents.length,
     intervalMs: ROTATE_MS,
     paused,
   });
-  const agent = SPECIALISED_AGENTS[index];
+  const agent = agents[index];
   const ActiveIcon = agent.icon;
 
   return (
@@ -83,7 +100,7 @@ export function EcosystemSection() {
                 {String(index + 1).padStart(2, "0")}
               </span>
               <span className="text-white/50">
-                / {String(SPECIALISED_AGENTS.length).padStart(2, "0")}
+                / {String(agents.length).padStart(2, "0")}
               </span>
             </span>
 
@@ -113,7 +130,7 @@ export function EcosystemSection() {
 
           {/* Agent selector */}
           <ul className="flex flex-col gap-1" role="list">
-            {SPECIALISED_AGENTS.map((item, i) => {
+            {agents.map((item, i) => {
               const Icon = item.icon;
               const isActive = i === index;
               return (
@@ -229,7 +246,7 @@ export function EcosystemSection() {
                               : "border-transparent bg-muted/60 text-muted-foreground/60",
                           )}
                         >
-                          {stage}
+                          {t(STAGE_LABEL_KEYS[stage])}
                         </li>
                       );
                     })}
@@ -247,14 +264,14 @@ export function EcosystemSection() {
                 </figcaption>
                 <blockquote className="text-sm leading-relaxed text-foreground/90 md:text-[0.9375rem]">
                   {reduced ? (
-                    agent.sample
+                    agent.sampleText
                   ) : (
                     <motion.span
                       initial="hidden"
                       animate="shown"
                       variants={{ hidden: {}, shown: { transition: { staggerChildren: 0.014, delayChildren: 0.1 } } }}
                     >
-                      {agent.sample.split(" ").map((word, wi) => (
+                      {agent.sampleText.split(" ").map((word, wi) => (
                         <motion.span
                           key={`${agent.key}-${wi}`}
                           className="inline-block"

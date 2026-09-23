@@ -4,34 +4,69 @@
 // Names come from `AGENTS` in `@/lib/constants` and the analytics figures come
 // from the federal data spine, so the marketing page can never quote a number
 // the consoles disagree with.
+//
+// Every rendered string here is a translation key rather than a literal —
+// `EcosystemSection` is the only consumer, and it resolves these through
+// `useLanguage().t()` at render time. Two things stay genuinely dynamic
+// through that indirection rather than being frozen into a key:
+//   - `nameKey` always resolves to the literal `AGENTS[key]` value via
+//     interpolation (`t(nameKey, { name: AGENTS[key] })`), never a translated
+//     copy of the name baked into the `en`/`ar` blocks. That keeps the
+//     landing page's agent names permanently in sync with `AGENTS`.
+//   - `sample` is a function of `t`, not a string, because the analytics
+//     agent's sample line quotes live figures (`FEDERAL.*`, `nationalGaps()`)
+//     and has an optional trailing clause. Every other agent's `sample` is a
+//     one-line static lookup; analytics builds its line from two keys
+//     (`sample` + the optional `sampleGap`) so the trailing clause can be
+//     translated as its own sentence rather than spliced mid-string.
 
 import type React from "react";
 import { BarChart3, Brain, ClipboardCheck, GraduationCap, LifeBuoy, Sparkles, Target } from "lucide-react";
 import { AGENTS } from "@/lib/constants";
 import { FEDERAL, nationalGaps } from "@/lib/federal";
 
-/** The six stages of the learner journey, in order. */
+/**
+ * The six stages of the learner journey, in order. These ids are stable
+ * English identifiers used only for matching (`agent.stages.includes(stage)`)
+ * and as React keys — they are never displayed. Display text comes from
+ * `STAGE_LABEL_KEYS` below, resolved through `t()`.
+ */
 export const JOURNEY_STAGES = [
-  "Onboarding",
-  "Personalised pathway",
-  "Experiential learning",
-  "Build & train",
-  "Assess & validate",
-  "Recognition & impact",
+  "onboarding",
+  "personalisedPathway",
+  "experientialLearning",
+  "buildTrain",
+  "assessValidate",
+  "recognitionImpact",
 ] as const;
+
+export type JourneyStage = (typeof JOURNEY_STAGES)[number];
+
+/** Translation key for each journey stage's display label. */
+export const STAGE_LABEL_KEYS: Record<JourneyStage, string> = {
+  onboarding: "landing.ecosystem.stages.onboarding",
+  personalisedPathway: "landing.ecosystem.stages.personalisedPathway",
+  experientialLearning: "landing.ecosystem.stages.experientialLearning",
+  buildTrain: "landing.ecosystem.stages.buildTrain",
+  assessValidate: "landing.ecosystem.stages.assessValidate",
+  recognitionImpact: "landing.ecosystem.stages.recognitionImpact",
+};
+
+/** Matches `useLanguage().t` without importing the hook into a plain data module. */
+type TFn = (key: string, params?: Record<string, string | number>) => string;
 
 export type LandingAgent = {
   key: keyof typeof AGENTS;
-  name: string;
-  /** Four or five words describing the agent's job. */
-  tagline: string;
-  description: string;
+  /** Always `t(nameKey, { name: AGENTS[key] })` — see the file banner. */
+  nameKey: string;
+  taglineKey: string;
+  descriptionKey: string;
   /** Journey stages this agent is present in. */
-  stages: string[];
-  /** A representative line of output, shown as the agent speaking. */
-  sample: string;
+  stages: JourneyStage[];
+  /** Resolves this agent's representative sample line for the current language. */
+  sample: (t: TFn) => string;
   /** Two concrete capabilities, kept short enough to scan. */
-  capabilities: [string, string];
+  capabilitiesKeys: [string, string];
   icon: React.ElementType;
   image: string;
   /** One of the six specialised agents, as opposed to a supporting agent. */
@@ -44,101 +79,120 @@ export const LANDING_AGENTS: LandingAgent[] = [
   {
     key: "capability",
     specialised: true,
-    name: AGENTS.capability,
-    tagline: "Maps role to capability",
-    description:
-      "Recommends the pathway that matches the federal role, the entity's priorities and the capability ladder.",
-    stages: ["Onboarding", "Personalised pathway"],
-    sample:
-      "For a Marketing Specialist in a federal communications team, the fastest route to Practitioner is Prompting for Campaign Copy, then Data Summarisation, then Responsible AI Review.",
-    capabilities: ["Role-aware pathways", "Aligned to the ladder"],
+    nameKey: "landing.agents.capability.name",
+    taglineKey: "landing.agents.capability.tagline",
+    descriptionKey: "landing.agents.capability.description",
+    stages: ["onboarding", "personalisedPathway"],
+    sample: (t) => t("landing.agents.capability.sample"),
+    capabilitiesKeys: [
+      "landing.agents.capability.capabilities.0",
+      "landing.agents.capability.capabilities.1",
+    ],
     icon: Target,
     image: "brand/landing/ecosystem-2.jpg",
   },
   {
     key: "learning",
     specialised: true,
-    name: AGENTS.learning,
-    tagline: "Guides the individual",
-    description:
-      "Interprets assessment outcomes and turns them into a weekly plan the employee can actually follow.",
-    stages: ["Onboarding", "Personalised pathway", "Assess & validate"],
-    sample:
-      "Your baseline puts you at Emerging Practitioner. Prompt design is your strength; oversight of AI output is the gap. I have put a 20-minute human-in-the-loop module at the top of this week.",
-    capabilities: ["Reads every assessment", "Replans as you progress"],
+    nameKey: "landing.agents.learning.name",
+    taglineKey: "landing.agents.learning.tagline",
+    descriptionKey: "landing.agents.learning.description",
+    stages: ["onboarding", "personalisedPathway", "assessValidate"],
+    sample: (t) => t("landing.agents.learning.sample"),
+    capabilitiesKeys: [
+      "landing.agents.learning.capabilities.0",
+      "landing.agents.learning.capabilities.1",
+    ],
     icon: GraduationCap,
     image: "brand/landing/ecosystem-agents.jpg",
   },
   {
     key: "assessment",
     specialised: true,
-    name: AGENTS.assessment,
-    tagline: "Sets and marks the test",
-    description:
-      "Prepares the pre- and post-assessment for each pathway, then evaluates capability progression and the quality of the work delivered.",
-    stages: ["Assess & validate", "Recognition & impact"],
-    sample:
-      "Your pre-assessment put prompt design ahead of oversight, so the post-assessment weights oversight twice. Implementation quality 4/5: the workflow has a named approver and a fallback, but nothing measuring what it saved.",
-    capabilities: ["Pre- and post-assessment", "Rubric with a reasoning trace"],
+    nameKey: "landing.agents.assessment.name",
+    taglineKey: "landing.agents.assessment.tagline",
+    descriptionKey: "landing.agents.assessment.description",
+    stages: ["assessValidate", "recognitionImpact"],
+    sample: (t) => t("landing.agents.assessment.sample"),
+    capabilitiesKeys: [
+      "landing.agents.assessment.capabilities.0",
+      "landing.agents.assessment.capabilities.1",
+    ],
     icon: ClipboardCheck,
     image: "brand/landing/ecosystem-2.jpg",
   },
   {
     key: "content",
     specialised: true,
-    name: AGENTS.content,
-    tagline: "Builds the material",
-    description:
-      "Builds the learning-path content from the courses entity admins create, and generates extra scenarios, cases and knowledge checks on demand, in Arabic and English.",
-    stages: ["Personalised pathway", "Experiential learning"],
-    sample:
-      "Your entity admin published three courses this month. I have sequenced two of them into your pathway and generated a six-step case study on your public-awareness campaign, with an Arabic version and a knowledge check.",
-    capabilities: ["Builds from admin courses", "Bilingual by default"],
+    nameKey: "landing.agents.content.name",
+    taglineKey: "landing.agents.content.tagline",
+    descriptionKey: "landing.agents.content.description",
+    stages: ["personalisedPathway", "experientialLearning"],
+    sample: (t) => t("landing.agents.content.sample"),
+    capabilitiesKeys: [
+      "landing.agents.content.capabilities.0",
+      "landing.agents.content.capabilities.1",
+    ],
     icon: Sparkles,
     image: "brand/landing/ecosystem-agents.jpg",
   },
   {
     key: "coaching",
     specialised: true,
-    name: AGENTS.coaching,
-    tagline: "Always on hand",
-    description:
-      "Navigates the platform, chases what is outstanding and answers questions in the flow of work.",
-    stages: ["Onboarding", "Recognition & impact"],
-    sample:
-      "You have two workplace submissions waiting on your department manager and one credential ready to claim. Shall I open the validations, or your certificate on Recognition?",
-    capabilities: ["Context-aware answers", "Follows up for you"],
+    nameKey: "landing.agents.coaching.name",
+    taglineKey: "landing.agents.coaching.tagline",
+    descriptionKey: "landing.agents.coaching.description",
+    stages: ["onboarding", "recognitionImpact"],
+    sample: (t) => t("landing.agents.coaching.sample"),
+    capabilitiesKeys: [
+      "landing.agents.coaching.capabilities.0",
+      "landing.agents.coaching.capabilities.1",
+    ],
     icon: LifeBuoy,
     image: "brand/landing/ecosystem-3.jpg",
   },
   {
     key: "analytics",
     specialised: true,
-    name: AGENTS.analytics,
-    tagline: "Answers to leadership",
-    description:
-      "Rolls individual capability up to department, entity and federal level for managers, entity admins and leadership.",
-    stages: ["Assess & validate", "Recognition & impact"],
-    sample: `National readiness is at ${FEDERAL.readiness}, with ${FEDERAL.ministriesOnTrack} of ${FEDERAL.ministriesTotal} entities on track.${
-      topGap
-        ? ` ${topGap.ministries} entities name ${topGap.competency.short} as their biggest capability gap.`
-        : ""
-    }`,
-    capabilities: ["Individual to federal roll-up", "Briefing-ready outputs"],
+    nameKey: "landing.agents.analytics.name",
+    taglineKey: "landing.agents.analytics.tagline",
+    descriptionKey: "landing.agents.analytics.description",
+    stages: ["assessValidate", "recognitionImpact"],
+    sample: (t) => {
+      const base = t("landing.agents.analytics.sample", {
+        readiness: FEDERAL.readiness,
+        onTrack: FEDERAL.ministriesOnTrack,
+        total: FEDERAL.ministriesTotal,
+      });
+      if (!topGap) return base;
+      return `${base}${t("landing.agents.analytics.sampleGap", {
+        ministries: topGap.ministries,
+        competency: topGap.competency.short,
+      })}`;
+    },
+    capabilitiesKeys: [
+      "landing.agents.analytics.capabilities.0",
+      "landing.agents.analytics.capabilities.1",
+    ],
     icon: BarChart3,
     image: "brand/landing/ecosystem-2.jpg",
   },
   {
+    // Not currently rendered anywhere (EcosystemSection and HeroSection only
+    // read `SPECIALISED_AGENTS`, filtered to `specialised: true`). Kept keyed
+    // and structurally identical to the specialised agents so the type stays
+    // uniform and this entry is ready to render without rework if that changes.
     key: "practice",
     specialised: false,
-    name: AGENTS.practice,
-    tagline: "Safe place to try",
-    description:
-      "Runs simulated workplace scenarios and digital twins so capability is practised before it is used on real work.",
-    stages: ["Experiential learning", "Build & train"],
-    sample:
-      "Scenario: a resident disputes an AI-drafted reply from your department. Draft your response and I will score it against the federal responsible-AI checklist, line by line.",
-    capabilities: ["Sandboxed scenarios", "Scored against policy"],
+    nameKey: "landing.agents.practice.name",
+    taglineKey: "landing.agents.practice.tagline",
+    descriptionKey: "landing.agents.practice.description",
+    stages: ["experientialLearning", "buildTrain"],
+    sample: (t) => t("landing.agents.practice.sample"),
+    capabilitiesKeys: [
+      "landing.agents.practice.capabilities.0",
+      "landing.agents.practice.capabilities.1",
+    ],
     icon: Brain,
     image: "brand/landing/ecosystem-3.jpg",
   },

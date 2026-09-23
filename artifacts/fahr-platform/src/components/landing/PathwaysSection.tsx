@@ -7,6 +7,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { STAKEHOLDERS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { LANDING_MOTION, RevealGroup, RevealItem, SandGrid, TiltCard } from "./motion";
+import { ROLE_TITLE_KEYS } from "./roles";
 import { SectionHeading, TYPE } from "./typography";
 
 type Stakeholder = (typeof STAKEHOLDERS)[number];
@@ -61,6 +62,7 @@ export function PathwaysSection({ onSelect }: { onSelect: (role: Stakeholder) =>
         >
           {STAKEHOLDERS.map((stakeholder, i) => {
             const meta = ROLE_META[stakeholder.id];
+            const title = t(ROLE_TITLE_KEYS[stakeholder.id]);
             return (
               <RevealItem key={stakeholder.id} variant="up">
                 <TiltCard
@@ -75,7 +77,7 @@ export function PathwaysSection({ onSelect }: { onSelect: (role: Stakeholder) =>
                   role="button"
                   tabIndex={0}
                   data-testid={`card-role-${stakeholder.id}`}
-                  aria-label={t("landing.pathways.registerAria", { title: stakeholder.title })}
+                  aria-label={t("landing.pathways.registerAria", { title })}
                 >
                   <div className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[3/4]">
                     <img
@@ -101,7 +103,7 @@ export function PathwaysSection({ onSelect }: { onSelect: (role: Stakeholder) =>
 
                     <div className="absolute inset-x-0 bottom-0 flex flex-col items-start p-4 text-start md:p-5">
                       <h3 className="mb-1 text-base font-bold leading-snug text-white">
-                        {stakeholder.title}
+                        {title}
                       </h3>
                       <p className="text-xs leading-relaxed text-white/70 lg:max-h-0 lg:overflow-hidden lg:opacity-0 lg:transition-all lg:duration-500 lg:group-hover:max-h-24 lg:group-hover:opacity-100 lg:group-focus-within:max-h-24 lg:group-focus-within:opacity-100">
                         {t(meta.blurbKey)}

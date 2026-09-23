@@ -18,17 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from "@/lib/LanguageContext";
 import { STAKEHOLDERS } from "@/lib/constants";
 import { LANDING_MOTION } from "./motion";
+import { ROLE_TITLE_KEYS } from "./roles";
 
 type Stakeholder = (typeof STAKEHOLDERS)[number];
 
 const ENTITY_OPTIONS = [
-  { value: "mohap", label: "Ministry of Health and Prevention" },
-  { value: "moe", label: "Ministry of Education" },
-  { value: "mof", label: "Ministry of Finance" },
-  { value: "moei", label: "Ministry of Economy" },
-  { value: "fahr", label: "FAHR" },
+  { value: "mohap", key: "landing.registration.entities.mohap" },
+  { value: "moe", key: "landing.registration.entities.moe" },
+  { value: "mof", key: "landing.registration.entities.mof" },
+  { value: "moei", key: "landing.registration.entities.moei" },
+  { value: "fahr", key: "landing.registration.entities.fahr" },
 ];
 
 export function RegistrationDialog({
@@ -45,6 +47,7 @@ export function RegistrationDialog({
   const [done, setDone] = useState(false);
   const reduced = useReducedMotion();
   const timers = useRef<number[]>([]);
+  const { t } = useLanguage();
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -82,22 +85,31 @@ export function RegistrationDialog({
 
   const identity = (
     <>
-      <Field id="name" label="Full Name" placeholder="E.g. Aisha Al Mansoori" />
-      <Field id="email" label="Government Email" type="email" placeholder="aisha@mohap.gov.ae" />
+      <Field
+        id="name"
+        label={t("landing.registration.nameLabel")}
+        placeholder={t("landing.registration.namePlaceholder")}
+      />
+      <Field
+        id="email"
+        label={t("landing.registration.emailLabel")}
+        type="email"
+        placeholder={t("landing.registration.emailPlaceholder")}
+      />
     </>
   );
 
   const entityField = (
     <div className="space-y-2">
-      <Label htmlFor="entity">Federal Entity</Label>
+      <Label htmlFor="entity">{t("landing.registration.entityLabel")}</Label>
       <Select required>
         <SelectTrigger id="entity">
-          <SelectValue placeholder="Select your entity" />
+          <SelectValue placeholder={t("landing.registration.entityPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           {ENTITY_OPTIONS.map((option) => (
             <SelectItem key={option.value} value={option.value}>
-              {option.label}
+              {t(option.key)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -112,7 +124,11 @@ export function RegistrationDialog({
           <>
             {identity}
             {entityField}
-            <Field id="title" label="Job Title" placeholder="E.g. Marketing Specialist" />
+            <Field
+              id="title"
+              label={t("landing.registration.jobTitleLabel")}
+              placeholder={t("landing.registration.learner.jobTitlePlaceholder")}
+            />
           </>
         );
       case "manager":
@@ -120,8 +136,18 @@ export function RegistrationDialog({
           <>
             {identity}
             {entityField}
-            <Field id="title" label="Job Title" placeholder="E.g. Head of Digital Communications" />
-            <Field id="team" label="Team Size" type="number" placeholder="E.g. 5" min="1" />
+            <Field
+              id="title"
+              label={t("landing.registration.jobTitleLabel")}
+              placeholder={t("landing.registration.manager.jobTitlePlaceholder")}
+            />
+            <Field
+              id="team"
+              label={t("landing.registration.manager.teamSizeLabel")}
+              type="number"
+              placeholder={t("landing.registration.manager.teamSizePlaceholder")}
+              min="1"
+            />
           </>
         );
       case "entity":
@@ -129,14 +155,23 @@ export function RegistrationDialog({
           <>
             {identity}
             {entityField}
-            <Field id="adminCode" label="Admin Access Code" type="password" placeholder="••••••••" />
+            <Field
+              id="adminCode"
+              label={t("landing.registration.entity.adminCodeLabel")}
+              type="password"
+              placeholder={t("landing.registration.entity.adminCodePlaceholder")}
+            />
           </>
         );
       case "fahr-team":
         return (
           <>
             {identity}
-            <Field id="fahrId" label="FAHR Programme ID" placeholder="E.g. FAHR-2026-X" />
+            <Field
+              id="fahrId"
+              label={t("landing.registration.fahrTeam.programmeIdLabel")}
+              placeholder={t("landing.registration.fahrTeam.programmeIdPlaceholder")}
+            />
           </>
         );
       case "leadership":
@@ -144,7 +179,11 @@ export function RegistrationDialog({
           <>
             {identity}
             {entityField}
-            <Field id="execTitle" label="Executive Title" placeholder="E.g. Undersecretary" />
+            <Field
+              id="execTitle"
+              label={t("landing.registration.leadership.execTitleLabel")}
+              placeholder={t("landing.registration.leadership.execTitlePlaceholder")}
+            />
           </>
         );
       default:
@@ -174,10 +213,10 @@ export function RegistrationDialog({
                 <CheckCircle2 className="h-8 w-8" />
               </motion.span>
               <DialogTitle className="mb-1.5 text-xl font-bold text-foreground">
-                Registration complete
+                {t("landing.registration.doneTitle")}
               </DialogTitle>
               <DialogDescription className="mb-6 text-sm text-muted-foreground">
-                Your profile has been provisioned. Opening your workspace…
+                {t("landing.registration.doneDescription")}
               </DialogDescription>
               <div className="flex gap-1.5">
                 {[0, 1, 2].map((i) => (
@@ -206,10 +245,12 @@ export function RegistrationDialog({
                 </span>
                 <div className="min-w-0">
                   <DialogTitle className="text-lg font-bold text-foreground">
-                    Create profile
+                    {t("landing.registration.createProfileTitle")}
                   </DialogTitle>
                   <DialogDescription className="truncate text-sm text-muted-foreground">
-                    Registering as {role?.title ?? "a federal user"}
+                    {t("landing.registration.registeringAs", {
+                      title: role ? t(ROLE_TITLE_KEYS[role.id]) : t("landing.registration.fallbackRole"),
+                    })}
                   </DialogDescription>
                 </div>
               </div>
@@ -240,7 +281,7 @@ export function RegistrationDialog({
                     onClick={() => onOpenChange(false)}
                     className="border-border text-foreground hover:bg-black/5"
                   >
-                    Cancel
+                    {t("landing.registration.cancel")}
                   </Button>
                   <Button
                     type="submit"
@@ -250,10 +291,10 @@ export function RegistrationDialog({
                   >
                     {submitting ? (
                       <>
-                        <Loader2 className="me-2 h-4 w-4 animate-spin" /> Provisioning…
+                        <Loader2 className="me-2 h-4 w-4 animate-spin" /> {t("landing.registration.submitting")}
                       </>
                     ) : (
-                      "Access platform"
+                      t("landing.registration.submit")
                     )}
                   </Button>
                 </div>
