@@ -21,7 +21,7 @@ const ROTATE_MS = 6200;
 export function EcosystemSection() {
   const [paused, setPaused] = useState(false);
   const reduced = useReducedMotion();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Resolve each agent's translatable fields once per render, keeping the
   // interpolated name/sample genuinely computed (not frozen into a key).
@@ -32,10 +32,10 @@ export function EcosystemSection() {
         name: t(agent.nameKey, { name: AGENTS[agent.key] }),
         tagline: t(agent.taglineKey),
         description: t(agent.descriptionKey),
-        sampleText: agent.sample(t),
+        sampleText: agent.sample(t, language),
         capabilities: agent.capabilitiesKeys.map((key) => t(key)) as [string, string],
       })),
-    [t],
+    [t, language],
   );
 
   const { index, select, progress } = useAutoRotate({

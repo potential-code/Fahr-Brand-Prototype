@@ -6,6 +6,15 @@ export type Competency = {
   label: string;
   short: string;
   description: string;
+  /**
+   * Arabic forms, additive and optional. The app screens are English and read
+   * `label`/`short` exactly as before; only the public landing page reads
+   * these, and only when the language toggle is on Arabic. Optional so no
+   * existing construction site is forced to supply them — every read site
+   * falls back to the English field.
+   */
+  labelAr?: string;
+  shortAr?: string;
 };
 
 /** FAHR AI capability framework used by the baseline assessment and the report. */
@@ -14,30 +23,40 @@ export const COMPETENCIES: Competency[] = [
     id: "literacy",
     label: "AI Literacy & Fundamentals",
     short: "AI Literacy",
+    labelAr: "الإلمام بالذكاء الاصطناعي وأساسياته",
+    shortAr: "الإلمام بالذكاء الاصطناعي",
     description: "Understands what generative and agentic AI can and cannot do in a government context.",
   },
   {
     id: "prompting",
     label: "Prompt Engineering",
     short: "Prompting",
+    labelAr: "هندسة الأوامر",
+    shortAr: "صياغة الأوامر",
     description: "Writes structured, context-rich instructions that produce reliable, on-brand outputs.",
   },
   {
     id: "analytics",
     label: "AI-Assisted Analytics",
     short: "Analytics",
+    labelAr: "تحليلات بمساعدة الذكاء الاصطناعي",
+    shortAr: "التحليلات",
     description: "Uses AI to interpret service and campaign data and turn it into decisions.",
   },
   {
     id: "agentic",
     label: "Agentic AI & Automation",
     short: "Agentic AI",
+    labelAr: "الذكاء الاصطناعي الوكيل والأتمتة",
+    shortAr: "الذكاء الاصطناعي الوكيل",
     description: "Designs multi-step AI workflows and assistants that carry real work forward.",
   },
   {
     id: "governance",
     label: "AI Governance & Data Ethics",
     short: "Governance",
+    labelAr: "حوكمة الذكاء الاصطناعي وأخلاقيات البيانات",
+    shortAr: "الحوكمة",
     description: "Applies federal policy, privacy and human-in-the-loop controls to every AI output.",
   },
 ];

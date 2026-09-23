@@ -55,6 +55,9 @@ export const STAGE_LABEL_KEYS: Record<JourneyStage, string> = {
 /** Matches `useLanguage().t` without importing the hook into a plain data module. */
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
+/** Matches `useLanguage().language`, kept local for the same reason as `TFn`. */
+type Lang = "en" | "ar";
+
 export type LandingAgent = {
   key: keyof typeof AGENTS;
   /** Always `t(nameKey, { name: AGENTS[key] })` — see the file banner. */
@@ -63,8 +66,13 @@ export type LandingAgent = {
   descriptionKey: string;
   /** Journey stages this agent is present in. */
   stages: JourneyStage[];
-  /** Resolves this agent's representative sample line for the current language. */
-  sample: (t: TFn) => string;
+  /**
+   * Resolves this agent's representative sample line for the current language.
+   * `lang` is only needed by the analytics agent, whose line quotes a
+   * competency name that lives on shared data rather than in a translation
+   * key; the other resolvers ignore it.
+   */
+  sample: (t: TFn, lang: Lang) => string;
   /** Two concrete capabilities, kept short enough to scan. */
   capabilitiesKeys: [string, string];
   icon: React.ElementType;
@@ -158,16 +166,21 @@ export const LANDING_AGENTS: LandingAgent[] = [
     taglineKey: "landing.agents.analytics.tagline",
     descriptionKey: "landing.agents.analytics.description",
     stages: ["assessValidate", "recognitionImpact"],
-    sample: (t) => {
+    sample: (t, lang) => {
       const base = t("landing.agents.analytics.sample", {
         readiness: FEDERAL.readiness,
         onTrack: FEDERAL.ministriesOnTrack,
         total: FEDERAL.ministriesTotal,
       });
       if (!topGap) return base;
+      // Which competency this is depends on live data (`nationalGaps()[0]`),
+      // so it cannot be baked into a translation key. `shortAr` is optional on
+      // `Competency`, hence the fall back to the English `short`.
+      const competency =
+        (lang === "ar" ? topGap.competency.shortAr : undefined) ?? topGap.competency.short;
       return `${base}${t("landing.agents.analytics.sampleGap", {
         ministries: topGap.ministries,
-        competency: topGap.competency.short,
+        competency,
       })}`;
     },
     capabilitiesKeys: [
