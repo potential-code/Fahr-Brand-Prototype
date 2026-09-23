@@ -45,8 +45,8 @@ export function JourneyIllustration() {
           </div>
           <figcaption className="mt-3 text-center text-xs text-muted-foreground">
             {isAr
-              ? "التهيئة ← المسار الشخصي ← التعلم التطبيقي ← التوأم الرقمي ← التقييم والاعتماد ← التقدير والأثر"
-              : "Onboarding → Personalised pathway → Experiential learning → Digital twin → Evaluation & certification → Recognition & impact"}
+              ? "التهيئة ← المسار الشخصي ← التعلم التطبيقي ← التوأم الرقمي ← تقييم المشروع ← التقدير والأثر"
+              : "Onboarding → Personalised pathway → Experiential learning → Digital twin → Project evaluation → Recognition & impact"}
           </figcaption>
         </motion.figure>
       </CardContent>
