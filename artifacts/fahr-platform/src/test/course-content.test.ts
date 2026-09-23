@@ -8,7 +8,9 @@ import { COURSES } from "@/lib/learningData";
 describe("every video lesson can actually play", () => {
   it("has a videoId on every lesson of type video", () => {
     const videoLessons = COURSES.flatMap((course) =>
-      course.groups.flatMap((group) => group.lessons.filter((l) => l.type === "video")),
+      [...course.groups.flatMap((group) => group.lessons), ...course.revisionUnits].filter(
+        (l) => l.type === "video",
+      ),
     );
 
     expect(videoLessons.length).toBeGreaterThan(0);
