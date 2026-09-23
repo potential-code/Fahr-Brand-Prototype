@@ -101,7 +101,7 @@ export function AchievementsPanel({
           </p>
           <Button asChild variant="outline" size="sm">
             <Link href="/learner/recognition" data-testid="link-credentials-wallet">
-              Open credentials wallet <ArrowRight className="ms-2 h-4 w-4" />
+              Open Recognition <ArrowRight className="ms-2 h-4 w-4" />
             </Link>
           </Button>
         </div>

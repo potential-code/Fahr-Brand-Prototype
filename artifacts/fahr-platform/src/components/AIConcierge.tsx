@@ -31,7 +31,7 @@ const CANNED: Record<string, string> = {
   pathway:
     "Your personalised pathway is built by the Capability Agent from your baseline assessment and role profile. It adapts as you complete each step — you can review it any time under Learning Pathway.",
   certificate:
-    "Certificates and badges you earn are stored in your Recognition wallet. Points contribute to your entity leaderboard position.",
+    "Certificates and badges you earn are shown on your Recognition screen. Points contribute to your entity leaderboard position.",
   help:
     "I have flagged your request to the FAHR programme support team. A human specialist will follow up by email within one business day.",
 };

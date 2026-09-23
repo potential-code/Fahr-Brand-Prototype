@@ -322,7 +322,7 @@ export function buildProfileAnalysis(
         issuer: "FAHR AI Academy",
         caption:
           state === "earned"
-            ? "Verified credential in your wallet"
+            ? "Verified credential on Recognition"
             : state === "in-progress"
               ? `${done} of ${lessonTotal} lessons complete`
               : "Unlocks when you finish the course",

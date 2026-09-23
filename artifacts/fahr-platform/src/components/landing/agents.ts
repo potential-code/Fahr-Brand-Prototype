@@ -106,7 +106,7 @@ export const LANDING_AGENTS: LandingAgent[] = [
       "Navigates the platform, chases what is outstanding and answers questions in the flow of work.",
     stages: ["Onboarding", "Recognition & impact"],
     sample:
-      "You have two workplace submissions waiting on your department manager and one credential ready to claim. Shall I open the validations, or your credential wallet?",
+      "You have two workplace submissions waiting on your department manager and one credential ready to claim. Shall I open the validations, or your certificate on Recognition?",
     capabilities: ["Context-aware answers", "Follows up for you"],
     icon: LifeBuoy,
     image: "brand/landing/ecosystem-3.jpg",
