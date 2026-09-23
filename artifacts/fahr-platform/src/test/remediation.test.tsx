@@ -49,4 +49,32 @@ describe("post-assessment remediation", () => {
     act(() => result.current.toggleLessonComplete(COURSE_ID, units[1].id));
     expect(result.current.revisionDone(COURSE_ID)).toBe(true);
   });
+
+  // CoursePlayer picks between its two locked-final-assessment panels with
+  // `remediationFor && !revisionDone(course.id)`: the remediation-aware one
+  // while a revision is open and incomplete, the ordinary one otherwise. A
+  // second course id keeps this independent of the state the tests above
+  // already built up on COURSE_ID.
+  it("derives a locked-for-remediation state distinct from the ordinary lock", () => {
+    const REMEDIATION_COURSE_ID = "prompt-craft";
+    const { result } = useProgress();
+
+    const lockedForRemediation = () => {
+      const remediationFor = result.current.remediation[REMEDIATION_COURSE_ID];
+      return Boolean(remediationFor) && !result.current.revisionDone(REMEDIATION_COURSE_ID);
+    };
+
+    // No remediation open yet: this is the ordinary lock, not this one.
+    expect(lockedForRemediation()).toBe(false);
+
+    act(() => result.current.openRemediation(REMEDIATION_COURSE_ID, "prompting", 1));
+    expect(lockedForRemediation()).toBe(true);
+
+    const units = COURSE_BY_ID[REMEDIATION_COURSE_ID].revisionUnits;
+    act(() => result.current.toggleLessonComplete(REMEDIATION_COURSE_ID, units[0].id));
+    expect(lockedForRemediation()).toBe(true);
+
+    act(() => result.current.toggleLessonComplete(REMEDIATION_COURSE_ID, units[1].id));
+    expect(lockedForRemediation()).toBe(false);
+  });
 });

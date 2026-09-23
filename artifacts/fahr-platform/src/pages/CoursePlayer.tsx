@@ -28,6 +28,7 @@ import {
   COMPETENCY_BY_ID,
   courseLessons,
   LESSON_TYPE_LABEL,
+  type Course,
   type Lesson,
 } from "@/lib/learningData";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
@@ -46,7 +47,20 @@ const LESSON_ICON = {
   activity: PenLine,
 } as const;
 
+/** Final assessment pass mark: 2 of 3 questions correct. */
+const FINAL_PASS_MARK = 2;
+
 type ActiveItem = { kind: "pretest" } | { kind: "lesson"; id: string } | { kind: "final" };
+
+/**
+ * The active lesson list for a course: authored lessons plus, once
+ * remediation has opened, the two revision units appended after them.
+ * `courseLessons` itself stays untouched (it also drives the federal
+ * roll-up), so this composition lives here and only here.
+ */
+function activeLessons(course: Course, remediationOpen: boolean): Lesson[] {
+  return [...courseLessons(course), ...(remediationOpen ? course.revisionUnits : [])];
+}
 
 function LessonBody({
   lesson,
@@ -140,12 +154,8 @@ export default function CoursePlayer() {
   const progress = course ? getCourseProgress(course.id) : undefined;
   const remediationFor = course ? remediation[course.id] : undefined;
 
-  // `courseLessons` is deliberately left alone (it also drives the federal
-  // roll-up), so the revision units are appended locally and only while
-  // remediation is open.
   const lessons = useMemo(
-    () =>
-      course ? [...courseLessons(course), ...(remediationFor ? course.revisionUnits : [])] : [],
+    () => (course ? activeLessons(course, Boolean(remediationFor)) : []),
     [course, remediationFor],
   );
 
@@ -153,11 +163,11 @@ export default function CoursePlayer() {
     if (!course) return { kind: "pretest" };
     const p = getCourseProgress(course.id);
     if (!p.pretestDone) return { kind: "pretest" };
-    const remFor = remediation[course.id];
-    const allLessons = [...courseLessons(course), ...(remFor ? course.revisionUnits : [])];
-    const next = allLessons.find((l) => !p.completedLessonIds.includes(l.id));
+    const next = activeLessons(course, Boolean(remediationFor)).find(
+      (l) => !p.completedLessonIds.includes(l.id),
+    );
     return next ? { kind: "lesson", id: next.id } : { kind: "final" };
-  }, [course, getCourseProgress, remediation]);
+  }, [course, getCourseProgress, remediationFor]);
 
   const [active, setActive] = useState<ActiveItem>(initialItem);
   const [coachOpen, setCoachOpen] = useState(false);
@@ -501,15 +511,40 @@ export default function CoursePlayer() {
                   {active.kind === "final" && (
                     <div>
                       {!finalOpen ? (
-                        <div className="text-center py-10">
-                          <Lock className="h-8 w-8 text-muted-foreground mx-auto" />
-                          <h2 className="mt-4 text-lg font-semibold text-foreground">
-                            Final assessment locked
-                          </h2>
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            Complete all {lessons.length} lessons to unlock the final assessment.
-                          </p>
-                        </div>
+                        remediationFor && !revisionDone(course.id) ? (
+                          <div className="text-center py-10" data-testid="final-locked-remediation">
+                            <Sparkles className="h-8 w-8 text-primary mx-auto" />
+                            <h2 className="mt-4 text-lg font-semibold text-foreground">
+                              Locked for revision
+                            </h2>
+                            <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+                              You scored {remediationFor.lastScore} of{" "}
+                              {course.finalAssessment.questions.length}, so the {AGENTS.content} added{" "}
+                              {course.revisionUnits.length} revision units below. Complete them and the
+                              final assessment reopens.
+                            </p>
+                            <div className="mt-6">
+                              <Button
+                                onClick={() =>
+                                  setActive({ kind: "lesson", id: course.revisionUnits[0].id })
+                                }
+                                data-testid="button-start-revision"
+                              >
+                                Start the revision units <ArrowRight className="h-4 w-4 ms-2" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-10">
+                            <Lock className="h-8 w-8 text-muted-foreground mx-auto" />
+                            <h2 className="mt-4 text-lg font-semibold text-foreground">
+                              Final assessment locked
+                            </h2>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              Complete all {lessons.length} lessons to unlock the final assessment.
+                            </p>
+                          </div>
+                        )
                       ) : progress.finalDone ? (
                         <div className="text-center py-8">
                           <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -549,12 +584,15 @@ export default function CoursePlayer() {
                           <div className="mt-7">
                             <StepQuiz
                               questions={course.finalAssessment.questions}
-                              passMark={2}
+                              passMark={FINAL_PASS_MARK}
                               submitLabel="Claim your credential"
                               passNote="Strong result. Your credential is ready to claim."
-                              failNote="Below the pass mark. Your Content Agent is adding revision units."
+                              // No failNote here: a failing onAttempt opens remediation in the
+                              // same commit, which re-locks this tab before StepQuiz's own
+                              // result screen can paint. The locked-for-remediation panel above
+                              // carries the score and next step instead.
                               onAttempt={(correct) => {
-                                if (correct >= 2) return;
+                                if (correct >= FINAL_PASS_MARK) return;
                                 openRemediation(course.id, course.competencyId, correct);
                               }}
                               onPass={() => {
