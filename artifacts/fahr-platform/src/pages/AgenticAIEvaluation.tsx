@@ -8,12 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { CountUp } from "@/components/CountUp";
 import { ScoreCard } from "@/components/evaluation/ScoreCard";
 import { ReviewThread } from "@/components/evaluation/ReviewThread";
-import { ArrowRight, ArrowUpRight, Award, FileCheck, Sparkles, Star, UserCheck } from "lucide-react";
-import { CAPABILITY_LEVELS, LEARNER_PROFILE } from "@/lib/constants";
+import { ArrowRight, ArrowUpRight, Award, Sparkles, Star } from "lucide-react";
+import { CAPABILITY_LEVELS } from "@/lib/constants";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
-import { AGENTS } from "@/lib/constants";
 import { buildRecommendations } from "@/lib/recommendations";
 import { demoSubmission, evaluateSubmission, reviewThread } from "@/lib/workplaceProject";
 
@@ -39,68 +38,19 @@ export default function AgenticAIEvaluation() {
   const fromLevel = CAPABILITY_LEVELS[currentIndex];
   const toLevel = CAPABILITY_LEVELS[Math.min(currentIndex + 1, CAPABILITY_LEVELS.length - 1)];
 
-  const submittedLabel = new Date(evaluated.submittedAt).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const explainer = [
-    {
-      icon: FileCheck,
-      label: "What was evaluated",
-      value: evaluated.draft.title,
-      detail: `Submitted ${submittedLabel} by ${LEARNER_PROFILE.name}`,
-    },
-    {
-      icon: UserCheck,
-      label: "Who evaluated it",
-      value: `The ${AGENTS.assessment} and your Ministry Innovation Lead`,
-      detail: `${evaluation.dimensions.length} scored dimensions, then a human decision on top of them`,
-    },
-    {
-      icon: Award,
-      label: "What it leads to",
-      value: `${toLevel.label} on the federal ladder`,
-      detail: "A verifiable credential and impact points on the register",
-    },
-  ];
-
   return (
     <Layout role="learner">
       <div className="mx-auto w-full max-w-5xl space-y-6 pb-12">
         <PageHeader
           bordered
-          title="Evaluation & Certification"
-          description="Where your workplace project is scored, reviewed by a human, and turned into a credential."
+          title="Project Evaluation"
+          description="Where your workplace project is scored by the Assessment Agent and reviewed by a human."
           actions={
             <Badge variant="outline" className="border-primary/25 bg-primary/5 px-3 py-1 text-sm text-primary">
               Evaluation complete
             </Badge>
           }
         />
-
-        {/* Self-explaining strip: what, who, what next */}
-        <div className="grid gap-3 md:grid-cols-3">
-          {explainer.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <motion.div
-                key={item.label}
-                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.08 }}
-                className="rounded-xl border border-border bg-card p-4"
-              >
-                <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Icon className="h-3.5 w-3.5 text-primary" /> {item.label}
-                </p>
-                <p className="mt-1.5 text-sm font-semibold leading-snug text-foreground">{item.value}</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.detail}</p>
-              </motion.div>
-            );
-          })}
-        </div>
 
         {submission && (
           <motion.p

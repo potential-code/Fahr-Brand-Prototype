@@ -62,7 +62,7 @@ export function QuickLinksGrid() {
     },
     {
       href: "/learner/evaluation",
-      label: "Evaluation & Certification",
+      label: "Project Evaluation",
       description: "AI and human review",
       icon: BadgeCheck,
       status: "Ready",
