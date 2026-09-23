@@ -234,3 +234,73 @@ describe("screenForPii's narrowing does not go too far, round 3", () => {
     expect(ar).toBe(true);
   });
 });
+
+// Regression cases from a fourth review round — both are *span* defects in
+// the Arabic name detector, so every case asserts on the captured `match`,
+// not merely on `hit`.
+//
+// Defect 1: rejecting a capture only when *every* word was a title let any
+// realistic introduction-by-title through, because such phrases always
+// contain an ordinary noun ("الموارد", "السياسات"). FAHR officials introduce
+// themselves by title routinely, so redacting the title on stage is the same
+// live failure the English "This is Federal Authority guidance" bug was.
+//
+// Defect 2: Arabic prefixes the conjunction و directly onto the next word
+// with no space, and those forms were absent from the continuation-word set,
+// so the capture swallowed the next clause's first word into the redacted
+// span.
+describe("the Arabic name detector captures the name and only the name", () => {
+  it("an introduction by job title is not a name", () => {
+    for (const phrase of [
+      "اسمي مدير الموارد البشرية",
+      "اسمي مستشار السياسات",
+      "اسمي مدير الاتصال الحكومي",
+    ]) {
+      const screen = screenForPii(phrase);
+      expect(
+        screen.findings.filter((f) => f.kind === "name"),
+        phrase,
+      ).toEqual([]);
+      expect(screen.hit, phrase).toBe(false);
+    }
+  });
+
+  it("rejects the title whichever way the first word is written (definite article or not)", () => {
+    expect(screenForPii("اسمي المدير التنفيذي للهيئة").hit).toBe(false);
+    expect(screenForPii("اسمي رئيس قسم التدريب").hit).toBe(false);
+  });
+
+  it("does not swallow a و-prefixed continuation into the captured name", () => {
+    const working = screenForPii("اسمي أحمد الشامسي وأعمل في الاتصالات");
+    expect(working.findings.find((f) => f.kind === "name")?.match).toBe("أحمد الشامسي");
+    expect(working.redacted).toBe("اسمي [full name] وأعمل في الاتصالات");
+
+    const employed = screenForPii("اسمي أحمد الشامسي وموظف في الوزارة");
+    expect(employed.findings.find((f) => f.kind === "name")?.match).toBe("أحمد الشامسي");
+    expect(employed.redacted).toBe("اسمي [full name] وموظف في الوزارة");
+  });
+
+  it("still catches a genuine self-introduction, two words or three, with the exact span", () => {
+    const two = screenForPii("اسمي أحمد الشامسي");
+    expect(two.hit).toBe(true);
+    expect(two.findings.find((f) => f.kind === "name")?.match).toBe("أحمد الشامسي");
+
+    // The capture regex caps the raw match at three words, so a genuine
+    // three-word name fills it completely and the و-trim never fires on it.
+    const three = screenForPii("اسمي أحمد محمد الشامسي");
+    expect(three.hit).toBe(true);
+    const threeName = three.findings.find((f) => f.kind === "name");
+    expect(threeName?.match).toBe("أحمد محمد الشامسي");
+    expect(three.redacted).toBe("اسمي [full name]");
+
+    // ... and the same three-word name followed directly by a continuation
+    // word is still captured in full, not clipped back to two words.
+    const followed = screenForPii("اسمي أحمد محمد الشامسي وأنا أعمل");
+    expect(followed.findings.find((f) => f.kind === "name")?.match).toBe("أحمد محمد الشامسي");
+  });
+
+  it("keeps a real و-initial given name rather than trimming it as a conjunction", () => {
+    const screen = screenForPii("اسمي محمد وليد");
+    expect(screen.findings.find((f) => f.kind === "name")?.match).toBe("محمد وليد");
+  });
+});

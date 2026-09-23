@@ -184,26 +184,117 @@ const NAME_STOPLIST_EN = new Set([
 ]);
 
 /**
- * The Arabic equivalent of NAME_STOPLIST_EN, for the same defense-in-depth
- * reason: "اسمي مدير عام الهيئة الاتحادية" ("my name is Director General of
- * the Federal Authority") should not be captured as a name just because it
- * follows the unambiguous "اسمي" trigger.
+ * Arabic role, title, honorific and entity nouns that a real self-introduction
+ * never *opens* with — the FIRST-word test for the Arabic name detector.
+ *
+ * This deliberately is not the Arabic mirror of NAME_STOPLIST_EN's "every
+ * captured word is a title" rule. That rule was demonstrably too weak here:
+ * one ordinary noun anywhere in the phrase was enough to let a pure
+ * introduction-by-title through as if it were a person's name —
+ *
+ *   "اسمي مدير الموارد البشرية"  -> captured "مدير الموارد البشرية"  (HR Director)
+ *   "اسمي مستشار السياسات"       -> captured "مستشار السياسات"       (policy advisor)
+ *   "اسمي مدير الاتصال الحكومي"  -> captured "مدير الاتصال الحكومي"  (govt comms director)
+ *
+ * — and no amount of widening the word list fixes that, because the words
+ * that follow a role noun ("الموارد", "السياسات", "الاتصال") are ordinary
+ * Arabic nouns that appear in real names' surroundings too. The structure is
+ * what distinguishes the two: a self-introduction opens with a *given name*,
+ * an introduction-by-title opens with the *role*. So the test is positional —
+ * reject the capture when its first word (definite article stripped) is one
+ * of these — which kills all three cases above with a far smaller list, and
+ * is the same class of fix already applied on the English side, where a bare
+ * "this is"/"I am" trigger was redacting the client's own organisation name.
+ *
+ * FAHR officials introduce themselves by title routinely ("I'm the HR
+ * director"), so this is a live-demo risk, not a theoretical one.
+ *
+ * Coverage and why: the role nouns a government self-introduction actually
+ * opens with (director/advisor/head/deputy/undersecretary/secretary/
+ * employee/official/coordinator/specialist), their feminine forms (Arabic
+ * marks gender on the job title, and FAHR's audience is mixed), the
+ * professional and courtesy honorifics that precede a name (الدكتور،
+ * المهندس، الأستاذ، معالي، سعادة، سمو), and the organisation nouns retained
+ * from the previous list (وزارة، هيئة، دائرة، قسم …) — "اسمي هيئة …" is not
+ * a person either. The definite-article forms (المدير، الرئيس …) need no
+ * separate entries: stripArabicDefiniteArticle normalises them onto the bare
+ * form before the lookup.
+ *
+ * Two accepted trade-offs, both false *negatives*, which this module
+ * deliberately prefers over false positives:
+ *   - "أمين" is both "secretary" and the given name Amin, so
+ *     "اسمي أمين الشامسي" is rejected. It is on the required list, and a
+ *     missed name is a smaller failure here than redacting a job title.
+ *   - An honorific-led introduction that does carry a real name
+ *     ("اسمي الدكتور أحمد الشامسي") is rejected whole rather than having the
+ *     honorific stripped. Stripping was considered and rejected: peeling
+ *     leading title words off and re-testing the remainder accepts
+ *     "اسمي مدير الموارد البشرية" again ("الموارد" is not a title), i.e. it
+ *     reintroduces the exact defect this set exists to close.
  */
-const NAME_STOPLIST_AR = new Set([
+const NAME_TITLE_FIRST_WORDS_AR = new Set([
+  // Roles / posts (masculine)
+  "مدير", // director / manager
+  "مستشار", // advisor / consultant
+  "رئيس", // head / chairman / president
+  "نائب", // deputy
+  "وكيل", // undersecretary / agent
+  "أمين", // secretary (as in "أمين عام" -- secretary general)
+  "موظف", // employee
+  "مسؤول", // official / person in charge
+  "أخصائي", // specialist
+  "منسق", // coordinator
+  "وزير", // minister
+  "عضو", // member
+  "مشرف", // supervisor
+  "باحث", // researcher
+  "خبير", // expert
+  "محلل", // analyst
+  "مساعد", // assistant
+  "ممثل", // representative
+  "ناطق", // spokesperson
+  "مفتش", // inspector
+  "عميد", // dean
+  "قائد", // commander / leader
+  "ضابط", // officer
+  "سكرتير", // secretary (clerical)
+  // Roles / posts (feminine)
+  "مديرة",
+  "مستشارة",
+  "رئيسة",
+  "نائبة",
+  "وكيلة",
+  "أمينة",
+  "موظفة",
+  "مسؤولة",
+  "أخصائية",
+  "منسقة",
+  "وزيرة",
+  "مشرفة",
+  "باحثة",
+  "خبيرة",
+  "محللة",
+  "مساعدة",
+  // Honorifics / courtesy titles that precede a name
+  "معالي", // His/Her Excellency
+  "سعادة", // Your Excellency
+  "سمو", // His/Her Highness
+  "دكتور", // Dr. (الدكتور normalises to this)
+  "دكتورة",
+  "مهندس", // Eng. (المهندس)
+  "مهندسة",
+  "أستاذ", // Prof. / Mr.
+  "أستاذة",
+  // Organisations / units -- "my name is [the] ministry ..." is not a person
   "وزارة", // ministry
   "هيئة", // authority
-  "مدير", // director
-  "رئيس", // chairman / president / head
-  "معالي", // Excellency (honorific)
-  "سعادة", // Excellency / Your Excellency (honorific)
   "دائرة", // department
-  "وزير", // minister
-  "نائب", // deputy
-  "عام", // general (as in "مدير عام" -- director general)
-  "أمين", // secretary (as in "أمين عام" -- secretary general)
+  "قسم", // department / section
+  "إدارة", // administration / directorate
+  "مؤسسة", // institution
   "اتحادي",
   "اتحادية", // federal (masc./fem.)
-  "قسم", // department (alternate word)
+  "عام", // general (as in "مدير عام" -- director general)
 ]);
 
 /** Arabic attaches its definite article directly to the noun (no space). */
@@ -211,11 +302,22 @@ function stripArabicDefiniteArticle(word: string): string {
   return word.startsWith("ال") && word.length > 2 ? word.slice(2) : word;
 }
 
-function isAllStoplisted(value: string): boolean {
+/**
+ * True when a name-detector capture is an introduction by title rather than
+ * by name, and must therefore be discarded.
+ *
+ * The two scripts use different tests on purpose. English captures are
+ * bounded by capitalisation, so an all-words test ("Director General",
+ * "Federal Authority") is enough and has held up across review. Arabic has
+ * no capitalisation to bound the capture, so an all-words test is too weak —
+ * see NAME_TITLE_FIRST_WORDS_AR — and the positional first-word test is used
+ * instead.
+ */
+function isTitleNotAName(value: string): boolean {
   const words = value.split(/\s+/).filter(Boolean);
-  if (words.length === 0) return false;
+  if (words.length === 0) return true;
   if (/\p{Script=Arabic}/u.test(value)) {
-    return words.every((word) => NAME_STOPLIST_AR.has(stripArabicDefiniteArticle(word)));
+    return NAME_TITLE_FIRST_WORDS_AR.has(stripArabicDefiniteArticle(words[0]));
   }
   return words.every((word) => NAME_STOPLIST_EN.has(word.toLowerCase()));
 }
@@ -229,6 +331,10 @@ function isAllStoplisted(value: string): boolean {
  * part of the name. trimArabicNameCapture peels off a trailing word drawn
  * from this set, so a captured span never extends past the real name into
  * "...الشامسي وأنا أعمل" territory.
+ *
+ * These are the free-standing tokens only. The far commoner و-prefixed form
+ * ("وأعمل", "وموظف") is not and cannot be enumerated here — it is handled
+ * structurally by isArabicContinuationToken below.
  */
 const ARABIC_NAME_CONTINUATION_WORDS = new Set([
   "و",
@@ -255,11 +361,70 @@ const ARABIC_NAME_CONTINUATION_WORDS = new Set([
 ]);
 
 /**
- * Trim a trailing continuation word from a captured Arabic name, never
- * shrinking below 2 words (the minimum a real name capture requires). Kept
- * separate from isAllStoplisted: that function rejects a title-only
- * capture outright, this one repairs a genuine name capture that over-ran
- * into the next clause.
+ * Arabic given names that genuinely begin with و, so the و-prefix rule below
+ * does not trim a real third name word off a capture. This is the *closed*
+ * side of the problem — a short list of names — not the open-ended one (every
+ * و-prefixed verb and noun in the language), which is why it is enumerable at
+ * all. Family names and nisbas that begin with و carry the definite article
+ * ("الوهيبي"), so they never look like a و-prefixed continuation.
+ */
+const ARABIC_WAW_INITIAL_NAMES = new Set([
+  "وليد",
+  "وائل",
+  "وسيم",
+  "وسام",
+  "وفاء",
+  "وداد",
+  "وردة",
+  "ورد",
+  "وضاح",
+  "وجدان",
+  "وهيب",
+  "وهبة",
+  "وسن",
+  "وعد",
+  "وئام",
+  "وصال",
+]);
+
+/**
+ * True when a trailing captured token is sentence continuation rather than
+ * part of the name.
+ *
+ * Two forms, and only the first was originally handled. Arabic writes the
+ * conjunction "and" as a و prefixed *directly onto the next content word,
+ * with no space* — which is by far the commoner form — so
+ * ARABIC_NAME_CONTINUATION_WORDS' free-standing tokens ("وأنا", "في", ...)
+ * miss it entirely and the capture swallows the next clause's first word:
+ *
+ *   "اسمي أحمد الشامسي وأعمل في الاتصالات"  -> "أحمد الشامسي وأعمل"
+ *   "اسمي أحمد الشامسي وموظف في الوزارة"    -> "أحمد الشامسي وموظف"
+ *
+ * The redacted span then eats a word that has nothing to do with the name,
+ * which reads as broken on screen. Enumerating the و-prefixed verbs and nouns
+ * of Arabic is hopeless, so the rule is structural: a trailing token starting
+ * with و is continuation unless it is a known و-initial given name.
+ */
+function isArabicContinuationToken(word: string): boolean {
+  if (ARABIC_NAME_CONTINUATION_WORDS.has(word)) return true;
+  return word.length > 1 && word.startsWith("و") && !ARABIC_WAW_INITIAL_NAMES.has(word);
+}
+
+/**
+ * Trim trailing continuation words off a captured Arabic name. Kept separate
+ * from isTitleNotAName: that function rejects an introduction-by-title
+ * outright, this one repairs a genuine name capture that over-ran into the
+ * next clause.
+ *
+ * The floor is one word, not two. The capture regex's own `{1,2}` bound caps
+ * the raw match at three words, so a genuine three-word name ("أحمد محمد
+ * الشامسي") fills the capture completely and this function never fires on it
+ * — trimming can only ever remove a word that the name did not need. A
+ * two-word floor would therefore buy no protection and would instead leave
+ * "اسمي أحمد وأعمل في الوزارة" stuck at "أحمد وأعمل", leaking the verb into
+ * the redacted span. (An earlier version of this file claimed the opposite —
+ * that the floor guards a three-word name from being clipped. It does not;
+ * that case is unreachable.)
  */
 function trimArabicNameCapture(value: string): string {
   let result = value;
@@ -268,7 +433,7 @@ function trimArabicNameCapture(value: string): string {
     if (!match) break;
     const [, head, , lastWord] = match;
     const headWordCount = head.trim().split(/\s+/).filter(Boolean).length;
-    if (headWordCount < 2 || !ARABIC_NAME_CONTINUATION_WORDS.has(lastWord)) break;
+    if (headWordCount < 1 || !isArabicContinuationToken(lastWord)) break;
     result = head;
   }
   return result;
@@ -417,7 +582,7 @@ function candidateFindings(text: string): PiiFinding[] {
         value = trimArabicNameCapture(value);
       }
 
-      if (detector.kind === "name" && isAllStoplisted(value)) {
+      if (detector.kind === "name" && isTitleNotAName(value)) {
         if (match[0].length === 0) regex.lastIndex++;
         continue;
       }
