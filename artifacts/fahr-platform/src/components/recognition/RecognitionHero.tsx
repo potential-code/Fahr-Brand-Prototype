@@ -19,18 +19,12 @@ const BASE = import.meta.env.BASE_URL;
  * as a citation rather than a workspace, so the hero and the credential cards
  * are dark against the otherwise light page.
  */
-export function RecognitionHero({
-  record,
-  onSync,
-}: {
-  record: RecognitionRecord;
-  onSync: () => void;
-}) {
+export function RecognitionHero({ record }: { record: RecognitionRecord }) {
   const { level, nextLevel, progressToNext, pointsToNext, levelMeasured, points, rank, earnedCount } = record;
 
   const stats = [
     { id: "points", label: "Impact points", value: points, suffix: "" },
-    { id: "credentials", label: "Verified credentials", value: earnedCount, suffix: "" },
+    { id: "credentials", label: "Courses completed", value: earnedCount, suffix: "" },
     { id: "badges", label: "Badges earned", value: record.achievementsEarned, suffix: "" },
     { id: "rank", label: "Rank in entity", value: rank.entity, prefix: "#" },
   ];
@@ -111,15 +105,6 @@ export function RecognitionHero({
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-                onClick={onSync}
-                data-testid="button-sync-uae-pass"
-              >
-                <ShieldCheck className="me-2 h-4 w-4" /> Sync wallet with UAE Pass
-              </Button>
               <Button
                 asChild
                 size="sm"

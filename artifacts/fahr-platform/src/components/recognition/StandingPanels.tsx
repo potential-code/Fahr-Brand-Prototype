@@ -6,19 +6,7 @@ import { CountUp } from "@/components/CountUp";
 import { CAPABILITY_LEVELS } from "@/lib/constants";
 import { POINT_RULES } from "@/lib/engagement";
 import type { RecognitionRecord } from "@/lib/recognitionRecord";
-import {
-  ArrowRight,
-  Check,
-  Clock,
-  Gauge,
-  Hexagon,
-  Star,
-  Target,
-  TrendingUp,
-  Trophy,
-  Users,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Check, Hexagon, Star, Target, TrendingUp, Trophy, Users } from "lucide-react";
 
 /** Impact points, where they came from, and standing against colleagues. */
 export function PointsAndRank({ record }: { record: RecognitionRecord }) {
@@ -115,109 +103,6 @@ export function PointsAndRank({ record }: { record: RecognitionRecord }) {
         <Button asChild variant="outline" size="sm" className="mt-5">
           <Link href="/learner/community" data-testid="link-leaderboards">
             See the leaderboards <ArrowRight className="ms-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-/** Measured workplace impact, taken from the learner's evaluated project. */
-export function ImpactPanel({ record }: { record: RecognitionRecord }) {
-  const { impact } = record;
-
-  if (!impact.fromOwnProject) {
-    return (
-      <Card className="border-card-border" data-testid="card-impact-empty">
-        <CardContent className="p-6">
-          <h2 className="inline-flex items-center gap-2 text-lg font-bold text-foreground">
-            <Zap className="h-5 w-5 text-primary" /> Measured workplace impact
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{impact.bandNote}</p>
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <Button asChild size="sm">
-              <Link href="/learner/lab/project" data-testid="link-build-project">
-                Build my workplace project <ArrowRight className="ms-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/learner/evaluation" data-testid="link-see-evaluation">
-                See how it is evaluated
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const figures = [
-    { id: "hours-month", label: "Hours returned each month", value: impact.hoursPerMonth, icon: Clock },
-    { id: "days-year", label: "Working days returned a year", value: impact.workingDaysReturned, icon: Gauge },
-    { id: "cycle", label: "Cycle time reduction", value: impact.cycleReductionPct, suffix: "%", icon: TrendingUp },
-    { id: "people", label: "Colleagues affected", value: impact.peopleAffected, icon: Users },
-  ];
-
-  return (
-    <Card className="border-card-border" data-testid="card-impact">
-      <CardContent className="p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="inline-flex items-center gap-2 text-lg font-bold text-foreground">
-              <Zap className="h-5 w-5 text-primary" /> Measured workplace impact
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              From your evaluated project, <span className="font-medium text-foreground">{impact.projectTitle}</span>.
-            </p>
-          </div>
-          <span className="shrink-0 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            {impact.band}
-          </span>
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {figures.map((figure, i) => (
-            <motion.div
-              key={figure.id}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.35, delay: i * 0.07 }}
-              className="rounded-xl border border-border bg-muted/40 p-4"
-              data-testid={`impact-figure-${figure.id}`}
-            >
-              <figure.icon className="h-4 w-4 text-primary" aria-hidden="true" />
-              <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">
-                <CountUp to={figure.value} suffix={figure.suffix} />
-              </p>
-              <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {figure.label}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
-        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{impact.bandNote}</p>
-
-        {impact.measures.length > 0 && (
-          <div className="mt-5 rounded-xl border border-border p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              What you committed to measure
-            </p>
-            <ul className="mt-2.5 space-y-2">
-              {impact.measures.map((measure) => (
-                <li key={measure.id} className="flex gap-2.5 text-sm text-foreground">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                  <span>{measure.label}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <Button asChild variant="outline" size="sm" className="mt-5">
-          <Link href="/learner/evaluation" data-testid="link-impact-evaluation">
-            Open the full evaluation <ArrowRight className="ms-2 h-4 w-4" />
           </Link>
         </Button>
       </CardContent>

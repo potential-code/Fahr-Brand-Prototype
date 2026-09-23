@@ -11,7 +11,7 @@
 // piece of evidence does not exist yet the record says so explicitly rather
 // than pretending.
 
-import { COURSES, COMPETENCY_BY_ID, courseLessons } from "@/lib/learningData";
+import { COMPETENCIES, COURSES, COMPETENCY_BY_ID, SCORE_BANDS, courseLessons } from "@/lib/learningData";
 import { CAPABILITY_LEVELS, IMPACT_POINTS, type CapabilityLevel } from "@/lib/constants";
 import { POINT_RULES } from "@/lib/engagement";
 import type { ParticipationSummary } from "@/lib/profileAnalysis";
@@ -53,6 +53,17 @@ export type Achievement = {
   /** 0-100 toward earning it, when not earned yet. */
   percent: number;
   icon: "spark" | "flame" | "people" | "shield" | "target" | "trophy";
+};
+
+export type CompetencyBadge = {
+  competencyId: string;
+  label: string;
+  short: string;
+  earned: boolean;
+  /** The learner's percentage in this competency, 0 when unassessed. */
+  score: number;
+  /** The percentage that earns the badge. */
+  threshold: number;
 };
 
 export type PointsEntry = {
@@ -211,6 +222,31 @@ function buildCredentials(
   }
 
   return credentials;
+}
+
+// ---------------------------------------------------------------------------
+// Competency badges
+// ---------------------------------------------------------------------------
+
+/**
+ * One badge per AI competency, earned at the Practitioner threshold.
+ *
+ * The threshold is read from SCORE_BANDS rather than hard-coded, so re-banding
+ * the assessment moves the badges with it.
+ */
+export function competencyBadges(result: AssessmentResult | null): CompetencyBadge[] {
+  const threshold = SCORE_BANDS.find((band) => band.id === "practitioner")?.min ?? 55;
+  return COMPETENCIES.map((competency) => {
+    const score = result?.scores?.[competency.id] ?? 0;
+    return {
+      competencyId: competency.id,
+      label: competency.label,
+      short: competency.short,
+      earned: score >= threshold,
+      score,
+      threshold,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -466,7 +502,7 @@ export function buildRecognitionRecord(input: {
     credentials,
     earnedCount: credentials.filter((c) => c.state === "earned").length,
     achievements,
-    achievementsEarned: achievements.filter((a) => a.earned).length,
+    achievementsEarned: competencyBadges(result).filter((b) => b.earned).length,
     impact: buildImpact(submission, projectCompetencyId),
     verifiedOn: fullDate(now),
   };
