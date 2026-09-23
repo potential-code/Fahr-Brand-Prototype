@@ -135,6 +135,33 @@ describe("a blocked reply carries the screen's own findings", () => {
     expect(reply.pii!.redacted).not.toContain("0501234567");
   });
 
+  // A DOM assertion only proves nothing leaked to the screen; it cannot see
+  // whether the raw name and phone number are still sitting in the reply
+  // object that TwinTestChat stores verbatim into `turns` state for the
+  // life of the session. Serialising the whole object and searching it is
+  // the only way to catch that class of leak — this is exactly the shape of
+  // finding, on `PiiFinding.match`, that a previous version of this payload
+  // let slip into `TwinReply.pii.findings` before it was narrowed down to
+  // `PiiFindingSummary` (kind + label only, no match/start/end).
+  it("the whole reply object — everything that ends up in component state — holds no raw sensitive text, not just the rendered redaction", () => {
+    const reply = answer(
+      trainedProfile(),
+      "My name is Aisha Al Mansoori, my mobile is 0501234567 — draft a reply from me.",
+      false,
+    );
+    expect(reply.status).toBe("blocked");
+
+    const serialised = JSON.stringify(reply);
+    expect(serialised).not.toContain("Aisha");
+    expect(serialised).not.toContain("0501234567");
+
+    // Belt and braces: each individual finding is exactly {kind, label} —
+    // there is no field left on it that could carry the raw match.
+    for (const finding of reply.pii!.findings) {
+      expect(Object.keys(finding).sort()).toEqual(["kind", "label"]);
+    }
+  });
+
   it("carries no pii payload on an ordinary or out-of-scope reply", () => {
     const ok = answer(trainedProfile(), "Draft the campaign brief for flu season", false);
     expect(ok.status).toBe("ok");

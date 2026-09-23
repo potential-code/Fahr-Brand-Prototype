@@ -8,7 +8,7 @@
 // no network, and a reply that cites the task the client just typed reads as
 // far more intelligent than a generic one.
 
-import { screenForPii, type PiiFinding } from "@/lib/piiScreen";
+import { screenForPii, type PiiKind } from "@/lib/piiScreen";
 
 export type LabelPair = { en: string; ar: string };
 
@@ -371,6 +371,16 @@ export type GuardrailNote = {
   text: string;
 };
 
+/**
+ * What a blocked reply is allowed to say about a PII finding. Deliberately
+ * narrower than `PiiFinding` — it drops `match`, `start` and `end`, so the
+ * raw captured substring (a real name, a real phone number) never crosses
+ * into `TwinReply`, which lives in component state for the life of the test
+ * chat session. The offsets and the raw match stay inside `piiScreen.ts`,
+ * where redaction actually needs them.
+ */
+export type PiiFindingSummary = { kind: PiiKind; label: string };
+
 export type TwinReply = {
   status: ReplyStatus;
   text: string;
@@ -378,7 +388,7 @@ export type TwinReply = {
   citations: string[];
   notes: GuardrailNote[];
   /** Set only when status is "blocked" — what the screen found and redacted. */
-  pii?: { findings: PiiFinding[]; redacted: string };
+  pii?: { findings: PiiFindingSummary[]; redacted: string };
 };
 
 /** Trivial stop-word filter so scope matching keys off meaningful words. */
@@ -456,7 +466,13 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
               : "The guardrail stopped the prompt before it reached the model.",
           },
         ],
-        pii: { findings: pii.findings, redacted: pii.redacted },
+        // Map to PiiFindingSummary — `pii.findings` still carries the raw
+        // `match` text; only `kind` and `label` are allowed to cross into
+        // TwinReply, which component state holds for the session.
+        pii: {
+          findings: pii.findings.map(({ kind, label }) => ({ kind, label })),
+          redacted: pii.redacted,
+        },
       };
     }
 
