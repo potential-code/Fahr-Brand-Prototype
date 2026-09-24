@@ -73,6 +73,29 @@ export type PastSession = {
 
 export const SESSIONS: Session[] = [
   {
+    id: "sess-hitl-clinic",
+    title: "Human-in-the-loop review clinic",
+    summary:
+      "Walk through real agent outputs and decide, together, where a person has to sign off before anything reaches a resident.",
+    facilitator: "Sultan Al Rashdi",
+    facilitatorRole: "Governance Officer, FAHR",
+    host: "FAHR Governance Office",
+    format: "virtual",
+    venue: "Microsoft Teams",
+    competencyId: "governance",
+    inDays: 9,
+    startTime: "11:00",
+    durationMins: 60,
+    seatsTotal: 80,
+    seatsTaken: 41,
+    level: "All levels",
+    agenda: [
+      "Where human review is required, and why",
+      "Reviewing three live agent drafts",
+      "Writing a sign-off rule your team can follow",
+    ],
+  },
+  {
     id: "sess-prompt-clinic",
     title: "Prompt craft clinic: rewriting real federal notices",
     summary:

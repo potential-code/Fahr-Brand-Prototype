@@ -969,14 +969,79 @@ export const SESSIONS: ScheduledSession[] = [
 
 /** Catalogue items with competency mapping, version and publish state. */
 export const CONTENT_ITEMS: ContentItem[] = [
-  { id: "ct1", title: "AI Foundations for Federal Service", type: "Course", competencyId: "literacy", language: "Bilingual", version: "v3.1", status: "Published", updatedOn: "4 June 2026", owner: "FAHR Programme Team" },
-  { id: "ct2", title: "Prompt Engineering for Public Service", type: "Course", competencyId: "prompting", language: "Bilingual", version: "v2.4", status: "Published", updatedOn: "18 June 2026", owner: "FAHR Programme Team" },
-  { id: "ct3", title: "AI Governance & Data Ethics in Federal Work", type: "Course", competencyId: "governance", language: "Bilingual", version: "v2.0", status: "Published", updatedOn: "2 July 2026", owner: "FAHR Governance Office" },
-  { id: "ct4", title: "Reading Service Data with AI", type: "Microlearning", competencyId: "analytics", language: "English", version: "v1.2", status: "Published", updatedOn: "21 July 2026", owner: "Digital Health" },
-  { id: "ct5", title: "Designing Your First Agentic Workflow", type: "Simulation", competencyId: "agentic", language: "English", version: "v1.0", status: "In review", updatedOn: "13 July 2026", owner: "FAHR Programme Team" },
-  { id: "ct6", title: "Stakeholder Alignment with AI", type: "Microlearning", competencyId: "prompting", language: "Bilingual", version: "v1.1", status: "Published", updatedOn: "19 July 2026", owner: "Comms & Public Awareness" },
-  { id: "ct7", title: "Workplace Project Brief Template", type: "Assignment", competencyId: "agentic", language: "Bilingual", version: "v4.0", status: "Published", updatedOn: "17 June 2026", owner: "FAHR Programme Team" },
-  { id: "ct8", title: "Human-in-the-loop Review Clinic", type: "Virtual session", competencyId: "governance", language: "Arabic", version: "v1.0", status: "Scheduled", updatedOn: "22 July 2026", owner: "FAHR Governance Office" },
+  {
+    id: "ct1", title: "AI Foundations for Federal Service", type: "Course", competencyId: "literacy",
+    language: "Bilingual", version: "v3.1", status: "Published", updatedOn: "4 June 2026", owner: "FAHR Programme Team",
+    level: "Beginner", courseId: "ai-foundations", source: "FAHR",
+    summary: "The shared vocabulary and judgement every federal employee needs before using AI on real work.",
+  },
+  {
+    id: "ct2", title: "Prompt Engineering for Public Service", type: "Course", competencyId: "prompting",
+    language: "Bilingual", version: "v2.4", status: "Published", updatedOn: "18 June 2026", owner: "FAHR Programme Team",
+    level: "Intermediate", courseId: "prompt-craft", source: "FAHR",
+    summary: "Structured, context-rich instructions that produce reliable, on-brand government writing.",
+  },
+  {
+    id: "ct3", title: "AI Ethics & Governance in Government", type: "Course", competencyId: "governance",
+    language: "Bilingual", version: "v2.0", status: "Published", updatedOn: "2 July 2026", owner: "FAHR Governance Office",
+    level: "Intermediate", courseId: "ai-governance", source: "FAHR",
+    summary: "Accountability, personal data and human oversight when AI touches a public service.",
+  },
+  {
+    id: "ct4", title: "Reading Service Data with AI", type: "Microlearning", competencyId: "analytics",
+    language: "English", version: "v1.2", status: "Published", updatedOn: "21 July 2026", owner: "FAHR Programme Team",
+    level: "Beginner", source: "FAHR",
+    summary: "Three short lessons on asking an AI assistant the right question of a service dataset.",
+    modules: [
+      { id: "ct4-m1", title: "From data to a decision", units: [
+        { id: "ct4-u1", title: "Framing the question before you open the data", kind: "Video", mins: 6, fileName: "framing-the-question.mp4" },
+        { id: "ct4-u2", title: "Reading an AI summary critically", kind: "Reading", mins: 8 },
+        { id: "ct4-u3", title: "Check your understanding", kind: "Quiz", mins: 5 },
+      ] },
+    ],
+  },
+  {
+    id: "ct5", title: "Designing Your First Agentic Workflow", type: "Simulation", competencyId: "agentic",
+    language: "English", version: "v1.0", status: "Draft", updatedOn: "13 July 2026", owner: "FAHR Programme Team",
+    level: "Advanced", source: "FAHR",
+    summary: "A guided simulation: design a three-step agent for a real service request, with a human checkpoint.",
+    modules: [
+      { id: "ct5-m1", title: "Plan the agent", units: [
+        { id: "ct5-u1", title: "What an agent is — and what it is not", kind: "Video", mins: 7, fileName: "agents-explained.mp4" },
+        { id: "ct5-u2", title: "Map the task into steps", kind: "Activity", mins: 15 },
+      ] },
+      { id: "ct5-m2", title: "Build and check it", units: [
+        { id: "ct5-u3", title: "Run the simulation", kind: "Package", mins: 25, fileName: "agentic-workflow-sim.zip" },
+        { id: "ct5-u4", title: "Where the human signs off", kind: "Reading", mins: 6 },
+        { id: "ct5-u5", title: "Final check", kind: "Quiz", mins: 8 },
+      ] },
+    ],
+  },
+  {
+    id: "ct6", title: "Stakeholder Alignment with AI", type: "Microlearning", competencyId: "prompting",
+    language: "Bilingual", version: "v1.1", status: "Published", updatedOn: "19 July 2026", owner: "FAHR Programme Team",
+    level: "Intermediate", source: "FAHR",
+    summary: "Using an AI assistant to draft, test and tailor a message for different stakeholders.",
+    modules: [
+      { id: "ct6-m1", title: "One message, many audiences", units: [
+        { id: "ct6-u1", title: "Who needs to hear what", kind: "Reading", mins: 6 },
+        { id: "ct6-u2", title: "Tailor a briefing with AI", kind: "Activity", mins: 12 },
+        { id: "ct6-u3", title: "Stakeholder briefing template", kind: "Document", mins: 3, fileName: "stakeholder-briefing-template.pdf" },
+      ] },
+    ],
+  },
+  {
+    id: "ct7", title: "Workplace Project Brief Template", type: "Assignment", competencyId: "agentic",
+    language: "Bilingual", version: "v4.0", status: "Published", updatedOn: "17 June 2026", owner: "FAHR Programme Team",
+    source: "FAHR",
+    summary: "The brief every learner completes before starting their workplace project.",
+    modules: [
+      { id: "ct7-m1", title: "Write your brief", units: [
+        { id: "ct7-u1", title: "What a strong brief looks like", kind: "Reading", mins: 5 },
+        { id: "ct7-u2", title: "Project brief template", kind: "Document", mins: 20, fileName: "workplace-project-brief.docx" },
+      ] },
+    ],
+  },
 ];
 
 /** Credentials already issued. Issuing one in the demo appends to this. */

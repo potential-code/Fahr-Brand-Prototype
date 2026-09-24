@@ -10,6 +10,7 @@
 
 import { CAPABILITY_LEVELS } from "@/lib/constants";
 import { COMPETENCIES } from "@/lib/learningData";
+import type { ContentItem } from "@/lib/federal/model";
 
 // ---------------------------------------------------------------------------
 // Federal roles and the programme team
@@ -607,7 +608,7 @@ export type CatalogueRevision = {
   contentId: string;
   contentTitle: string;
   version: string;
-  status: "Published" | "In review" | "Draft" | "Scheduled";
+  status: ContentItem["status"];
   on: string;
   by: string;
   note?: string;
@@ -630,7 +631,7 @@ export const CATALOGUE_REVISIONS: CatalogueRevision[] = [
     contentId: "ct5",
     contentTitle: "Designing Your First Agentic Workflow",
     version: "v1.0",
-    status: "In review",
+    status: "Draft",
     on: "13 July 2026",
     by: "Maitha Al Suwaidi",
     note: "Awaiting governance review of the simulation's tool access.",

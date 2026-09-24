@@ -11,6 +11,7 @@ import FAHREvents from "@/pages/FAHREvents";
 import WorkshopsAndEvents from "@/pages/WorkshopsAndEvents";
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { COURSERA_CATALOGUE } from "@/lib/federal/fahrConsole";
+import { COURSE_BY_ID } from "@/lib/learningData";
 import { matchesAudience } from "@/lib/events";
 import { FOCUS, PEOPLE } from "@/lib/federal";
 
@@ -39,7 +40,20 @@ describe("federal content library", () => {
     cleanup();
   });
 
-  it("imports a Coursera course for review, and only publishing puts it in reach", async () => {
+  it("shows a learner course's real modules and units", async () => {
+    const user = userEvent.setup();
+    renderScreen(<FAHRContent />, "/fahr/content");
+
+    await user.click(screen.getByTestId("row-content-ct1"));
+    const outline = screen.getByTestId("content-detail-outline");
+    // Units come from the course the learner actually plays.
+    const course = COURSE_BY_ID["ai-foundations"];
+    expect(outline.textContent).toContain(course.groups[0].title);
+    expect(outline.textContent).toContain(course.groups[0].lessons[0].title);
+    expect(screen.getByTestId("link-open-as-learner").getAttribute("href")).toContain("/learner/course/ai-foundations");
+  });
+
+  it("imports a Coursera course unpublished, and publishing puts it in reach", async () => {
     const user = userEvent.setup();
     renderScreen(
       <>
@@ -52,24 +66,49 @@ describe("federal content library", () => {
     const course = COURSERA_CATALOGUE[0];
     await user.click(screen.getByTestId("tab-coursera"));
     await user.click(screen.getByTestId(`button-preview-${course.id}`));
-
-    // The preview shows the syllabus before anything is imported.
-    const preview = screen.getByTestId("coursera-preview");
-    expect(preview.textContent).toContain(course.syllabus[0]);
+    expect(screen.getByTestId("coursera-preview").textContent).toContain(course.syllabus[0]);
     await user.click(screen.getByTestId("button-import-coursera"));
 
-    // In the library, tagged, but waiting for review — not yet published.
-    expect(screen.getByTestId("probe-status").textContent ?? "").toContain(`${course.title}::In review`);
+    expect(screen.getByTestId("probe-status").textContent ?? "").toContain(`${course.title}::Imported`);
 
-    await user.click(screen.getByTestId("tab-review"));
+    await user.click(screen.getByTestId("tab-library"));
     await user.click(screen.getByTestId(`button-publish-ct-crs-${course.id}`));
     expect(screen.getByTestId("probe-status").textContent ?? "").toContain(`${course.title}::Published`);
-    expect(screen.getByTestId("probe-mapped").textContent ?? "").toContain(
-      `${course.title}::${course.competencyId}`,
+    expect(screen.getByTestId("probe-mapped").textContent ?? "").toContain(`${course.title}::${course.competencyId}`);
+  });
+
+  it("builds a course module by module and publishes it without review", async () => {
+    const user = userEvent.setup();
+    renderScreen(
+      <>
+        <FAHRContent />
+        <Probe />
+      </>,
+      "/fahr/content",
+    );
+
+    await user.click(screen.getByTestId("button-build-course"));
+    await user.type(screen.getByTestId("input-course-title"), "Writing Service Replies with AI");
+    await user.click(screen.getByTestId("button-builder-next"));
+
+    // Next stays closed until there is a module with at least one unit.
+    expect((screen.getByTestId("button-builder-next") as HTMLButtonElement).disabled).toBe(true);
+    await user.type(screen.getByTestId("input-module-title"), "Getting started");
+    await user.click(screen.getByTestId("button-add-module"));
+    await user.type(screen.getByTestId("input-unit-title-0"), "Why tone matters");
+    await user.click(screen.getByTestId("button-add-unit-0"));
+    await user.click(screen.getByTestId("button-builder-next"));
+
+    // The learner preview shows what was built.
+    expect(screen.getByTestId("builder-preview").textContent).toContain("Why tone matters");
+    await user.click(screen.getByTestId("button-publish-course"));
+
+    expect(screen.getByTestId("probe-status").textContent ?? "").toContain(
+      "Writing Service Replies with AI::Published",
     );
   });
 
-  it("removes a rejected course so it can be imported again", async () => {
+  it("removes an unpublished import so it can be imported again", async () => {
     const user = userEvent.setup();
     renderScreen(
       <>
@@ -83,31 +122,13 @@ describe("federal content library", () => {
     await user.click(screen.getByTestId("tab-coursera"));
     await user.click(screen.getByTestId(`button-preview-${course.id}`));
     await user.click(screen.getByTestId("button-import-coursera"));
-    await user.click(screen.getByTestId("tab-review"));
-    await user.click(screen.getByTestId(`button-reject-ct-crs-${course.id}`));
+    await user.click(screen.getByTestId("tab-library"));
+    await user.click(screen.getByTestId(`row-content-ct-crs-${course.id}`));
+    await user.click(screen.getByTestId("button-remove-content"));
 
     expect(screen.getByTestId("probe-library").textContent ?? "").not.toContain(course.title);
     await user.click(screen.getByTestId("tab-coursera"));
     expect((screen.getByTestId(`button-preview-${course.id}`) as HTMLButtonElement).disabled).toBe(false);
-  });
-
-  it("adds an authored item to the library", async () => {
-    const user = userEvent.setup();
-    renderScreen(
-      <>
-        <FAHRContent />
-        <Probe />
-      </>,
-      "/fahr/content",
-    );
-
-    await user.click(screen.getByTestId("button-add-content"));
-    await user.type(screen.getByTestId("input-content-title"), "Reading a Capability Profile");
-    await user.click(screen.getByTestId("button-submit-content"));
-
-    expect(screen.getByTestId("probe-library").textContent ?? "").toContain(
-      "Reading a Capability Profile",
-    );
   });
 });
 

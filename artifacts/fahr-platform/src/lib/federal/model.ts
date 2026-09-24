@@ -176,16 +176,52 @@ export type ScheduledSession = {
   status: "Open" | "Full" | "Closed" | "Completed";
 };
 
+/** What a single unit of learning is. */
+export type ContentUnitKind = "Video" | "Reading" | "Activity" | "Quiz" | "Document" | "Package";
+
+export type ContentUnit = {
+  id: string;
+  title: string;
+  kind: ContentUnitKind;
+  /** Minutes to complete. */
+  mins: number;
+  /** Name of the file attached, where the unit is an upload. Simulated — nothing is stored. */
+  fileName?: string;
+};
+
+export type ContentModule = {
+  id: string;
+  title: string;
+  units: ContentUnit[];
+};
+
+/**
+ * One item in the federal content library.
+ *
+ * FAHR authors or imports it; the Content Agent draws on published items —
+ * down to single units — when it builds a learner's pathway. There is no
+ * review step for FAHR's own work: a draft is published by the people who
+ * wrote it. Coursera imports arrive as "Imported" and are published once
+ * someone has looked through them.
+ */
 export type ContentItem = {
   id: string;
   title: string;
-  type: "Course" | "Microlearning" | "Simulation" | "Assignment" | "Virtual session";
+  type: "Course" | "Microlearning" | "Simulation" | "Assignment";
   competencyId: string;
   language: "English" | "Arabic" | "Bilingual";
   version: string;
-  status: "Published" | "In review" | "Draft" | "Scheduled";
+  status: "Draft" | "Imported" | "Published";
   updatedOn: string;
   owner: string;
+  summary?: string;
+  level?: "Beginner" | "Intermediate" | "Advanced";
+  /** The learner course this item is, when learners take it in the platform's own player. */
+  courseId?: string;
+  /** Authored structure, for items without a learner course behind them. */
+  modules?: ContentModule[];
+  /** Where the units are taken — Coursera items open on Coursera. */
+  source?: "FAHR" | "Coursera";
 };
 
 export type Credential = {
