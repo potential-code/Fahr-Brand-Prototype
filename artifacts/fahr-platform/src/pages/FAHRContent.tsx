@@ -245,7 +245,7 @@ export default function FAHRContent() {
           <TabsContent value="coursera" className="mt-4 space-y-5">
             {/* The connection itself, so the tab reads as a live integration. */}
             <section
-              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0056D2] via-[#0048b3] to-[#002f7a] p-6 text-white shadow-sm"
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-[hsl(37_33%_34%)] to-[hsl(37_36%_22%)] p-6 text-white shadow-sm"
               data-testid="coursera-banner"
             >
               <div className="pointer-events-none absolute -end-16 -top-16 h-56 w-56 rounded-full bg-white/10" aria-hidden />
@@ -345,13 +345,13 @@ export default function FAHRContent() {
                             <CheckCircle2 className="h-3 w-3" /> In library
                           </span>
                         ) : (
-                          <span className="absolute end-3 top-3 rounded-full bg-[#0056D2] px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm">
+                          <span className="absolute end-3 top-3 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm">
                             Coursera
                           </span>
                         )}
                         <div className="absolute bottom-3 start-3 flex items-center gap-2">
                           <span
-                            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0056D2] shadow"
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-bold text-primary shadow"
                             aria-hidden
                           >
                             {course.partner
@@ -422,7 +422,7 @@ export default function FAHRContent() {
                 <img src={coverSrc(previewCourse.cover)} alt="" className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" aria-hidden />
                 <div className="absolute bottom-3 start-6 flex flex-wrap items-center gap-2 text-xs font-medium text-white">
-                  <span className="rounded-full bg-[#0056D2] px-2.5 py-1">Coursera</span>
+                  <span className="rounded-full bg-primary px-2.5 py-1">Coursera</span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1">
                     <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {previewCourse.rating.toFixed(1)}
                   </span>

@@ -50,7 +50,7 @@ export function CourseCard({
           {item.status}
         </span>
         {item.source === "Coursera" && (
-          <span className="absolute bottom-3 start-3 rounded-full bg-[#0056D2] px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm">
+          <span className="absolute bottom-3 start-3 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm">
             Coursera
           </span>
         )}
