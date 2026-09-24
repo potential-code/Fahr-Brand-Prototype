@@ -70,8 +70,8 @@ export default function ManagerValidations() {
     requestRevision(selectedSubmission.id, { by: "Department Manager", note: revisionNote });
     
     toast({
-      title: "Revision Requested",
-      description: `Sent back to ${submissionOwner.name} with your feedback.`
+      title: "Sent to learner",
+      description: `"${selectedSubmission.title}" has gone back to ${submissionOwner.name} with your comments.`
     });
     setRevisionNote("");
     setShowRevisionInput(false);
@@ -84,7 +84,7 @@ export default function ManagerValidations() {
         <PageHeader
           tone="primary"
           icon={<ClipboardCheck className="w-7 h-7 text-primary" />}
-          title="Validations & Approvals"
+          title="Team Projects"
           description="Review workplace projects, address flagged learner risks, and approve system recommendations."
         />
 
@@ -174,11 +174,11 @@ export default function ManagerValidations() {
                         <BrainCircuit className="w-6 h-6 mt-1 text-primary" />
                         <div>
                           <h3 className="text-base font-semibold text-foreground">{p.name}</h3>
-                          <p className="text-sm font-medium mt-1 text-foreground">Ready for a mentorship role</p>
+                          <p className="text-sm font-medium mt-1 text-foreground">Ready to mentor peers</p>
                           <p className="text-xs text-muted-foreground mt-1">Excelling with {p.pathwayProgress}% completion and {p.assessmentScore}% baseline.</p>
                         </div>
                       </div>
-                      <Button size="sm" onClick={() => setActionDialog({ action: "Assign Role", subject: p })}>Accept & Assign Role</Button>
+                      <Button size="sm" onClick={() => setActionDialog({ action: "Send Encouragement Message", subject: p })}>Send Recognition</Button>
                     </CardContent>
                   </Card>
                 </StaggerItem>
@@ -256,20 +256,32 @@ export default function ManagerValidations() {
               <div className="pt-6 border-t border-border flex flex-col gap-3">
                 {showRevisionInput ? (
                   <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
-                    <Textarea 
-                      placeholder="Explain what needs to be improved..." 
-                      value={revisionNote} 
+                    <label htmlFor="revision-note" className="text-sm font-medium text-foreground">
+                      Comments for {submissionOwner?.name ?? "the learner"}
+                    </label>
+                    <Textarea
+                      id="revision-note"
+                      data-testid="input-revision-comments"
+                      rows={5}
+                      placeholder="What needs to change before this can be signed off — the evidence, the measured impact, the governance step…"
+                      value={revisionNote}
                       onChange={(e) => setRevisionNote(e.target.value)}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Sent to {submissionOwner?.name ?? "the learner"} in full, with a notification, and shown on their
+                      workplace project.
+                    </p>
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" onClick={() => setShowRevisionInput(false)}>Cancel</Button>
-                      <Button size="sm" onClick={handleRevision} disabled={!revisionNote}>Submit Revision Request</Button>
+                      <Button size="sm" data-testid="button-send-revision" onClick={handleRevision} disabled={!revisionNote.trim()}>
+                        Send to learner
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="flex justify-between items-center w-full gap-4">
-                    <Button variant="outline" className="flex-1" onClick={() => setShowRevisionInput(true)}>
-                      <RotateCcw className="w-4 h-4 me-2" /> Request Changes
+                    <Button variant="outline" className="flex-1" data-testid="button-request-revision" onClick={() => setShowRevisionInput(true)}>
+                      <RotateCcw className="w-4 h-4 me-2" /> Request revision
                     </Button>
                     <Button className="flex-1" onClick={handleSignOff}>
                       <ClipboardCheck className="w-4 h-4 me-2" /> Sign Off & Validate

@@ -4,7 +4,7 @@
 // signing off a submission as a manager actually clears the manager's alert and
 // raises the entity's — the same event travelling up the chain.
 
-import type { Escalation, Person, ScheduledSession, Submission } from "./model";
+import type { ApprovalRecord, Escalation, Person, ScheduledSession, Submission } from "./model";
 import { MINISTRY_BY_ID } from "./selectors";
 import { FOCUS } from "./seed";
 import type { LiveLearnerState } from "./live";
@@ -36,6 +36,8 @@ export type NotificationInput = {
   sessions: ScheduledSession[];
   /** The manager's direct reports, with live figures already applied. */
   team: Person[];
+  /** Every decision recorded against a submission — carries the manager's comments. */
+  approvals: ApprovalRecord[];
   live: LiveLearnerState;
 };
 
@@ -66,6 +68,34 @@ const LEARNER_NOTIFICATIONS: FederalNotification[] = [
     kind: "learning",
   },
 ];
+
+/**
+ * The learner's own notifications. A revision the department manager requested
+ * this session arrives first and carries their comments verbatim — the learner
+ * should never have to guess what was asked of them.
+ */
+function learnerNotifications(input: NotificationInput): FederalNotification[] {
+  const out: FederalNotification[] = [];
+
+  for (const submission of input.submissions) {
+    if (submission.personId !== FOCUS.learnerId || submission.state !== "revision_requested") continue;
+    const decision = [...input.approvals]
+      .reverse()
+      .find((a) => a.submissionId === submission.id && a.decision === "revision_requested");
+    out.push({
+      id: `n-learner-revision-${submission.id}`,
+      title: `Revision requested on "${submission.title}"`,
+      body: decision?.note
+        ? `${decision.by ?? "Your department manager"}: "${decision.note}"`
+        : "Your department manager has returned the project for revision.",
+      time: decision?.on ?? "Today",
+      href: "/learner/lab/project",
+      kind: "approval",
+    });
+  }
+
+  return [...out, ...LEARNER_NOTIFICATIONS];
+}
 
 function managerNotifications(input: NotificationInput): FederalNotification[] {
   const out: FederalNotification[] = [];
@@ -250,7 +280,7 @@ export function buildNotifications(
 ): FederalNotification[] {
   switch (role) {
     case "learner":
-      return LEARNER_NOTIFICATIONS;
+      return learnerNotifications(input);
     case "manager":
       return managerNotifications(input);
     case "ministry":

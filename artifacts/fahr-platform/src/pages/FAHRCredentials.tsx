@@ -331,7 +331,7 @@ export default function FAHRCredentials() {
         },
       ],
       footnote:
-        "Each credential is validated through the workplace-project chain: line-manager sign-off, entity endorsement and federal issue. Verify a code against this register at any federal entity.",
+        "Each credential is validated through the workplace-project chain: department-manager sign-off, entity endorsement and federal issue. Verify a code against this register at any federal entity.",
     });
     toast({ title: "Register pack opened", description: "The print dialogue carries the current filters." });
   };
@@ -359,7 +359,7 @@ export default function FAHRCredentials() {
           heading: "Validation lineage",
           paragraphs: [
             sub ? `Workplace project: ${sub.title}.` : "Awarded on capability assessment (no linked workplace project).",
-            mgr ? `Line-manager sign-off by ${mgr.by} on ${mgr.on}.` : "Line-manager sign-off: on file.",
+            mgr ? `Department-manager sign-off by ${mgr.by} on ${mgr.on}.` : "Department-manager sign-off: on file.",
             ent ? `Entity endorsement by ${ent.by} on ${ent.on}.` : "Entity endorsement: on file.",
             `Federal issue recorded with verification code ${c.verificationCode}.`,
           ],
@@ -831,7 +831,7 @@ export default function FAHRCredentials() {
                     )}
                   </LineageStep>
 
-                  <LineageStep icon={CheckCircle2} title="Line-manager sign-off" testid="lineage-manager">
+                  <LineageStep icon={CheckCircle2} title="Department-manager sign-off" testid="lineage-manager">
                     {managerSignOff ? (
                       <>
                         {managerSignOff.by}

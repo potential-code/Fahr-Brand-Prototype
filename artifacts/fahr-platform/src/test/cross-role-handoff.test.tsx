@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { renderScreen, numberFrom } from "./providers";
 import ManagerDashboard from "@/pages/ManagerDashboard";
 import MinistryPortfolio from "@/pages/MinistryPortfolio";
+import AgenticAILabProject from "@/pages/AgenticAILabProject";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { FOCUS, SUBMISSION_STATE_LABEL } from "@/lib/federal";
 
@@ -18,6 +19,9 @@ function Probe() {
   const aisha = getPerson(FOCUS.learnerId);
   return (
     <div>
+      <span data-testid="probe-learner-notifications">
+        {notificationsFor("learner").map((n) => n.id).join(",")}
+      </span>
       <span data-testid="probe-manager-notifications">
         {notificationsFor("manager").map((n) => n.id).join(",")}
       </span>
@@ -85,10 +89,40 @@ describe("manager sign-off reaches the entity portal", () => {
 
     await user.click(screen.getByTestId(`button-request-revision-${AISHA_SUBMISSION}`));
 
+    // A project cannot be returned without saying why.
+    expect((screen.getByTestId("button-send-revision") as HTMLButtonElement).disabled).toBe(true);
+    await user.type(screen.getByTestId("input-revision-comments"), "Add the measured baseline.");
+    await user.click(screen.getByTestId("button-send-revision"));
+
     cleanup();
     renderScreen(<MinistryPortfolio />, "/ministry/portfolio");
     expect(screen.getByTestId(`text-status-${AISHA_SUBMISSION}`).textContent).toContain(
       SUBMISSION_STATE_LABEL.revision_requested,
+    );
+  });
+
+  it("puts the manager's comments in front of the learner", async () => {
+    const user = userEvent.setup();
+    renderScreen(<ManagerDashboard />, "/manager");
+
+    await user.click(screen.getByTestId(`button-request-revision-${AISHA_SUBMISSION}`));
+    await user.type(screen.getByTestId("input-revision-comments"), "Add the measured baseline.");
+    await user.click(screen.getByTestId("button-send-revision"));
+
+    // The learner reads the comment on their own project, and in their notifications.
+    cleanup();
+    renderScreen(
+      <>
+        <AgenticAILabProject />
+        <Probe />
+      </>,
+      "/learner/lab/project",
+    );
+    expect(screen.getByTestId(`notice-revision-${AISHA_SUBMISSION}`).textContent).toContain(
+      "Add the measured baseline.",
+    );
+    expect(screen.getByTestId("probe-learner-notifications").textContent ?? "").toContain(
+      `n-learner-revision-${AISHA_SUBMISSION}`,
     );
   });
 

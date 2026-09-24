@@ -119,7 +119,7 @@ export default function MinistryCommunications() {
         name: "Remind managers to sign off",
         kind: "Reminder",
         subject: "Department managers: workplace projects awaiting your sign-off",
-        body: "Your team has Workplace Project Evaluations awaiting a decision. Open the Validations screen to sign off or return them with a note.",
+        body: "Your team has Workplace Project Evaluations awaiting a decision. Open Team Projects to sign off or return them with a note.",
         audienceKey: "role:Department Manager",
         cadence: "Three days before the deadline",
       },

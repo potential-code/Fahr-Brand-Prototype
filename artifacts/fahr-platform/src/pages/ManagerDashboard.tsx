@@ -17,6 +17,7 @@ import { Users, TrendingUp, AlertCircle, Send, CheckCircle2, BrainCircuit, Targe
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { Progress } from "@/components/ui/progress";
 import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
+import { RevisionRequestDialog, type RevisionTarget } from "@/components/manager/RevisionRequestDialog";
 import { TeamStatusBadge } from "@/components/manager/TeamStatusBadge";
 import { TeamBenchmarkCard } from "@/components/manager/TeamBenchmark";
 import { teamBenchmark, teamCompetencyMatrix, teamImpact, teamRecognition, teamRoster } from "@/lib/manager/selectors";
@@ -53,6 +54,7 @@ export default function ManagerDashboard() {
   
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [actionDialog, setActionDialog] = useState<{action: ManagerActionType, subject: Person} | null>(null);
+  const [revisionTarget, setRevisionTarget] = useState<RevisionTarget | null>(null);
 
   const manager = getPerson(focus.managerId);
   const team = teamOf(focus.managerId);
@@ -132,10 +134,10 @@ export default function ManagerDashboard() {
       items.push({
         id: `insight-mentor-${excelling.id}`,
         person: excelling,
-        message: "Ready for a mentorship role",
-        context: `${LEVEL_BY_ID[excelling.levelId]?.label ?? excelling.levelId} at ${excelling.pathwayProgress}% pathway completion with an assessment score of ${excelling.assessmentScore}. Recommend assigning as a peer mentor.`,
+        message: "Ready to mentor peers",
+        context: `${LEVEL_BY_ID[excelling.levelId]?.label ?? excelling.levelId} at ${excelling.pathwayProgress}% pathway completion with an assessment score of ${excelling.assessmentScore}. Far enough ahead to support the rest of the team.`,
         urgency: "low",
-        actionLabel: "Assign Role",
+        actionLabel: "Send Encouragement Message",
       });
     }
     return items;
@@ -160,14 +162,14 @@ export default function ManagerDashboard() {
     });
   };
 
-  const handleRevision = (submissionId: string, title: string) => {
-    requestRevision(submissionId, {
+  const handleRevision = (target: RevisionTarget, note: string) => {
+    requestRevision(target.submissionId, {
       by: manager?.name ?? "Department Manager",
-      note: "Strengthen the measured impact before resubmitting.",
+      note,
     });
     toast({
-      title: "Revision requested",
-      description: `"${title}" has gone back to the learner with your note.`,
+      title: "Sent to learner",
+      description: `"${target.title}" has gone back to ${target.learnerName} with your comments.`,
     });
   };
 
@@ -400,7 +402,13 @@ export default function ManagerDashboard() {
                               size="sm"
                               variant="outline"
                               className="gap-2"
-                              onClick={() => handleRevision(s.id, s.title)}
+                              onClick={() =>
+                                setRevisionTarget({
+                                  submissionId: s.id,
+                                  title: s.title,
+                                  learnerName: owner?.name ?? "the learner",
+                                })
+                              }
                               data-testid={`button-request-revision-${s.id}`}
                             >
                               <RotateCcw className="w-4 h-4" /> Request revision
@@ -540,9 +548,6 @@ export default function ManagerDashboard() {
                         View Full Profile
                       </Button>
                     </Link>
-                    <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Assign New Pathway", subject: selectedEmployee })}>
-                      <Target className="w-4 h-4 text-primary" /> Assign New Pathway
-                    </Button>
                     <Button variant="outline" className="justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Send Encouragement Message", subject: selectedEmployee })}>
                       <Send className="w-4 h-4 text-secondary" /> Send Direct Message
                     </Button>
@@ -560,10 +565,16 @@ export default function ManagerDashboard() {
         </SheetContent>
       </Sheet>
       
-      <ManagerActionDialogs 
-        action={actionDialog?.action ?? null} 
-        subject={actionDialog?.subject ?? null} 
-        onClose={() => setActionDialog(null)} 
+      <ManagerActionDialogs
+        action={actionDialog?.action ?? null}
+        subject={actionDialog?.subject ?? null}
+        onClose={() => setActionDialog(null)}
+      />
+
+      <RevisionRequestDialog
+        target={revisionTarget}
+        onClose={() => setRevisionTarget(null)}
+        onSend={handleRevision}
       />
     </Layout>
   );

@@ -136,7 +136,7 @@ export function Layout({
           { href: "/manager", label: "Team Dashboard", icon: LayoutDashboard, exact: true },
           { href: "/manager/reports", label: "Team Reports", icon: BarChart3 },
           { href: "/manager/team", label: "Team Members", icon: Users },
-          { href: "/manager/validations", label: "Validations", icon: ClipboardCheck },
+          { href: "/manager/validations", label: "Team Projects", icon: ClipboardCheck },
           { href: "/manager/recognition", label: "Recognition & Impact", icon: Award },
         ];
       case "ministry":

@@ -45,6 +45,7 @@ import { LineList } from "@/components/project/LineList";
 import { ImpactEstimator } from "@/components/project/ImpactEstimator";
 import { GovernanceCheck } from "@/components/project/GovernanceCheck";
 import { ReadinessMeter } from "@/components/project/ReadinessMeter";
+import { ManagerRevisionNotice } from "@/components/project/ManagerRevisionNotice";
 
 export default function AgenticAILabProject() {
   const { toast } = useToast();
@@ -90,7 +91,8 @@ export default function AgenticAILabProject() {
   if (submission) {
     return (
       <Layout role="learner">
-        <div className="mx-auto w-full max-w-3xl pb-12">
+        <div className="mx-auto w-full max-w-3xl space-y-6 pb-12">
+          <ManagerRevisionNotice />
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -158,6 +160,9 @@ export default function AgenticAILabProject() {
             </Badge>
           }
         />
+
+        {/* What the department manager sent back, if anything. */}
+        <ManagerRevisionNotice />
 
         {/* Where the twin built in Stage 1 becomes this project's subject. */}
         <TwinHandoff

@@ -444,7 +444,7 @@ export const ENTITY_COMMUNICATIONS: Communication[] = [
     kind: "Reminder",
     subject: "Department managers: two projects are waiting on your sign-off",
     body:
-      "Your team has workplace projects awaiting a decision. Open the Validations screen to sign off or return them with a note.",
+      "Your team has workplace projects awaiting a decision. Open Team Projects to sign off or return them with a note.",
     audienceKind: "role",
     audienceId: "Department Manager",
     audienceLabel: "All department managers",

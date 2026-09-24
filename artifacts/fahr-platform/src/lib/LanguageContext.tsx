@@ -212,7 +212,7 @@ const translations = {
     "landing.agents.coaching.description":
       "Navigates the platform, chases what is outstanding and answers questions in the flow of work.",
     "landing.agents.coaching.sample":
-      "You have two workplace submissions waiting on your department manager and one credential ready to claim. Shall I open the validations, or your certificate on Recognition?",
+      "You have two workplace submissions waiting on your department manager and one credential ready to claim. Shall I open Team Projects, or your certificate on Recognition?",
     "landing.agents.coaching.capabilities.0": "Context-aware answers",
     "landing.agents.coaching.capabilities.1": "Follows up for you",
     "landing.agents.analytics.name": "{{name}}",
@@ -480,7 +480,7 @@ const translations = {
     "landing.agents.coaching.description":
       "يرشدك في المنصة، ويتابع ما هو معلّق، ويجيب عن أسئلتك ضمن سياق العمل.",
     "landing.agents.coaching.sample":
-      "لديك مشروعان تطبيقيان بانتظار اعتماد مدير إدارتك، واعتماد واحد جاهز للاستلام. هل أفتح لك عمليات التحقق، أم شهادتك في صفحة التقدير؟",
+      "لديك مشروعان تطبيقيان بانتظار اعتماد مدير إدارتك، واعتماد واحد جاهز للاستلام. هل أفتح لك مشاريع الفريق، أم شهادتك في صفحة التقدير؟",
     "landing.agents.coaching.capabilities.0": "إجابات مدركة للسياق",
     "landing.agents.coaching.capabilities.1": "يتابع نيابة عنك",
     "landing.agents.analytics.name": "وكيل التحليلات الذكي",

@@ -273,7 +273,7 @@ export const INTEGRATIONS: Integration[] = [
     name: "Federal HRIS (Bayanati)",
     vendor: "FAHR HR platform",
     category: "HR",
-    purpose: "Authoritative employee, role, department and line-manager records.",
+    purpose: "Authoritative employee, role, department and department-manager records.",
     reference: "§7.3 HRIS",
     status: "Connected",
     lastSync: "Today, 05:00",

@@ -739,9 +739,10 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         escalations,
         sessions: SESSIONS,
         team: people.filter((p) => p.managerId === FOCUS.managerId),
+        approvals,
         live,
       }),
-    [submissions, escalations, people, live],
+    [submissions, escalations, people, approvals, live],
   );
 
   const isNotificationRead = useCallback(

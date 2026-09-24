@@ -196,14 +196,11 @@ export default function TeamMemberDetail() {
                 <CardTitle className="text-lg">Manager Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Assign New Pathway", subject: person })}>
-                  <Target className="w-4 h-4 text-primary" /> Assign New Pathway
-                </Button>
                 <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Send Direct Message", subject: person })}>
                   <Send className="w-4 h-4 text-secondary" /> Send Direct Message
                 </Button>
-                <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Assign Role", subject: person })}>
-                  <Award className="w-4 h-4 text-[hsl(var(--chart-3))]" /> Assign Role
+                <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Send Encouragement Message", subject: person })}>
+                  <Award className="w-4 h-4 text-[hsl(var(--chart-3))]" /> Send Recognition
                 </Button>
                 {person.status === 'at-risk' && (
                   <Button variant="default" className="w-full justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Schedule Intervention Meeting", subject: person })}>
