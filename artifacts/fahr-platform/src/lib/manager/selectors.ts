@@ -756,3 +756,114 @@ export function teamRecognition(input: {
 }
 
 export const competencyShort = (id: string): string => COMPETENCY_BY_ID[id]?.short ?? id;
+
+// ---------------------------------------------------------------------------
+// Recognition by AI competency
+// ---------------------------------------------------------------------------
+
+/**
+ * A team member's standing on one competency. Someone at or above the
+ * Practitioner threshold holds that competency's badge — the same rule the
+ * learner's own Recognition page applies to itself, read across the team.
+ */
+export type CompetencyHolder = {
+  person: Person;
+  score: number;
+  band: ProficiencyBand;
+};
+
+/** A credential, and the competency its validated project exercised. */
+export type CompetencyCredential = {
+  credential: Credential;
+  person: Person | undefined;
+};
+
+export type CompetencyRecognitionRow = {
+  competency: Competency;
+  /** The team's mean score on this competency. */
+  average: number;
+  band: ProficiencyBand;
+  /** Members holding the badge, strongest first. */
+  badged: CompetencyHolder[];
+  /** Members not yet at the threshold, closest first. */
+  developing: CompetencyHolder[];
+  /** Credentials issued against a project that exercised this competency. */
+  credentials: CompetencyCredential[];
+  teamSize: number;
+};
+
+export type TeamCompetencyRecognition = {
+  rows: CompetencyRecognitionRow[];
+  /** Badges held across every competency and every member. */
+  badgesHeld: number;
+  /** The most badges any one competency could reach: competencies × members. */
+  badgesPossible: number;
+  /**
+   * Credentials on the register that carry no linked project, so they cannot be
+   * attributed to a competency. Named rather than silently dropped.
+   */
+  unmappedCredentials: CompetencyCredential[];
+};
+
+/**
+ * Credentials and badges arranged by AI competency rather than by person.
+ *
+ * A manager reading a flat list of certificates learns who has one; reading it
+ * by competency tells them which AI capabilities the team is actually
+ * certified in and where the holes are — the question the recognition surface
+ * exists to answer.
+ *
+ * Badge membership uses PRACTITIONER_THRESHOLD, the same ladder threshold the
+ * learner's own competency badges use, so a learner and their manager never
+ * disagree about whether a badge is held. A credential is attributed through
+ * its validated project's `competencyIds`; one project exercising two
+ * competencies credits both.
+ */
+export function teamCompetencyRecognition(input: {
+  matrix: TeamMemberScores[];
+  credentials: Credential[];
+  teamSubmissions: Submission[];
+}): TeamCompetencyRecognition {
+  const { matrix, credentials, teamSubmissions } = input;
+  const submissionById = new Map(teamSubmissions.map((s) => [s.id, s]));
+  const personById = new Map(matrix.map((r) => [r.person.id, r.person]));
+
+  const mapped = new Set<string>();
+  const credentialsFor = (competencyId: string): CompetencyCredential[] =>
+    credentials.filter((credential) => {
+      if (!credential.submissionId) return false;
+      const submission = submissionById.get(credential.submissionId);
+      if (!submission?.competencyIds.includes(competencyId)) return false;
+      mapped.add(credential.id);
+      return true;
+    }).map((credential) => ({ credential, person: personById.get(credential.personId) }));
+
+  const rows = COMPETENCIES.map((competency) => {
+    const holders: CompetencyHolder[] = matrix.map((row) => {
+      const score = row.scores[competency.id];
+      return { person: row.person, score, band: bandForScore(score) };
+    });
+    return {
+      competency,
+      average: mean(holders.map((h) => h.score)),
+      band: bandForScore(mean(holders.map((h) => h.score))),
+      badged: holders
+        .filter((h) => h.score >= PRACTITIONER_THRESHOLD)
+        .sort((a, b) => b.score - a.score),
+      developing: holders
+        .filter((h) => h.score < PRACTITIONER_THRESHOLD)
+        .sort((a, b) => b.score - a.score),
+      credentials: credentialsFor(competency.id),
+      teamSize: matrix.length,
+    };
+  });
+
+  return {
+    rows,
+    badgesHeld: rows.reduce((total, row) => total + row.badged.length, 0),
+    badgesPossible: COMPETENCIES.length * matrix.length,
+    unmappedCredentials: credentials
+      .filter((credential) => !mapped.has(credential.id))
+      .map((credential) => ({ credential, person: personById.get(credential.personId) })),
+  };
+}

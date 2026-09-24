@@ -26,22 +26,14 @@ import { MINISTRY_BY_ID, SUBMISSION_STATE_LABEL } from "@/lib/federal";
 import { ReportKpi, ReportPill } from "@/components/ministry/ReportShared";
 import { TeamBenchmarkCard } from "@/components/manager/TeamBenchmark";
 import {
-  CHALLENGE_ENTRY_LIMIT,
+  BAND_LABEL,
+  PRACTITIONER_THRESHOLD,
   teamBenchmark,
   teamCompetencyMatrix,
+  teamCompetencyRecognition,
   teamRecognition,
   teamRoster,
-  type TeamBadgeIcon,
 } from "@/lib/manager/selectors";
-
-const BADGE_ICON: Record<TeamBadgeIcon, React.ComponentType<{ className?: string }>> = {
-  target: Target,
-  spark: Sparkles,
-  flame: Flame,
-  shield: ShieldCheck,
-  trophy: Trophy,
-  people: Users,
-};
 
 function SurfaceEmpty({ title, message }: { title: string; message: string }) {
   return (
@@ -84,7 +76,14 @@ export default function TeamRecognition() {
     [team, roster, matrix, teamSubmissions, credentials, focus.ministryId],
   );
 
-  const { impact, standing } = recognition;
+  // Recognition arranged by competency rather than by person: which AI
+  // capabilities the team is certified in, and where the holes are.
+  const byCompetency = useMemo(
+    () => teamCompetencyRecognition({ matrix, credentials: recognition.credentials, teamSubmissions }),
+    [matrix, recognition.credentials, teamSubmissions],
+  );
+
+  const { impact } = recognition;
 
   return (
     <Layout role="manager">
@@ -93,7 +92,7 @@ export default function TeamRecognition() {
           testId="band-team-recognition"
           eyebrow="Verified team record"
           title="Team Recognition & Impact"
-          description="Credentials and badges your team has earned, where it stands on the capability ladder, the impact its Workplace Projects return, and how that compares with the entity."
+          description="The credentials and badges your team has earned, arranged by AI competency, and where it stands on the federal capability ladder."
           actions={
             <>
               <Badge variant="outline" className="border-primary/40 bg-primary/15 text-primary">
@@ -203,237 +202,150 @@ export default function TeamRecognition() {
         </div>
 
         <ScrollReveal>
-          <Card data-testid="card-team-credentials">
+          <Card data-testid="card-competency-recognition">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-primary" /> Credentials earned by the team
+                <Medal className="h-5 w-5 text-primary" /> Credentials &amp; badges by AI competency
               </CardTitle>
               <CardDescription>
-                Verifiable federal credentials on the national register, issued as projects are validated.
+                The team&apos;s verified record arranged by the five framework competencies rather than by person —
+                which AI capabilities your {team.length} {team.length === 1 ? "report is" : "reports are"} certified
+                in, and where the holes are. A badge is held at Practitioner ({PRACTITIONER_THRESHOLD}+), the same
+                threshold a learner&apos;s own Recognition page uses. Credentials are attributed through the
+                validated Workplace Project that earned them.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              {recognition.credentials.length === 0 ? (
+            <CardContent className="space-y-4">
+              {team.length === 0 ? (
                 <SurfaceEmpty
-                  title="No credentials issued yet"
-                  message="Signing off a validated Workplace Project issues a credential to its owner, and it appears here."
+                  title="No direct reports yet"
+                  message="Competency coverage appears once your team is enrolled."
                 />
               ) : (
-                <Stagger className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {recognition.credentials.map((credential) => (
-                    <StaggerItem as="div" key={credential.id}>
-                      <RecognitionItemCard data-testid={`credential-${credential.id}`}>
-                        <div className="flex items-start gap-3">
-                          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-white">{credential.title}</p>
-                            <p className="text-xs text-white/60">
-                              {credential.personName} · issued {credential.issuedOn}
-                            </p>
-                            <p className="mt-1 font-mono text-[10px] text-white/45">
-                              {credential.verificationCode}
-                            </p>
-                          </div>
-                        </div>
-                      </RecognitionItemCard>
-                    </StaggerItem>
-                  ))}
-                </Stagger>
+                <>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    <ReportPill tone={byCompetency.badgesHeld > 0 ? "good" : "muted"}>
+                      {byCompetency.badgesHeld} of {byCompetency.badgesPossible} badges held
+                    </ReportPill>
+                    <span data-testid="text-competency-coverage">
+                      across {byCompetency.rows.length} competencies and {team.length}{" "}
+                      {team.length === 1 ? "person" : "people"}
+                    </span>
+                  </div>
+
+                  <Stagger className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    {byCompetency.rows.map((row) => {
+                      const covered = row.badged.length > 0;
+                      return (
+                        <StaggerItem as="div" key={row.competency.id}>
+                          <RecognitionItemCard
+                            state={covered ? "earned" : "empty"}
+                            data-testid={`competency-recognition-${row.competency.id}`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className={`text-sm font-semibold ${covered ? "text-white" : "text-foreground"}`}>
+                                  {row.competency.label}
+                                </p>
+                                <p className={`mt-0.5 text-xs ${covered ? "text-white/60" : "text-muted-foreground"}`}>
+                                  Team average {row.average} · {BAND_LABEL[row.band]}
+                                </p>
+                              </div>
+                              <span
+                                className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${
+                                  covered
+                                    ? "border-primary/40 bg-primary/15 text-primary"
+                                    : "border-border bg-muted text-muted-foreground"
+                                }`}
+                                data-testid={`competency-badged-${row.competency.id}`}
+                              >
+                                {row.badged.length} of {row.teamSize} badged
+                              </span>
+                            </div>
+
+                            <div className="mt-3 space-y-2">
+                              <div>
+                                <p
+                                  className={`text-[11px] font-medium uppercase tracking-wider ${
+                                    covered ? "text-white/45" : "text-muted-foreground"
+                                  }`}
+                                >
+                                  Badge held by
+                                </p>
+                                <p className={`mt-0.5 text-xs ${covered ? "text-white/70" : "text-muted-foreground"}`}>
+                                  {row.badged.length > 0
+                                    ? row.badged
+                                        .map((h) => `${h.person.name.split(" ")[0]} (${h.score})`)
+                                        .join(", ")
+                                    : `Nobody yet — the closest is ${
+                                        row.developing[0]?.person.name.split(" ")[0] ?? "—"
+                                      } at ${row.developing[0]?.score ?? 0}.`}
+                                </p>
+                              </div>
+
+                              <div>
+                                <p
+                                  className={`text-[11px] font-medium uppercase tracking-wider ${
+                                    covered ? "text-white/45" : "text-muted-foreground"
+                                  }`}
+                                >
+                                  Credentials
+                                </p>
+                                {row.credentials.length === 0 ? (
+                                  <p
+                                    className={`mt-0.5 text-xs ${covered ? "text-white/60" : "text-muted-foreground"}`}
+                                  >
+                                    None issued against this competency yet.
+                                  </p>
+                                ) : (
+                                  <ul className="mt-0.5 space-y-1">
+                                    {row.credentials.map(({ credential, person }) => (
+                                      <li
+                                        key={credential.id}
+                                        className={`text-xs ${covered ? "text-white/70" : "text-muted-foreground"}`}
+                                        data-testid={`competency-credential-${row.competency.id}-${credential.id}`}
+                                      >
+                                        <span className={covered ? "text-white" : "text-foreground"}>
+                                          {credential.title}
+                                        </span>{" "}
+                                        · {person?.name ?? credential.personName} ·{" "}
+                                        <span className="font-mono text-[10px]">{credential.verificationCode}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+
+                              {row.developing.length > 0 && (
+                                <p
+                                  className={`text-[11px] ${covered ? "text-white/45" : "text-muted-foreground"}`}
+                                  data-testid={`competency-developing-${row.competency.id}`}
+                                >
+                                  Still building:{" "}
+                                  {row.developing.map((h) => h.person.name.split(" ")[0]).join(", ")}
+                                </p>
+                              )}
+                            </div>
+                          </RecognitionItemCard>
+                        </StaggerItem>
+                      );
+                    })}
+                  </Stagger>
+
+                  {byCompetency.unmappedCredentials.length > 0 && (
+                    <p className="text-xs text-muted-foreground" data-testid="text-unmapped-credentials">
+                      Also on the register, without a linked project to attribute them to a competency:{" "}
+                      {byCompetency.unmappedCredentials
+                        .map(({ credential, person }) => `${credential.title} (${person?.name ?? credential.personName})`)
+                        .join(", ")}
+                      .
+                    </p>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
         </ScrollReveal>
-
-        <ScrollReveal>
-          <Card data-testid="card-team-badges">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Medal className="h-5 w-5 text-primary" /> Badges across the team
-              </CardTitle>
-              <CardDescription>
-                Milestones across the learner journey — from the baseline assessment to reaching Practitioner —
-                counted across your direct reports. Distinct from the five competency badges a learner sees on
-                their own recognition page, which track mastery of each assessed competency rather than
-                progress through the journey.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Stagger className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {recognition.badges.map((badge) => {
-                  const Icon = BADGE_ICON[badge.icon];
-                  const earned = badge.earnedBy.length;
-                  return (
-                    <StaggerItem as="div" key={badge.id}>
-                      <RecognitionItemCard
-                        state={earned > 0 ? "earned" : "empty"}
-                        data-testid={`badge-${badge.id}`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <Icon className={`h-5 w-5 ${earned > 0 ? "text-primary" : "text-muted-foreground"}`} />
-                          {earned > 0 ? (
-                            <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                              {earned} of {team.length}
-                            </span>
-                          ) : (
-                            <ReportPill tone="muted">
-                              {earned} of {team.length}
-                            </ReportPill>
-                          )}
-                        </div>
-                        <p className={`mt-3 text-sm font-semibold ${earned > 0 ? "text-white" : "text-foreground"}`}>
-                          {badge.label}
-                        </p>
-                        <p
-                          className={`mt-1 text-xs leading-relaxed ${
-                            earned > 0 ? "text-white/60" : "text-muted-foreground"
-                          }`}
-                        >
-                          {badge.description}
-                        </p>
-                        <p className={`mt-2 text-[11px] ${earned > 0 ? "text-white/45" : "text-muted-foreground"}`}>
-                          {earned > 0
-                            ? badge.earnedBy.map((p) => p.name.split(" ")[0]).join(", ")
-                            : badge.criteria}
-                        </p>
-                      </RecognitionItemCard>
-                    </StaggerItem>
-                  );
-                })}
-              </Stagger>
-            </CardContent>
-          </Card>
-        </ScrollReveal>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <ScrollReveal>
-            <Card className="h-full" data-testid="card-applied-impact">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Rocket className="h-5 w-5 text-primary" /> Applied impact
-                </CardTitle>
-                <CardDescription>
-                  What the team's validated Workplace Projects return to the entity each month.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {impact.projectsValidated === 0 ? (
-                  <SurfaceEmpty
-                    title="No validated projects yet"
-                    message={
-                      impact.projectsAwaitingSignOff > 0
-                        ? `${impact.projectsAwaitingSignOff} project${
-                            impact.projectsAwaitingSignOff === 1 ? "" : "s"
-                          } waiting on your sign-off — impact is counted from the moment you validate.`
-                        : "Impact is counted once you sign off a Workplace Project."
-                    }
-                  />
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
-                        <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-impact-hours">
-                          <CountUp to={impact.hoursPerMonth} />
-                        </p>
-                        <p className="text-xs text-muted-foreground">Hours saved each month</p>
-                      </div>
-                      <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
-                        <p className="text-2xl font-bold tabular-nums text-foreground">
-                          <CountUp to={impact.workingDaysReturned} />
-                        </p>
-                        <p className="text-xs text-muted-foreground">Working days returned a year</p>
-                      </div>
-                      <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
-                        <p className="text-2xl font-bold tabular-nums text-foreground">
-                          <CountUp to={impact.valueAed} prefix="AED " />
-                        </p>
-                        <p className="text-xs text-muted-foreground">Estimated annual value</p>
-                      </div>
-                      <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
-                        <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-impact-projects">
-                          {impact.projectsDeployed}/{impact.projectsValidated}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Deployed of validated</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {impact.categories.map((row) => (
-                        <div
-                          key={row.competency.id}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm"
-                          data-testid={`impact-category-${row.competency.id}`}
-                        >
-                          <span className="font-medium text-foreground">{row.competency.label}</span>
-                          <span className="text-muted-foreground tabular-nums">
-                            {row.projects} {row.projects === 1 ? "project" : "projects"} ·{" "}
-                            {row.hoursSavedPerMonth} h/month
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </ScrollReveal>
-
-          <ScrollReveal>
-            <Card className="h-full" data-testid="card-ministry-standing">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" /> Standing in {ministry.shortName}
-                </CardTitle>
-                <CardDescription>
-                  The team against the entity's own figures — impact per person, credentials per person and readiness.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {standing ? (
-                  <>
-                    <div className="rounded-lg border border-border p-4" data-testid="standing-hours">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium text-foreground">Hours returned per person / month</p>
-                        <ReportPill tone={standing.aheadOnImpact ? "good" : "accent"}>
-                          {standing.hoursRatio}× entity average
-                        </ReportPill>
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Your team: <span className="font-semibold text-foreground">{standing.teamHoursPerPerson}</span>{" "}
-                        · {ministry.shortName} average:{" "}
-                        <span className="font-semibold text-foreground">{standing.ministryHoursPerLearner}</span>
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-border p-4" data-testid="standing-credentials">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium text-foreground">Credentials per person</p>
-                        <ReportPill tone={standing.aheadOnCredentials ? "good" : "accent"}>
-                          {standing.credentialRatio}× entity average
-                        </ReportPill>
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Your team:{" "}
-                        <span className="font-semibold text-foreground">{standing.teamCredentialsPerPerson}</span> ·{" "}
-                        {ministry.shortName} average:{" "}
-                        <span className="font-semibold text-foreground">
-                          {standing.ministryCredentialsPerLearner}
-                        </span>
-                      </p>
-                    </div>
-                    {benchmark && (
-                      <p className="text-sm text-muted-foreground" data-testid="text-standing-readiness">
-                        On capability, {benchmark.headline.charAt(0).toLowerCase() + benchmark.headline.slice(1)}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <SurfaceEmpty
-                    title="Entity figures unavailable"
-                    message="The comparison appears once the entity roll-up is in scope."
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </ScrollReveal>
-        </div>
 
         <ScrollReveal>
           <Card data-testid="card-top-contributors">
@@ -498,54 +410,6 @@ export default function TeamRecognition() {
                     </StaggerItem>
                   ))}
                 </Stagger>
-              )}
-            </CardContent>
-          </Card>
-        </ScrollReveal>
-
-        <ScrollReveal>
-          <Card data-testid="card-impact-challenge">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Flame className="h-5 w-5 text-primary" /> Q3 federal AI capability challenge
-              </CardTitle>
-              <CardDescription>
-                Every entity may enter up to {CHALLENGE_ENTRY_LIMIT} Workplace Projects. Entries close on 15 September
-                2026 and shortlisted projects present to the FAHR Governance Board — these are the validated,
-                compliant, high-impact projects you can put forward.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {recognition.challengeEntries.length === 0 ? (
-                <SurfaceEmpty
-                  title="Nothing eligible yet"
-                  message="A project qualifies once it is signed off, rated high impact and clear of governance warnings."
-                />
-              ) : (
-                <div className="space-y-3">
-                  {recognition.challengeEntries.map((entry) => (
-                    <div
-                      key={entry.submission.id}
-                      className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border p-4"
-                      data-testid={`challenge-entry-${entry.submission.id}`}
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground">{entry.submission.title}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {entry.person?.name ?? "Team member"} · {entry.submission.hoursSavedPerMonth} hours saved
-                          per month · AED {entry.submission.estimatedValueAed.toLocaleString()} estimated value
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <ReportPill tone="good">{entry.submission.governanceStatus}</ReportPill>
-                        <ReportPill tone="muted">{SUBMISSION_STATE_LABEL[entry.submission.state]}</ReportPill>
-                      </div>
-                    </div>
-                  ))}
-                  <p className="text-xs text-muted-foreground">
-                    {recognition.challengeEntries.length} of {CHALLENGE_ENTRY_LIMIT} entry slots used by your team.
-                  </p>
-                </div>
               )}
             </CardContent>
           </Card>
