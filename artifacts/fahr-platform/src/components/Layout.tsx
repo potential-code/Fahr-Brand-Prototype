@@ -156,6 +156,8 @@ export function Layout({
           { href: "/fahr/reports", label: "Reports", icon: BarChart3 },
           { href: "/fahr/entities", label: "Entities", icon: Landmark },
           { href: "/fahr/users", label: "Users", icon: UserCog },
+          { href: "/fahr/content", label: "Content", icon: BookOpen },
+          { href: "/fahr/events", label: "Events", icon: CalendarDays },
           { href: "/fahr/governance", label: t("nav.governance"), icon: ShieldCheck },
           { href: "/fahr/escalations", label: "Escalations", icon: AlertTriangle },
           { href: "/fahr/integrations", label: "Integrations", icon: Plug },

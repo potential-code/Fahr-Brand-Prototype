@@ -13,11 +13,12 @@
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { AGENTS, CAPABILITY_LEVELS } from "@/lib/constants";
-import { COMPETENCIES, type Competency } from "@/lib/learningData";
+import { COMPETENCIES, COMPETENCY_BY_ID, type Competency } from "@/lib/learningData";
 import { useFederalData } from "@/lib/FederalDataContext";
 import type { ContentItem, PlatformUser } from "@/lib/federal/model";
 import { CONTENT_ITEMS, GOVERNANCE_POLICIES, PLATFORM_USERS } from "@/lib/federal/seed";
 import { ladderRows } from "@/lib/federal/reporting";
+import { SESSIONS as SEEDED_SESSIONS, type EventAudience, type Session, type SessionFormat } from "@/lib/events";
 import {
   ANNOUNCEMENTS,
   API_CREDENTIALS,
@@ -27,6 +28,7 @@ import {
   GUARDRAIL_EFFECTS,
   GUARDRAIL_EFFECT_BY_ID,
   INTEGRATIONS,
+  COURSERA_CATALOGUE,
   ONBOARDING_STAGE_ORDER,
   PERSONALISATION_RULE_BY_COMPETENCY,
   POLICY_VERSIONS,
@@ -36,6 +38,7 @@ import {
   type AnnouncementKind,
   type ApiCredential,
   type CatalogueRevision,
+  type CourseraCourse,
   type EntityAdminInvite,
   type EntityOnboarding,
   type GuardrailEffect,
@@ -68,6 +71,14 @@ type ConsoleState = {
   mappingPatches: Record<string, string[]>;
   onboardingPatches: Record<string, Partial<EntityOnboarding>>;
   newOnboardings: EntityOnboarding[];
+  /** Content added to the federal library this session, newest first. */
+  newContent: ContentItem[];
+  /** Coursera course ids already imported, so one cannot be imported twice. */
+  importedCourseraIds: string[];
+  /** Events scheduled this session, newest first. */
+  newSessions: Session[];
+  /** Ids of scheduled events withdrawn this session. */
+  cancelledSessionIds: string[];
 };
 
 const EMPTY_STATE: ConsoleState = {
@@ -86,6 +97,10 @@ const EMPTY_STATE: ConsoleState = {
   mappingPatches: {},
   onboardingPatches: {},
   newOnboardings: [],
+  newContent: [],
+  importedCourseraIds: [],
+  newSessions: [],
+  cancelledSessionIds: [],
 };
 
 const STORAGE_KEY = "fahr.console.session.v1";
@@ -139,6 +154,18 @@ function readStored(): ConsoleState {
       onboardingPatches: asMap(parsed.onboardingPatches),
       newOnboardings: asArray<EntityOnboarding>(parsed.newOnboardings).filter(
         (o) => isRecord(o) && typeof o.id === "string",
+      ),
+      newContent: asArray<ContentItem>(parsed.newContent).filter(
+        (c) => isRecord(c) && typeof c.id === "string",
+      ),
+      importedCourseraIds: asArray<string>(parsed.importedCourseraIds).filter(
+        (id) => typeof id === "string",
+      ),
+      newSessions: asArray<Session>(parsed.newSessions).filter(
+        (e) => isRecord(e) && typeof e.id === "string",
+      ),
+      cancelledSessionIds: asArray<string>(parsed.cancelledSessionIds).filter(
+        (id) => typeof id === "string",
       ),
     };
   } catch {
@@ -237,6 +264,32 @@ export type UserInvite = {
   by?: string;
 };
 
+/** A content item authored straight into the federal library. */
+export type NewContentInput = {
+  title: string;
+  type: ContentItem["type"];
+  competencyId: string;
+  language: ContentItem["language"];
+  by?: string;
+};
+
+/** An event scheduled federally, with the audience it is configured for. */
+export type NewSessionInput = {
+  title: string;
+  summary: string;
+  facilitator: string;
+  format: SessionFormat;
+  venue: string;
+  competencyId: string;
+  /** Days from today — the listing is relative so a demo never goes stale. */
+  inDays: number;
+  startTime: string;
+  durationMins: number;
+  seatsTotal: number;
+  audience: EventAudience;
+  by?: string;
+};
+
 export type FahrConsoleValue = {
   // Governance.
   /** Guardrail id -> enforced right now. */
@@ -265,6 +318,21 @@ export type FahrConsoleValue = {
   users: PlatformUser[];
   setUserStatus: (userId: string, status: PlatformUser["status"], options?: ConsoleActionOptions) => void;
   inviteUser: (invite: UserInvite) => string | null;
+
+  // Content library.
+  /** Every item the Content Agent can draw on, newest additions first. */
+  catalogueWithAdditions: ContentItem[];
+  courseraCatalogue: CourseraCourse[];
+  /** Coursera courses already pulled into the library. */
+  importedCourseraIds: string[];
+  addContentItem: (input: NewContentInput) => ContentItem;
+  importCourseraCourses: (courseIds: string[], options?: ConsoleActionOptions) => ContentItem[];
+
+  // Events.
+  /** Scheduled events, federal and seeded, soonest first and cancellations removed. */
+  learningSessions: Session[];
+  scheduleSession: (input: NewSessionInput) => Session;
+  cancelSession: (sessionId: string, options?: ConsoleActionOptions) => void;
 
   // Framework and catalogue.
   competencies: Competency[];
@@ -627,6 +695,141 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
     [state.cataloguePatches],
   );
 
+  // -- Content library ------------------------------------------------------
+
+  /**
+   * Everything the Content Agent can draw on: the seeded federal catalogue,
+   * plus anything authored or imported this session. Additions come first so
+   * a freshly imported Coursera course is visible without hunting for it.
+   */
+  const catalogueWithAdditions = useMemo<ContentItem[]>(
+    () => [...state.newContent, ...catalogue],
+    [state.newContent, catalogue],
+  );
+
+  const addContentItem = useCallback(
+    (input: NewContentInput): ContentItem => {
+      const item: ContentItem = {
+        id: nextId("ct"),
+        title: input.title.trim(),
+        type: input.type,
+        competencyId: input.competencyId,
+        language: input.language,
+        version: "v1.0",
+        status: "Published",
+        updatedOn: today(),
+        owner: input.by ?? "FAHR Programme Team",
+      };
+      update((prev) => ({ ...prev, newContent: [item, ...prev.newContent] }));
+      recordAudit({
+        actor: input.by ?? "FAHR Programme Team",
+        agent: AGENTS.content,
+        action: `Added "${item.title}" to the federal content library, tagged ${COMPETENCY_BY_ID[item.competencyId]?.label ?? item.competencyId}`,
+        risk: "Low",
+        status: "Published",
+      });
+      return item;
+    },
+    [recordAudit, update],
+  );
+
+  const importCourseraCourses = useCallback(
+    (courseIds: string[], options?: ConsoleActionOptions): ContentItem[] => {
+      const fresh = COURSERA_CATALOGUE.filter(
+        (course) => courseIds.includes(course.id) && !state.importedCourseraIds.includes(course.id),
+      );
+      if (fresh.length === 0) return [];
+      const items: ContentItem[] = fresh.map((course) => ({
+        id: `ct-crs-${course.id}`,
+        title: course.title,
+        type: "Course",
+        competencyId: course.competencyId,
+        language: "English",
+        version: "v1.0",
+        status: "Published",
+        updatedOn: today(),
+        owner: `Coursera · ${course.partner}`,
+      }));
+      update((prev) => ({
+        ...prev,
+        newContent: [...items, ...prev.newContent],
+        importedCourseraIds: [...prev.importedCourseraIds, ...fresh.map((c) => c.id)],
+      }));
+      recordAudit({
+        actor: options?.by ?? "FAHR Programme Team",
+        agent: AGENTS.content,
+        action: `Imported ${items.length} Coursera course${items.length === 1 ? "" : "s"} into the federal content library`,
+        risk: "Low",
+        status: "Published",
+      });
+      return items;
+    },
+    [recordAudit, state.importedCourseraIds, update],
+  );
+
+  // -- Events ---------------------------------------------------------------
+
+  const learningSessions = useMemo<Session[]>(
+    () =>
+      [...state.newSessions, ...SEEDED_SESSIONS]
+        .filter((session) => !state.cancelledSessionIds.includes(session.id))
+        .sort((a, b) => a.inDays - b.inDays),
+    [state.newSessions, state.cancelledSessionIds],
+  );
+
+  const scheduleSession = useCallback(
+    (input: NewSessionInput): Session => {
+      const session: Session = {
+        id: nextId("sess"),
+        title: input.title.trim(),
+        summary: input.summary.trim(),
+        facilitator: input.facilitator.trim(),
+        facilitatorRole: "FAHR Programme Team",
+        host: "FAHR",
+        format: input.format,
+        venue: input.venue.trim(),
+        competencyId: input.competencyId,
+        inDays: input.inDays,
+        startTime: input.startTime,
+        durationMins: input.durationMins,
+        seatsTotal: input.seatsTotal,
+        seatsTaken: 0,
+        level: "All levels",
+        agenda: [],
+        audience: input.audience,
+      };
+      update((prev) => ({ ...prev, newSessions: [session, ...prev.newSessions] }));
+      recordAudit({
+        actor: input.by ?? "FAHR Programme Team",
+        agent: "Human decision",
+        action: `Scheduled "${session.title}" for ${session.seatsTotal} seats`,
+        risk: "Low",
+        status: "Scheduled",
+      });
+      return session;
+    },
+    [recordAudit, update],
+  );
+
+  const cancelSession = useCallback(
+    (sessionId: string, options?: ConsoleActionOptions) => {
+      const session = [...state.newSessions, ...SEEDED_SESSIONS].find((s) => s.id === sessionId);
+      if (!session) return;
+      update((prev) => ({
+        ...prev,
+        cancelledSessionIds: [...prev.cancelledSessionIds, sessionId],
+      }));
+      recordAudit({
+        actor: options?.by ?? "FAHR Programme Team",
+        agent: "Human decision",
+        action: `Withdrew the event "${session.title}"`,
+        risk: "Low",
+        status: "Withdrawn",
+      });
+    },
+    [recordAudit, state.newSessions, update],
+  );
+
   const catalogueRevisions = useMemo(
     () => [...state.catalogueRevisions, ...CATALOGUE_REVISIONS],
     [state.catalogueRevisions],
@@ -985,6 +1188,14 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
       expectationFor,
       mappedContentIds,
       catalogue,
+      catalogueWithAdditions,
+      courseraCatalogue: COURSERA_CATALOGUE,
+      importedCourseraIds: state.importedCourseraIds,
+      addContentItem,
+      importCourseraCourses,
+      learningSessions,
+      scheduleSession,
+      cancelSession,
       catalogueRevisions,
       updateCompetency,
       setExpectation,
@@ -1020,6 +1231,13 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
       expectationFor,
       mappedContentIds,
       catalogue,
+      catalogueWithAdditions,
+      state.importedCourseraIds,
+      addContentItem,
+      importCourseraCourses,
+      learningSessions,
+      scheduleSession,
+      cancelSession,
       catalogueRevisions,
       updateCompetency,
       setExpectation,

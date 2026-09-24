@@ -41,6 +41,8 @@ import MinistryPortfolio from "@/pages/MinistryPortfolio";
 
 import FAHRDashboard from "@/pages/FAHRDashboard";
 import FAHRGovernance from "@/pages/FAHRGovernance";
+import FAHRContent from "@/pages/FAHRContent";
+import FAHREvents from "@/pages/FAHREvents";
 import FAHREntities from "@/pages/FAHREntities";
 import FAHRUsers from "@/pages/FAHRUsers";
 import FAHREscalations from "@/pages/FAHREscalations";
@@ -154,6 +156,8 @@ function Router() {
       <Route path="/fahr" component={FAHRDashboard} />
       <Route path="/fahr/entities" component={FAHREntities} />
       <Route path="/fahr/users" component={FAHRUsers} />
+      <Route path="/fahr/content" component={FAHRContent} />
+      <Route path="/fahr/events" component={FAHREvents} />
       <Route path="/fahr/governance" component={FAHRGovernance} />
       <Route path="/fahr/escalations" component={FAHREscalations} />
       <Route path="/fahr/integrations" component={FAHRIntegrations} />

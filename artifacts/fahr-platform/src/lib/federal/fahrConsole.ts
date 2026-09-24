@@ -726,3 +726,83 @@ export const REPORT_PERIOD_BY_ID: Record<string, ReportPeriod> = Object.fromEntr
 
 /** Default period the reporting suite opens on. */
 export const DEFAULT_REPORT_PERIOD = "rolling-12";
+
+// ---------------------------------------------------------------------------
+// Coursera content library
+// ---------------------------------------------------------------------------
+
+/**
+ * What the Coursera connection offers for import.
+ *
+ * The integration is inbound: FAHR chooses courses and tags them to a
+ * framework competency, and from then on they sit in the federal content
+ * library like any other item, which is what the Content Agent reads when it
+ * generates a learner's pathway.
+ */
+export type CourseraCourse = {
+  id: string;
+  title: string;
+  partner: string;
+  /** Framework competency the course is tagged to on import. */
+  competencyId: string;
+  hours: number;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  summary: string;
+};
+
+export const COURSERA_CATALOGUE: CourseraCourse[] = [
+  {
+    id: "crs-ai-everyone",
+    title: "AI For Everyone",
+    partner: "DeepLearning.AI",
+    competencyId: "literacy",
+    hours: 6,
+    level: "Beginner",
+    summary: "What generative and agentic AI can and cannot do, for non-technical staff.",
+  },
+  {
+    id: "crs-prompt-eng",
+    title: "Prompt Engineering for ChatGPT",
+    partner: "Vanderbilt University",
+    competencyId: "prompting",
+    hours: 18,
+    level: "Intermediate",
+    summary: "Patterns for structured, context-rich instructions that produce reliable output.",
+  },
+  {
+    id: "crs-data-analysis",
+    title: "Data Analysis with AI Assistants",
+    partner: "Google Cloud",
+    competencyId: "analytics",
+    hours: 12,
+    level: "Intermediate",
+    summary: "Turning service and campaign data into decisions with an AI assistant.",
+  },
+  {
+    id: "crs-agentic",
+    title: "Building Agentic AI Workflows",
+    partner: "DeepLearning.AI",
+    competencyId: "agentic",
+    hours: 15,
+    level: "Advanced",
+    summary: "Designing multi-step agents with human checkpoints and measurable outcomes.",
+  },
+  {
+    id: "crs-ai-ethics",
+    title: "AI Governance and Data Ethics",
+    partner: "University of Michigan",
+    competencyId: "governance",
+    hours: 10,
+    level: "Intermediate",
+    summary: "Accountability, bias and personal-data handling in public-sector AI.",
+  },
+  {
+    id: "crs-ml-foundations",
+    title: "Machine Learning Foundations for Managers",
+    partner: "Duke University",
+    competencyId: "analytics",
+    hours: 14,
+    level: "Beginner",
+    summary: "Enough of the mechanics to commission and read an AI project honestly.",
+  },
+];

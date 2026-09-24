@@ -14,7 +14,8 @@ import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
 import { summariseParticipation } from "@/lib/profileAnalysis";
 import { buildRecognitionRecord, competencyBadges } from "@/lib/recognitionRecord";
 import { ANNOUNCEMENTS, POLLS, THREADS, type Reply, type Thread } from "@/lib/engagement";
-import { SEEDED_REGISTRATIONS, recommendedFirst, seatState, upcomingSessions, type Session } from "@/lib/events";
+import { SEEDED_REGISTRATIONS, matchesAudience, recommendedFirst, seatState, type Session } from "@/lib/events";
+import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { LEARNER_PROFILE } from "@/lib/constants";
 import { Users } from "lucide-react";
 
@@ -60,10 +61,19 @@ export default function Community() {
   const [registeredIds, setRegisteredIds] = useState<string[]>(SEEDED_REGISTRATIONS);
   const [waitlistedIds, setWaitlistedIds] = useState<string[]>([]);
 
-  // Sessions closing the learner's weakest competencies surface first.
+  // Sessions closing the learner's weakest competencies surface first, and
+  // only the ones this learner's audience includes.
+  const { learningSessions } = useFahrConsole();
+  const gaps = result?.gaps ?? [];
   const sessions = useMemo(
-    () => recommendedFirst(upcomingSessions(), result?.gaps ?? []),
-    [result],
+    () =>
+      recommendedFirst(
+        learningSessions.filter((session) =>
+          matchesAudience(session.audience, { gapCompetencyIds: gaps }),
+        ),
+        gaps,
+      ),
+    [learningSessions, gaps],
   );
 
   const toggleLike = (threadId: string) => {

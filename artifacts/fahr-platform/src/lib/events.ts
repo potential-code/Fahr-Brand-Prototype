@@ -18,6 +18,22 @@ export const FORMAT_LABEL: Record<SessionFormat, string> = {
   hybrid: "Hybrid",
 };
 
+/**
+ * Who an event is for. A federally scheduled event is rarely for everyone —
+ * it targets an entity, a rung of the capability ladder, or the people with a
+ * particular competency gap — and the learner's listing honours that, so an
+ * event configured for Health practitioners does not appear to everyone.
+ */
+export type AudienceScope = "everyone" | "entity" | "level" | "competency";
+
+export type EventAudience = {
+  scope: AudienceScope;
+  /** A ministryId, levelId or competencyId — unused when the scope is everyone. */
+  value?: string;
+};
+
+export const EVERYONE: EventAudience = { scope: "everyone" };
+
 export type Session = {
   id: string;
   title: string;
@@ -37,6 +53,8 @@ export type Session = {
   seatsTaken: number;
   level: string;
   agenda: string[];
+  /** Who the event is for. Seeded events are open to everyone. */
+  audience?: EventAudience;
 };
 
 export type PastSession = {
@@ -327,4 +345,38 @@ export function recommendedFirst(sessions: Session[], gapIds: string[]): Session
     return index === -1 ? gapIds.length : index;
   };
   return [...sessions].sort((a, b) => weight(a) - weight(b) || a.inDays - b.inDays);
+}
+
+
+// ---------------------------------------------------------------------------
+// Audience targeting
+// ---------------------------------------------------------------------------
+
+/** What the learner sees against an event, and what the scheduler picks from. */
+export function audienceLabel(
+  audience: EventAudience | undefined,
+  resolve: (scope: AudienceScope, value: string) => string,
+): string {
+  if (!audience || audience.scope === "everyone") return "All federal employees";
+  if (!audience.value) return "All federal employees";
+  return resolve(audience.scope, audience.value);
+}
+
+/** The viewer an audience is matched against. */
+export type AudienceViewer = {
+  ministryId?: string;
+  levelId?: string;
+  /** Competencies the learner's own profile names as development priorities. */
+  gapCompetencyIds?: string[];
+};
+
+/**
+ * Whether an event reaches this learner. An event with no audience reaches
+ * everyone, which keeps every seeded event visible.
+ */
+export function matchesAudience(audience: EventAudience | undefined, viewer: AudienceViewer): boolean {
+  if (!audience || audience.scope === "everyone" || !audience.value) return true;
+  if (audience.scope === "entity") return viewer.ministryId === audience.value;
+  if (audience.scope === "level") return viewer.levelId === audience.value;
+  return (viewer.gapCompetencyIds ?? []).includes(audience.value);
 }

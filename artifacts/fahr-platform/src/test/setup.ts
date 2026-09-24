@@ -50,3 +50,14 @@ if (!window.matchMedia) {
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }
+
+/**
+ * Radix's Select closes over the Pointer Events capture API, which jsdom does
+ * not implement. Without these, opening a Select in a test throws rather than
+ * failing an assertion.
+ */
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false;
+  Element.prototype.setPointerCapture = () => {};
+  Element.prototype.releasePointerCapture = () => {};
+}

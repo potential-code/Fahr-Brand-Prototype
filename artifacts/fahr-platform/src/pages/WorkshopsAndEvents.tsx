@@ -7,6 +7,8 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useFahrConsole } from "@/lib/FahrConsoleContext";
+import { useFederalData } from "@/lib/FederalDataContext";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { buildRecommendations } from "@/lib/recommendations";
 import {
@@ -23,7 +25,7 @@ import {
   seatState,
   seatsLeft,
   sessionDate,
-  upcomingSessions,
+  matchesAudience,
   type PastSession,
   type Session,
 } from "@/lib/events";
@@ -331,7 +333,25 @@ export default function WorkshopsAndEvents() {
   const [waitlistedIds, setWaitlistedIds] = useState<string[]>([]);
 
   const gaps = result?.gaps ?? [];
-  const sessions = useMemo(() => recommendedFirst(upcomingSessions(), gaps), [gaps]);
+  // Federally scheduled events are targeted, so the listing shows only the
+  // ones whose audience this learner falls into.
+  const { learningSessions } = useFahrConsole();
+  const { focus, getPerson } = useFederalData();
+  const me = getPerson(focus.learnerId);
+  const sessions = useMemo(
+    () =>
+      recommendedFirst(
+        learningSessions.filter((session) =>
+          matchesAudience(session.audience, {
+            ministryId: me?.ministryId,
+            levelId: me?.levelId,
+            gapCompetencyIds: gaps,
+          }),
+        ),
+        gaps,
+      ),
+    [learningSessions, me?.ministryId, me?.levelId, gaps],
+  );
 
   // Just-in-time reading, matched to the same gaps that order the sessions above.
   const resources = useMemo(
