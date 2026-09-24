@@ -204,7 +204,7 @@ export type Escalation = {
   id: string;
   ministryId: string;
   subject: string;
-  kind: "Approval" | "Quota" | "Policy" | "Support";
+  kind: "Approval" | "Quota" | "Support";
   raisedOn: string;
   raisedBy: string;
   status: EscalationStatus;

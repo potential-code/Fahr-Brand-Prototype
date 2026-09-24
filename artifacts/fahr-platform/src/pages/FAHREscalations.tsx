@@ -53,7 +53,7 @@ import { CountUp, PageEnter, PanelEnter, Stagger, StaggerItem } from "@/componen
 import { downloadCsv, printReport } from "@/lib/exportFile";
 
 const STATUS_TABS: (Escalation["status"] | "All")[] = ["All", "Open", "In progress", "Resolved"];
-const KIND_FILTERS: (Escalation["kind"] | "All")[] = ["All", "Approval", "Quota", "Policy", "Support"];
+const KIND_FILTERS: (Escalation["kind"] | "All")[] = ["All", "Approval", "Quota", "Support"];
 
 /** Kind pill styling. */
 function kindPill(kind: Escalation["kind"]) {
@@ -62,8 +62,6 @@ function kindPill(kind: Escalation["kind"]) {
       return "bg-primary/10 text-primary border-primary/20";
     case "Quota":
       return "bg-amber-50 text-amber-700 border-amber-200";
-    case "Policy":
-      return "bg-purple-50 text-purple-700 border-purple-200";
     case "Support":
       return "bg-sky-50 text-sky-700 border-sky-200";
   }

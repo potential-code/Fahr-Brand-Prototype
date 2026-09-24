@@ -129,17 +129,6 @@ export default function ManagerDashboard() {
         actionLabel: "Send Nudge",
       });
     }
-    const excelling = [...team].sort((a, b) => b.pathwayProgress - a.pathwayProgress)[0];
-    if (excelling && excelling.id !== atRisk?.id) {
-      items.push({
-        id: `insight-mentor-${excelling.id}`,
-        person: excelling,
-        message: "Ready to mentor peers",
-        context: `${LEVEL_BY_ID[excelling.levelId]?.label ?? excelling.levelId} at ${excelling.pathwayProgress}% pathway completion with an assessment score of ${excelling.assessmentScore}. Far enough ahead to support the rest of the team.`,
-        urgency: "low",
-        actionLabel: "Send Encouragement Message",
-      });
-    }
     return items;
   }, [team, avgProgress]);
 
@@ -268,73 +257,6 @@ export default function ManagerDashboard() {
 
             {benchmark && <TeamBenchmarkCard benchmark={benchmark} className="border-border shadow-sm" />}
 
-            <Card className="border-border shadow-sm" data-testid="card-impact-teaser">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Award className="w-4 h-4 text-primary" /> Recognition &amp; Impact
-                </CardTitle>
-                <CardDescription>What the team has earned and returned so far</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
-                    <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-hours">
-                      {impact.hoursPerMonth}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">Hours saved / month</p>
-                  </div>
-                  <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
-                    <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-credentials">
-                      {recognition.credentials.length}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">Credentials earned</p>
-                  </div>
-                  <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
-                    <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-projects">
-                      {impact.projectsValidated}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">Projects validated</p>
-                  </div>
-                </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  {recognition.standing
-                    ? `${recognition.standing.teamHoursPerPerson} hours returned per person each month against a ${recognition.standing.ministry.shortName} average of ${recognition.standing.ministryHoursPerLearner}.`
-                    : "Impact appears here once a workplace project is signed off."}
-                </p>
-                <Link href="/manager/recognition">
-                  <Button variant="outline" className="w-full gap-2" data-testid="button-view-recognition">
-                    View team recognition <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-bold">Team Capability Distribution</CardTitle>
-                <CardDescription>Spread across the unified ladder</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[250px] w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={capabilityDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} dy={10} />
-                      <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                      <RechartsTooltip 
-                        cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
-                        contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', boxShadow: 'var(--shadow-sm)' }}
-                      />
-                      <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                        {capabilityDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
 
           </div>
 
@@ -483,6 +405,77 @@ export default function ManagerDashboard() {
             </Card>
           </div>
 
+        </div>
+
+        {/* Full-width row, so neither column runs past the other. */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card className="border-border shadow-sm" data-testid="card-impact-teaser">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <Award className="w-4 h-4 text-primary" /> Recognition &amp; Impact
+                  </CardTitle>
+                  <CardDescription>What the team has earned and returned so far</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
+                      <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-hours">
+                        {impact.hoursPerMonth}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">Hours saved / month</p>
+                    </div>
+                    <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
+                      <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-credentials">
+                        {recognition.credentials.length}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">Credentials earned</p>
+                    </div>
+                    <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
+                      <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-projects">
+                        {impact.projectsValidated}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">Projects validated</p>
+                    </div>
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    {recognition.standing
+                      ? `${recognition.standing.teamHoursPerPerson} hours returned per person each month against a ${recognition.standing.ministry.shortName} average of ${recognition.standing.ministryHoursPerLearner}.`
+                      : "Impact appears here once a workplace project is signed off."}
+                  </p>
+                  <Link href="/manager/recognition">
+                    <Button variant="outline" className="w-full gap-2" data-testid="button-view-recognition">
+                      View team recognition <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-bold">Team Capability Distribution</CardTitle>
+                  <CardDescription>Spread across the unified ladder</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px] w-full mt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={capabilityDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} dy={10} />
+                        <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                        <RechartsTooltip 
+                          cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
+                          contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', boxShadow: 'var(--shadow-sm)' }}
+                        />
+                        <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                          {capabilityDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
         </div>
       </div>
 

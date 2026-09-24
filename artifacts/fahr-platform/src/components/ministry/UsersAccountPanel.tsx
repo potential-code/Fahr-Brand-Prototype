@@ -183,7 +183,7 @@ export function UsersAccountPanel({ accountId }: { accountId: string }) {
           >
             {account.platformRole}
           </p>
-          <p className="text-xs text-muted-foreground">Granted federally — raise an escalation to change it.</p>
+          <p className="text-xs text-muted-foreground">Set when the account is created and not changed from here.</p>
         </div>
       </div>
 

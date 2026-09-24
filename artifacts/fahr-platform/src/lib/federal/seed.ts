@@ -977,7 +977,7 @@ export const CREDENTIALS: Credential[] = [
 export const ESCALATIONS: Escalation[] = [
   { id: "es1", ministryId: "moe", subject: "Curriculum Feedback Synthesiser — data-sharing exception", kind: "Approval", raisedOn: "15 July 2026", raisedBy: "Ahmed Al Shamsi", status: "Open", detail: "Cross-emirate feedback records fall outside the entity's approved data scope. Federal sign-off requested.", submissionId: "s8" },
   { id: "es2", ministryId: "moccae", subject: "Token quota exceeded for Climate Policy cohort", kind: "Quota", raisedOn: "13 July 2026", raisedBy: "Shamma Al Hosani", status: "In progress", detail: "Consumption is at 105% of quota with six weeks of the cohort remaining." },
-  { id: "es3", ministryId: "moi", subject: "Concierge escalation — credential not visible to HRIS", kind: "Support", raisedOn: "11 July 2026", raisedBy: "Coaching Agent", status: "Open", detail: "Three learners report issued credentials missing from the entity HR record." },
+  { id: "es3", ministryId: "moi", subject: "Concierge escalation — learners unable to sign in with UAE PASS", kind: "Support", raisedOn: "11 July 2026", raisedBy: "Coaching Agent", status: "Open", detail: "Three learners report their UAE PASS sign-in returns them to the start page instead of their dashboard." },
 ];
 
 /**

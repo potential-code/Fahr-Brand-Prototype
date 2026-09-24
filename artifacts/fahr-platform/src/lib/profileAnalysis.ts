@@ -373,7 +373,7 @@ export function buildProfileAnalysis(
       value: `Close ${weakest.competency.short}${nextLevel ? ` · reach ${nextLevel.label}` : " · sustain Champion level"}`,
       detail: nextLevel
         ? `${pointsToNext} readiness points still separate you from ${nextLevel.label}.`
-        : "You are at the top of the ladder — objectives shift to mentoring and governance leadership.",
+        : "You are at the top of the ladder — the objective is to sustain Champion level.",
       weight: "high",
     },
     {
@@ -410,7 +410,7 @@ export function buildProfileAnalysis(
     (nextLevel
       ? `${pointsToNext} readiness points separate this profile from ${nextLevel.label}` +
         (conclusionCourse ? `, roughly the movement expected from completing ${conclusionCourse.title}.` : ".")
-      : "This profile is already at the top of the federal ladder, so the plan shifts to mentoring and governance leadership.");
+      : "This profile is already at the top of the federal ladder, so the plan focuses on sustaining it.");
 
   // --- next capabilities ----------------------------------------------------
   // Not every competency owns a course. When one does not, fall back to the

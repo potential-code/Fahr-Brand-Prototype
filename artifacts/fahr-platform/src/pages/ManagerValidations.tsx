@@ -34,7 +34,6 @@ export default function ManagerValidations() {
   );
 
   const flaggedLearners = team.filter(p => p.status === 'at-risk' || p.status === 'needs-attention');
-  const recommendations = team.filter(p => p.status === 'excelling');
 
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
   const [revisionNote, setRevisionNote] = useState("");
@@ -85,7 +84,7 @@ export default function ManagerValidations() {
           tone="primary"
           icon={<ClipboardCheck className="w-7 h-7 text-primary" />}
           title="Team Projects"
-          description="Review workplace projects, address flagged learner risks, and approve system recommendations."
+          description="Review your team's workplace projects and follow up on learners who are falling behind."
         />
 
         <Tabs defaultValue="submissions" className="w-full">
@@ -95,9 +94,6 @@ export default function ManagerValidations() {
             </TabsTrigger>
             <TabsTrigger value="interventions">
               Interventions <Badge variant="secondary" className="ms-2">{flaggedLearners.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="recommendations">
-              Recommendations <Badge variant="secondary" className="ms-2">{recommendations.length}</Badge>
             </TabsTrigger>
           </TabsList>
 
@@ -164,30 +160,6 @@ export default function ManagerValidations() {
             </Stagger>
           </TabsContent>
 
-          <TabsContent value="recommendations">
-            <Stagger className="grid grid-cols-1 gap-4">
-              {recommendations.map(p => (
-                <StaggerItem key={p.id} as="div">
-                  <Card>
-                    <CardContent className="p-5 flex items-center justify-between">
-                      <div className="flex items-start gap-4">
-                        <BrainCircuit className="w-6 h-6 mt-1 text-primary" />
-                        <div>
-                          <h3 className="text-base font-semibold text-foreground">{p.name}</h3>
-                          <p className="text-sm font-medium mt-1 text-foreground">Ready to mentor peers</p>
-                          <p className="text-xs text-muted-foreground mt-1">Excelling with {p.pathwayProgress}% completion and {p.assessmentScore}% baseline.</p>
-                        </div>
-                      </div>
-                      <Button size="sm" onClick={() => setActionDialog({ action: "Send Encouragement Message", subject: p })}>Send Recognition</Button>
-                    </CardContent>
-                  </Card>
-                </StaggerItem>
-              ))}
-              {recommendations.length === 0 && (
-                <p className="text-sm text-muted-foreground p-4">No active recommendations.</p>
-              )}
-            </Stagger>
-          </TabsContent>
         </Tabs>
       </PageEnter>
 

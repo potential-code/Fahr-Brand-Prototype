@@ -209,7 +209,8 @@ export type EntityAdminValue = {
   inviteUser: (input: InviteUserInput) => EntityAccount;
   /** Bulk import: one invite per row, returned in the order given. */
   importUsers: (rows: InviteUserInput[]) => EntityAccount[];
-  updateAccount: (accountId: string, patch: AccountOverride) => void;
+  /** Department, job title, cohort — never the platform role, which is fixed at creation. */
+  updateAccount: (accountId: string, patch: Omit<AccountOverride, "platformRole">) => void;
   setAccountStatus: (accountId: string, status: AccountStatus) => void;
   requestConsent: (accountId: string) => void;
   setConsent: (accountId: string, consent: ConsentState) => void;
@@ -364,7 +365,7 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
   );
 
   const updateAccount = useCallback(
-    (accountId: string, patch: AccountOverride) => {
+    (accountId: string, patch: Omit<AccountOverride, "platformRole">) => {
       const account = accounts.find((a) => a.id === accountId);
       update((prev) => ({
         ...prev,
@@ -374,7 +375,6 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
         },
       }));
       const parts: string[] = [];
-      if (patch.platformRole) parts.push(`platform role ${patch.platformRole}`);
       if (patch.departmentId) parts.push("department");
       if (patch.cohortId) parts.push("cohort");
       if (patch.jobRole) parts.push(`job role ${patch.jobRole}`);

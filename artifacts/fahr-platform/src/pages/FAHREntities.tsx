@@ -32,14 +32,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Building2,
   Users,
   Gauge,
@@ -51,14 +43,11 @@ import {
   Download,
   Printer,
   UserCog,
-  PlusCircle,
-  Rocket,
   Inbox,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useFederalData } from "@/lib/FederalDataContext";
-import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import {
   FEDERAL,
   ON_TRACK_READINESS,
@@ -69,7 +58,6 @@ import {
   type Ministry,
 } from "@/lib/federal";
 import {
-  ENTITY_SECTORS,
   ONBOARDING_STAGES,
   ONBOARDING_STAGE_ORDER,
 } from "@/lib/federal";
@@ -100,12 +88,6 @@ const riskPillClass = (risk: "Low" | "Medium" | "High"): string =>
 export default function FAHREntities() {
   const { toast } = useToast();
   const { ministries, escalations, adjustQuota, assignEntityAdmin } = useFederalData();
-  const {
-    onboardings,
-    startOnboarding,
-    advanceOnboarding,
-    addOnboardingAdmin,
-  } = useFahrConsole();
 
   const [query, setQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<RiskFilter>("all");
@@ -118,23 +100,6 @@ export default function FAHREntities() {
   // Quota + admin editing inside the sheet.
   const [quotaDraft, setQuotaDraft] = useState<string>("");
   const [adminDraft, setAdminDraft] = useState<string>("");
-
-  // Onboarding dialogs.
-  const [onboardOpen, setOnboardOpen] = useState(false);
-  const [inviteFor, setInviteFor] = useState<string | null>(null);
-
-  // Onboard-entity draft.
-  const [obName, setObName] = useState("");
-  const [obShort, setObShort] = useState("");
-  const [obSector, setObSector] = useState<string>(ENTITY_SECTORS[0]);
-  const [obWorkforce, setObWorkforce] = useState("");
-  const [obQuota, setObQuota] = useState("");
-  const [obAdminName, setObAdminName] = useState("");
-  const [obAdminEmail, setObAdminEmail] = useState("");
-
-  // Invite-admin draft.
-  const [invName, setInvName] = useState("");
-  const [invEmail, setInvEmail] = useState("");
 
   // Weighted national readiness comes from the shared federal totals so it can
   // never disagree with the leadership view.
@@ -246,61 +211,6 @@ export default function FAHREntities() {
     toast({ title: "Entity administrator assigned", description: `${name} now administers ${selected.shortName}.` });
   };
 
-  const resetOnboardDraft = () => {
-    setObName("");
-    setObShort("");
-    setObSector(ENTITY_SECTORS[0]);
-    setObWorkforce("");
-    setObQuota("");
-    setObAdminName("");
-    setObAdminEmail("");
-  };
-
-  const handleStartOnboarding = () => {
-    const employees = Number(obWorkforce);
-    const quotaM = Math.round(Number(obQuota) * 10) / 10;
-    if (!obName.trim() || !obShort.trim() || !Number.isFinite(employees) || employees <= 0) {
-      toast({ title: "Cannot onboard entity", description: "Name, short name and a valid workforce are required." });
-      return;
-    }
-    const admins =
-      obAdminName.trim() && obAdminEmail.trim()
-        ? [{ name: obAdminName.trim(), email: obAdminEmail.trim() }]
-        : undefined;
-    startOnboarding({
-      name: obName.trim(),
-      shortName: obShort.trim(),
-      sector: obSector,
-      employees,
-      quotaM: Number.isFinite(quotaM) && quotaM > 0 ? quotaM : 0.5,
-      admins,
-      by: "FAHR Programme Team",
-    });
-    toast({
-      title: "Entity onboarding started",
-      description: `${obShort.trim()} added to the pipeline. Its figures stay out of national totals until it goes live.`,
-    });
-    resetOnboardDraft();
-    setOnboardOpen(false);
-  };
-
-  const handleAddAdmin = () => {
-    if (!inviteFor) return;
-    if (!invName.trim() || !invEmail.trim()) {
-      toast({ title: "Invite not sent", description: "Enter the administrator's name and email." });
-      return;
-    }
-    addOnboardingAdmin(
-      inviteFor,
-      { name: invName.trim(), email: invEmail.trim() },
-      { by: "FAHR Programme Team" },
-    );
-    toast({ title: "Entity admin invited", description: `${invName.trim()} invited to administer the entity.` });
-    setInvName("");
-    setInvEmail("");
-    setInviteFor(null);
-  };
-
   const handleExportCsv = () => {
     const name = downloadCsv({
       filename: "fahr-entity-administration",
@@ -380,8 +290,6 @@ export default function FAHREntities() {
           },
         },
       ],
-      footnote:
-        "Onboarding entities are excluded — their figures join the national totals only once they go live on the programme.",
     });
     toast({ title: "Pack ready", description: "The entity administration pack has opened for printing." });
   };
@@ -416,9 +324,6 @@ export default function FAHREntities() {
               </Button>
               <Button variant="outline" onClick={handlePrintPack} className="gap-2" data-testid="button-print-pack">
                 <Printer className="h-4 w-4" /> Administration pack
-              </Button>
-              <Button onClick={() => setOnboardOpen(true)} className="gap-2" data-testid="button-onboard-entity">
-                <PlusCircle className="h-4 w-4" /> Onboard an entity
               </Button>
             </>
           }
@@ -566,143 +471,6 @@ export default function FAHREntities() {
                   </Stagger>
                 </Table>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Onboarding pipeline */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-              <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Rocket className="h-5 w-5 text-primary" /> Onboarding pipeline
-                </CardTitle>
-                <CardDescription>
-                  Entities being brought onto the programme. Their figures are <strong>not</strong> in the national
-                  totals until they go live.
-                </CardDescription>
-              </div>
-              <Button onClick={() => setOnboardOpen(true)} variant="outline" className="gap-2" data-testid="button-onboard-entity-2">
-                <PlusCircle className="h-4 w-4" /> Onboard an entity
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {onboardings.length === 0 ? (
-              <div className="py-10 text-center flex flex-col items-center">
-                <Inbox className="mb-3 h-10 w-10 text-muted-foreground opacity-50" />
-                <h3 className="font-medium text-foreground">No entities in onboarding</h3>
-                <p className="mt-1 max-w-sm text-muted-foreground text-sm">
-                  Every requested entity is live. Use “Onboard an entity” to add the next one.
-                </p>
-              </div>
-            ) : (
-              <AnimatePresence initial={false}>
-                {onboardings.map((ob) => {
-                  const stageIndex = ONBOARDING_STAGE_ORDER.indexOf(ob.stage);
-                  const isLive = ob.stage === "live";
-                  return (
-                    <motion.div
-                      key={ob.id}
-                      layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="rounded-lg border border-border p-4"
-                      data-testid={`onboarding-${ob.id}`}
-                    >
-                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                        <div>
-                          <p className="font-medium text-foreground">{ob.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {ob.sector} · {ob.employees.toLocaleString()} staff · {ob.quotaM}M token quota · requested {ob.requestedOn}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setInviteFor(ob.id)}
-                            data-testid={`button-invite-admin-${ob.id}`}
-                          >
-                            Invite entity admin
-                          </Button>
-                          <Button
-                            size="sm"
-                            disabled={isLive}
-                            onClick={() => {
-                              advanceOnboarding(ob.id, { by: "FAHR Programme Team" });
-                              toast({
-                                title: "Onboarding advanced",
-                                description: `${ob.shortName} moved to the next stage.`,
-                              });
-                            }}
-                            data-testid={`button-advance-${ob.id}`}
-                          >
-                            {isLive ? "Live" : "Advance stage"}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Stage tracker */}
-                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-5 gap-2">
-                        {ONBOARDING_STAGES.map((stage, i) => {
-                          const done = i < stageIndex;
-                          const current = i === stageIndex;
-                          return (
-                            <div
-                              key={stage.id}
-                              className={`rounded-md border p-2 ${
-                                current
-                                  ? "border-primary/40 bg-primary/5"
-                                  : done
-                                    ? "border-green-200 bg-green-50"
-                                    : "border-border bg-muted/30"
-                              }`}
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
-                                    done
-                                      ? "bg-green-600 text-white"
-                                      : current
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-muted text-muted-foreground"
-                                  }`}
-                                >
-                                  {i + 1}
-                                </span>
-                                <AnimatePresence mode="wait">
-                                  <motion.span
-                                    key={`${stage.id}-${current}`}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className={`text-[11px] font-medium ${current ? "text-primary" : "text-foreground"}`}
-                                  >
-                                    {stage.label}
-                                  </motion.span>
-                                </AnimatePresence>
-                              </div>
-                              <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{stage.description}</p>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      <div className="mt-3 text-xs text-muted-foreground">
-                        {ob.admins.length === 0 ? (
-                          <span className="text-amber-700">No entity admin invited yet.</span>
-                        ) : (
-                          <span>
-                            Admins: {ob.admins.map((a) => `${a.name} (${a.email})`).join(", ")}
-                          </span>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
             )}
           </CardContent>
         </Card>
@@ -856,90 +624,6 @@ export default function FAHREntities() {
           </SheetContent>
         </Sheet>
 
-        {/* Onboard an entity dialog */}
-        <Dialog open={onboardOpen} onOpenChange={(open) => { setOnboardOpen(open); if (!open) resetOnboardDraft(); }}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Onboard an entity</DialogTitle>
-              <DialogDescription>
-                The entity enters the onboarding pipeline. Its figures join the national totals only when it goes live.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="ob-name">Entity name</Label>
-                <Input id="ob-name" value={obName} onChange={(e) => setObName(e.target.value)} data-testid="input-ob-name" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="ob-short">Short name</Label>
-                  <Input id="ob-short" value={obShort} onChange={(e) => setObShort(e.target.value)} data-testid="input-ob-short" />
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="ob-sector">Sector</Label>
-                  <Select value={obSector} onValueChange={setObSector}>
-                    <SelectTrigger id="ob-sector" data-testid="select-ob-sector">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ENTITY_SECTORS.map((s) => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="ob-workforce">Targeted workforce</Label>
-                  <Input id="ob-workforce" type="number" min="1" value={obWorkforce} onChange={(e) => setObWorkforce(e.target.value)} data-testid="input-ob-workforce" />
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="ob-quota">Initial quota (M tokens)</Label>
-                  <Input id="ob-quota" type="number" step="0.1" min="0.1" value={obQuota} onChange={(e) => setObQuota(e.target.value)} data-testid="input-ob-quota" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="ob-admin-name">First admin (optional)</Label>
-                  <Input id="ob-admin-name" value={obAdminName} onChange={(e) => setObAdminName(e.target.value)} placeholder="Name" data-testid="input-ob-admin-name" />
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="ob-admin-email">Admin email (optional)</Label>
-                  <Input id="ob-admin-email" type="email" value={obAdminEmail} onChange={(e) => setObAdminEmail(e.target.value)} placeholder="name@entity.gov.ae" data-testid="input-ob-admin-email" />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setOnboardOpen(false); resetOnboardDraft(); }}>Cancel</Button>
-              <Button onClick={handleStartOnboarding} data-testid="button-confirm-onboard">Start onboarding</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Invite entity admin dialog */}
-        <Dialog open={inviteFor !== null} onOpenChange={(open) => { if (!open) { setInviteFor(null); setInvName(""); setInvEmail(""); } }}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Invite entity admin</DialogTitle>
-              <DialogDescription>Invite an administrator to the entity being onboarded.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="inv-name">Name</Label>
-                <Input id="inv-name" value={invName} onChange={(e) => setInvName(e.target.value)} data-testid="input-inv-name" />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="inv-email">Email</Label>
-                <Input id="inv-email" type="email" value={invEmail} onChange={(e) => setInvEmail(e.target.value)} placeholder="name@entity.gov.ae" data-testid="input-inv-email" />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setInviteFor(null); setInvName(""); setInvEmail(""); }}>Cancel</Button>
-              <Button onClick={handleAddAdmin} data-testid="button-confirm-invite">Send invite</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </PageEnter>
     </Layout>
   );

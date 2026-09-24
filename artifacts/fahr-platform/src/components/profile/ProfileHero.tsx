@@ -102,7 +102,7 @@ export function ProfileHero({ analysis }: { analysis: ProfileAnalysis }) {
               <TrendingUp className="h-3.5 w-3.5 shrink-0 text-primary" />
               {nextLevel
                 ? `${pointsToNext} readiness points to reach ${nextLevel.label}. ${nextLevel.description}.`
-                : "Objectives now shift to mentoring colleagues and leading governance."}
+                : "Top of the ladder — the objective now is to sustain Champion level."}
             </p>
           </div>
         </div>

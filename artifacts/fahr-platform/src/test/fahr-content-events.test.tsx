@@ -25,6 +25,9 @@ function Probe() {
       <span data-testid="probe-mapped">
         {catalogueWithAdditions.map((c) => `${c.title}::${c.competencyId}`).join("|")}
       </span>
+      <span data-testid="probe-status">
+        {catalogueWithAdditions.map((c) => `${c.title}::${c.status}`).join("|")}
+      </span>
       <span data-testid="probe-sessions">{learningSessions.map((s) => s.title).join("|")}</span>
     </div>
   );
@@ -36,7 +39,7 @@ describe("federal content library", () => {
     cleanup();
   });
 
-  it("imports a Coursera course into the library, tagged to its competency", async () => {
+  it("imports a Coursera course for review, and only publishing puts it in reach", async () => {
     const user = userEvent.setup();
     renderScreen(
       <>
@@ -47,18 +50,45 @@ describe("federal content library", () => {
     );
 
     const course = COURSERA_CATALOGUE[0];
-    expect(screen.getByTestId("probe-library").textContent ?? "").not.toContain(course.title);
-
     await user.click(screen.getByTestId("tab-coursera"));
-    await user.click(screen.getByTestId(`checkbox-course-${course.id}`));
+    await user.click(screen.getByTestId(`button-preview-${course.id}`));
+
+    // The preview shows the syllabus before anything is imported.
+    const preview = screen.getByTestId("coursera-preview");
+    expect(preview.textContent).toContain(course.syllabus[0]);
     await user.click(screen.getByTestId("button-import-coursera"));
 
-    // It is in the library the Content Agent reads, carrying its competency tag.
+    // In the library, tagged, but waiting for review — not yet published.
+    expect(screen.getByTestId("probe-status").textContent ?? "").toContain(`${course.title}::In review`);
+
+    await user.click(screen.getByTestId("tab-review"));
+    await user.click(screen.getByTestId(`button-publish-ct-crs-${course.id}`));
+    expect(screen.getByTestId("probe-status").textContent ?? "").toContain(`${course.title}::Published`);
     expect(screen.getByTestId("probe-mapped").textContent ?? "").toContain(
       `${course.title}::${course.competencyId}`,
     );
-    // And it cannot be imported a second time.
-    expect(screen.queryByTestId(`checkbox-course-${course.id}`)).toBeNull();
+  });
+
+  it("removes a rejected course so it can be imported again", async () => {
+    const user = userEvent.setup();
+    renderScreen(
+      <>
+        <FAHRContent />
+        <Probe />
+      </>,
+      "/fahr/content",
+    );
+
+    const course = COURSERA_CATALOGUE[1];
+    await user.click(screen.getByTestId("tab-coursera"));
+    await user.click(screen.getByTestId(`button-preview-${course.id}`));
+    await user.click(screen.getByTestId("button-import-coursera"));
+    await user.click(screen.getByTestId("tab-review"));
+    await user.click(screen.getByTestId(`button-reject-ct-crs-${course.id}`));
+
+    expect(screen.getByTestId("probe-library").textContent ?? "").not.toContain(course.title);
+    await user.click(screen.getByTestId("tab-coursera"));
+    expect((screen.getByTestId(`button-preview-${course.id}`) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("adds an authored item to the library", async () => {

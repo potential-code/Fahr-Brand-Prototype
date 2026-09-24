@@ -9,15 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import {
   Users,
@@ -32,13 +23,11 @@ import {
   Download,
   Printer,
   Briefcase,
-  Send,
   CheckCircle2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
-import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { CountUp, ChartReveal, MOTION, PageEnter, Stagger, StaggerItem } from "@/components/motion";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { downloadCsv, printReport, stampedFilename, type CsvRow } from "@/lib/exportFile";
@@ -65,7 +54,6 @@ const DRILL_DEPTH: Record<DrillLevel, number> = { federal: 0, ministry: 1, depar
 export default function FAHRDashboard() {
   const { toast } = useToast();
   const { ministries, submissions, credentials, getPerson } = useFederalData();
-  const { sendAnnouncement } = useFahrConsole();
   const reduceMotion = useReducedMotion();
   const [searchParams] = useSearchParams();
 
@@ -75,9 +63,6 @@ export default function FAHRDashboard() {
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
   const [selectedIndividual, setSelectedIndividual] = useState<Person | null>(null);
   const [individualTab, setIndividualTab] = useState<"journey" | "projects">("journey");
-  const [nudgeOpen, setNudgeOpen] = useState(false);
-  const [nudgeNote, setNudgeNote] = useState("");
-  const [lastNudge, setLastNudge] = useState<{ personId: string; recipients: string } | null>(null);
 
   /**
    * Other screens link straight into an entity's view, e.g. the entity
@@ -308,44 +293,6 @@ export default function FAHRDashboard() {
   // ------------------------------------------------------------------
   // Individual-level actions
   // ------------------------------------------------------------------
-
-  const nudgeSuggestion = (person: Person) => {
-    const gap = person.gapCompetencyIds?.[0];
-    return gap
-      ? `Your next step on ${competencyLabel(gap)} is waiting in your pathway — the Learning Agent has a 20-minute block ready.`
-      : `You are ${100 - person.pathwayProgress}% from completing your pathway — the Learning Agent can plan the final stretch with you.`;
-  };
-
-  const openNudge = () => {
-    if (!selectedIndividual) return;
-    setNudgeNote(nudgeSuggestion(selectedIndividual));
-    setNudgeOpen(true);
-  };
-
-  /** A nudge is a real coach message: it lands in the communications history. */
-  const sendNudge = () => {
-    if (!selectedIndividual || !nudgeNote.trim()) return;
-    const person = selectedIndividual;
-    sendAnnouncement({
-      title: `Learning Agent nudge — ${person.name}`,
-      body: nudgeNote.trim(),
-      kind: "Coach nudge",
-      channels: ["In-app", "Email"],
-      audience: {
-        entityIds: [person.ministryId],
-        roleLabels: ["Federal Employee"],
-        levelIds: [person.levelId],
-      },
-      recipients: 1,
-      by: "FAHR Programme Team",
-    });
-    setNudgeOpen(false);
-    setLastNudge({ personId: person.id, recipients: person.name });
-    toast({
-      title: "Coach nudge sent",
-      description: `${AGENTS.learning} will follow up with ${person.name}. Recorded in federal communications.`,
-    });
-  };
 
   const drillContent = () => {
     if (drillLevel === "federal") {
@@ -884,11 +831,8 @@ export default function FAHRDashboard() {
                       <h3 className="font-medium">No workplace projects submitted yet</h3>
                       <p className="mt-1 max-w-sm text-sm text-muted-foreground">
                         {person.name} is at {person.pathwayProgress}% of their pathway; the applied project comes at the
-                        end of it. A coach nudge is the useful action here.
+                        end of it.
                       </p>
-                      <Button variant="outline" size="sm" className="mt-4 gap-2" onClick={openNudge}>
-                        <Send className="w-4 h-4" /> Nudge via AI Coach
-                      </Button>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -955,22 +899,6 @@ export default function FAHRDashboard() {
               </AnimatePresence>
 
               <div className="mt-8 pt-4 border-t border-border flex flex-wrap items-center justify-end gap-2">
-                <AnimatePresence>
-                  {lastNudge?.personId === person.id && (
-                    <motion.p
-                      initial={reduceMotion ? false : { opacity: 0, x: 8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="mr-auto flex items-center gap-2 text-xs text-green-700"
-                      data-testid="text-nudge-confirmation"
-                    >
-                      <CheckCircle2 className="w-4 h-4" /> Coach nudge recorded in federal communications.
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-                <Button variant="outline" onClick={openNudge} data-testid="button-nudge-coach" className="gap-2">
-                  <Send className="w-4 h-4" /> Nudge via AI Coach
-                </Button>
                 <Button
                   onClick={() => setIndividualTab("projects")}
                   data-testid="button-view-projects"
@@ -1062,39 +990,6 @@ export default function FAHRDashboard() {
         </AnimatePresence>
       </PageEnter>
 
-      {/* A nudge is composed here and sent as a real coach message. */}
-      <Dialog open={nudgeOpen} onOpenChange={setNudgeOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Nudge {selectedIndividual?.name} via {AGENTS.learning}</DialogTitle>
-            <DialogDescription>
-              The coach delivers this in-app and by email. It is recorded in federal communications and the audit trail.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Textarea
-              value={nudgeNote}
-              onChange={(e) => setNudgeNote(e.target.value)}
-              rows={4}
-              data-testid="input-nudge-message"
-              placeholder="What should the coach say?"
-            />
-            {selectedIndividual?.gapCompetencyIds?.length ? (
-              <p className="text-xs text-muted-foreground">
-                Development priorities on file: {selectedIndividual.gapCompetencyIds.map(competencyLabel).join(", ")}.
-              </p>
-            ) : null}
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setNudgeOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={sendNudge} disabled={!nudgeNote.trim()} data-testid="button-send-nudge" className="gap-2">
-              <Send className="w-4 h-4" /> Send nudge
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 }

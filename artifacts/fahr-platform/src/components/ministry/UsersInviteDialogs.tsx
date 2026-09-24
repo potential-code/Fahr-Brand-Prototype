@@ -144,7 +144,7 @@ export function InviteUserDialog({
               >
                 {platformRole}
               </p>
-              <p className="text-xs text-muted-foreground">Wider roles are granted federally.</p>
+              <p className="text-xs text-muted-foreground">Every invited learner joins as a Federal Employee.</p>
             </div>
           </div>
 

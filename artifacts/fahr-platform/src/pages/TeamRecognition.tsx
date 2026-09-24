@@ -275,7 +275,7 @@ export default function TeamRecognition() {
                                 <p className={`mt-0.5 text-xs ${covered ? "text-white/70" : "text-muted-foreground"}`}>
                                   {row.badged.length > 0
                                     ? row.badged
-                                        .map((h) => `${h.person.name.split(" ")[0]} (${h.score})`)
+                                        .map((h) => h.person.name.split(" ")[0])
                                         .join(", ")
                                     : `Nobody yet — the closest is ${
                                         row.developing[0]?.person.name.split(" ")[0] ?? "—"

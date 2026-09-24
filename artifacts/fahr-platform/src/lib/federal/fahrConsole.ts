@@ -748,6 +748,8 @@ export type CourseraCourse = {
   hours: number;
   level: "Beginner" | "Intermediate" | "Advanced";
   summary: string;
+  /** Module titles, shown in the preview before import. */
+  syllabus: string[];
 };
 
 export const COURSERA_CATALOGUE: CourseraCourse[] = [
@@ -759,6 +761,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     hours: 6,
     level: "Beginner",
     summary: "What generative and agentic AI can and cannot do, for non-technical staff.",
+    syllabus: ["What AI is — and is not", "Building AI projects", "AI in your organisation", "AI and society"],
   },
   {
     id: "crs-prompt-eng",
@@ -768,6 +771,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     hours: 18,
     level: "Intermediate",
     summary: "Patterns for structured, context-rich instructions that produce reliable output.",
+    syllabus: ["Prompt patterns", "Persona and context", "Few-shot examples", "Evaluating outputs"],
   },
   {
     id: "crs-data-analysis",
@@ -777,6 +781,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     hours: 12,
     level: "Intermediate",
     summary: "Turning service and campaign data into decisions with an AI assistant.",
+    syllabus: ["Framing an analytical question", "Cleaning data with an assistant", "Reading the result critically", "Presenting a decision"],
   },
   {
     id: "crs-agentic",
@@ -786,6 +791,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     hours: 15,
     level: "Advanced",
     summary: "Designing multi-step agents with human checkpoints and measurable outcomes.",
+    syllabus: ["Agents and tools", "Planning and memory", "Human checkpoints", "Measuring outcomes"],
   },
   {
     id: "crs-ai-ethics",
@@ -795,6 +801,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     hours: 10,
     level: "Intermediate",
     summary: "Accountability, bias and personal-data handling in public-sector AI.",
+    syllabus: ["Accountability", "Bias and fairness", "Personal data", "Governance in practice"],
   },
   {
     id: "crs-ml-foundations",
@@ -804,5 +811,6 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     hours: 14,
     level: "Beginner",
     summary: "Enough of the mechanics to commission and read an AI project honestly.",
+    syllabus: ["How models learn", "Data you need", "Commissioning an AI project", "Reading results honestly"],
   },
 ];

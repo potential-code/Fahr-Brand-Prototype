@@ -100,7 +100,7 @@ export function RecognitionHero({ record }: { record: RecognitionRecord }) {
                 <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                 {nextLevel
                   ? `${pointsToNext} readiness points to reach ${nextLevel.label}.`
-                  : "Recognition now shifts to mentoring colleagues and leading governance."}
+                  : "Top of the ladder — Champion level reached."}
               </p>
             </div>
 
