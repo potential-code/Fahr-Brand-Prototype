@@ -1,19 +1,19 @@
-// The structure of a federal content library item: modules, and the units in
-// them.
+// The federal content library's course structure: module → unit → learning
+// block.
 //
-// Where an item is one of the platform's own learner courses, its structure is
-// read from that course — the same groups and lessons the learner plays — so
-// what FAHR sees in the library is exactly what a learner takes. Authored and
-// imported items carry their structure on the item itself.
+// The platform's own courses (AI Foundations, Prompt Engineering, AI Ethics &
+// Governance) are learner courses first. Their structure is read from the
+// learner course — a group becomes a module, a lesson a unit, its video and
+// its text become blocks — so FAHR edits exactly what the learner plays. The
+// same mapping runs in reverse: FAHR's text and video edits are applied back
+// onto the learner course the course player shows.
 
-import { COURSE_BY_ID, type LessonType } from "@/lib/learningData";
-import type { ContentItem, ContentModule, ContentUnitKind } from "@/lib/federal/model";
+import { COURSE_BY_ID, type Course, type Lesson } from "@/lib/learningData";
+import type { ContentItem, ContentModule, ContentUnit, LearningBlock, LearningBlockKind } from "@/lib/federal/model";
 
-const LESSON_KIND: Record<LessonType, ContentUnitKind> = {
-  reading: "Reading",
-  video: "Video",
-  activity: "Activity",
-};
+// ---------------------------------------------------------------------------
+// Learner course → library structure
+// ---------------------------------------------------------------------------
 
 /** "8 min" → 8. Anything unreadable counts as zero rather than guessing. */
 function minutesFrom(duration: string): number {
@@ -21,44 +21,101 @@ function minutesFrom(duration: string): number {
   return match ? Number(match[1]) : 0;
 }
 
-/** Modules and units for an item, from its learner course where it has one. */
-export function contentStructure(item: ContentItem): ContentModule[] {
-  const course = item.courseId ? COURSE_BY_ID[item.courseId] : undefined;
-  if (!course) return item.modules ?? [];
-
-  const modules: ContentModule[] = course.groups.map((group) => ({
-    id: `${course.id}-${group.id}`,
-    title: group.title,
-    units: group.lessons.map((lesson) => ({
-      id: `${course.id}-${lesson.id}`,
+function lessonToUnit(lesson: Lesson): ContentUnit {
+  const blocks: LearningBlock[] = [];
+  if (lesson.videoId) {
+    blocks.push({
+      id: `${lesson.id}-video`,
+      kind: "Video",
       title: lesson.title,
-      kind: LESSON_KIND[lesson.type],
-      mins: minutesFrom(lesson.duration),
-    })),
-  }));
-
-  // The course's own checks are units too — the agent can place them.
-  return [
-    {
-      id: `${course.id}-before`,
-      title: "Before you start",
-      units: [{ id: `${course.id}-pretest`, title: course.pretest.title, kind: "Quiz", mins: 5 }],
-    },
-    ...modules,
-    {
-      id: `${course.id}-after`,
-      title: "Final assessment",
-      units: [{ id: `${course.id}-final`, title: course.finalAssessment.title, kind: "Quiz", mins: 10 }],
-    },
-  ];
+      videoUrl: `https://www.youtube.com/watch?v=${lesson.videoId}`,
+    });
+  }
+  const text = [...lesson.body, ...(lesson.points ?? []).map((p) => `• ${p}`)].join("\n\n");
+  blocks.push({
+    id: `${lesson.id}-text`,
+    kind: "Text",
+    title: lesson.type === "activity" ? "Activity" : "Reading",
+    text,
+  });
+  return { id: lesson.id, title: lesson.title, mins: minutesFrom(lesson.duration), blocks };
 }
 
-export type StructureTotals = { modules: number; units: number; mins: number };
+/** The library structure of a learner course, before any FAHR edit. */
+export function courseToModules(course: Course): ContentModule[] {
+  return course.groups.map((group) => ({
+    id: group.id,
+    title: group.title,
+    units: group.lessons.map(lessonToUnit),
+  }));
+}
+
+/** Modules for any library item, read from its learner course until it has its own. */
+export function structureOf(item: ContentItem): ContentModule[] {
+  if (item.modules) return item.modules;
+  const course = item.courseId ? COURSE_BY_ID[item.courseId] : undefined;
+  return course ? courseToModules(course) : [];
+}
+
+// ---------------------------------------------------------------------------
+// Library structure → learner course
+// ---------------------------------------------------------------------------
+
+/** The YouTube id in a watch, share or embed link — or null. */
+export function youtubeId(url: string | undefined): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+  return match ? match[1] : null;
+}
+
+/**
+ * The learner course with FAHR's edits applied. Titles, text and videos flow
+ * through; units FAHR adds become lessons, ones it deletes go. Questions and
+ * documents stay in the library for now — the player shows text and video.
+ * The pretest and final assessment are the course's own and are left alone.
+ */
+export function applyEditsToCourse(course: Course, modules: ContentModule[] | undefined): Course {
+  if (!modules) return course;
+  const originalLessons = new Map(course.groups.flatMap((g) => g.lessons).map((l) => [l.id, l]));
+  const originalGroups = new Map(course.groups.map((g) => [g.id, g]));
+
+  return {
+    ...course,
+    groups: modules.map((module) => ({
+      id: module.id,
+      title: module.title,
+      caption: originalGroups.get(module.id)?.caption ?? "",
+      lessons: module.units.map((unit): Lesson => {
+        const original = originalLessons.get(unit.id);
+        const video = unit.blocks.find((b) => b.kind === "Video");
+        const videoIdFromBlock = youtubeId(video?.videoUrl);
+        const body = unit.blocks
+          .filter((b) => b.kind === "Text" && b.text?.trim())
+          .flatMap((b) => (b.text ?? "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean));
+        return {
+          id: unit.id,
+          title: unit.title,
+          type: videoIdFromBlock ? "video" : original?.type === "activity" ? "activity" : "reading",
+          duration: `${unit.mins} min`,
+          videoId: videoIdFromBlock ?? undefined,
+          body,
+        };
+      }),
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Totals, labels, covers
+// ---------------------------------------------------------------------------
+
+export type StructureTotals = { modules: number; units: number; blocks: number; mins: number };
 
 export function structureTotals(modules: ContentModule[]): StructureTotals {
   return {
     modules: modules.length,
     units: modules.reduce((n, m) => n + m.units.length, 0),
+    blocks: modules.reduce((n, m) => n + m.units.reduce((t, u) => t + u.blocks.length, 0), 0),
     mins: modules.reduce((n, m) => n + m.units.reduce((t, u) => t + u.mins, 0), 0),
   };
 }
@@ -71,17 +128,30 @@ export function formatMinutes(mins: number): string {
   return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
 
-export const UNIT_KINDS: ContentUnitKind[] = ["Video", "Reading", "Document", "Quiz", "Activity", "Package"];
+export const BLOCK_KINDS: LearningBlockKind[] = ["Text", "Video", "Question", "Document"];
 
-/** What each kind of unit is, in the builder's words. */
-export const UNIT_KIND_HINT: Record<ContentUnitKind, string> = {
-  Video: "Upload a video file",
-  Reading: "Written lesson text",
-  Document: "Upload a PDF or Word document",
-  Quiz: "A short knowledge check",
-  Activity: "A hands-on task with an AI assistant",
-  Package: "Upload a ready-made SCORM course package",
-};
+/** Cover images a course can use, from the platform's own brand library. */
+export const COVER_OPTIONS = [
+  "brand/learning/course-ai-foundations.jpg",
+  "brand/learning/course-prompt-engineering.jpg",
+  "brand/learning/course-ai-governance.jpg",
+  "brand/learning/assessment-hero.jpg",
+  "brand/learning/course-default.jpg",
+  "brand/landing/section-lab.jpg",
+  "brand/landing/stakeholder-learner.jpg",
+  "brand/landing/stakeholder-manager.jpg",
+  "brand/landing/ecosystem-2.jpg",
+  "brand/landing/ecosystem-3.jpg",
+];
 
-/** Kinds that carry an uploaded file. */
-export const UPLOAD_KINDS: ContentUnitKind[] = ["Video", "Document", "Package"];
+const BASE = import.meta.env.BASE_URL;
+
+/** A cover's displayable src — brand paths resolve against the base URL; uploads are used as-is. */
+export function coverSrc(cover: string | undefined): string {
+  const path = cover ?? "brand/learning/course-default.jpg";
+  return /^(blob:|data:|https?:)/.test(path) ? path : `${BASE}${path}`;
+}
+
+let seq = 0;
+/** A fresh id for a module, unit or block made in the editor. */
+export const newId = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${++seq}`;

@@ -176,17 +176,34 @@ export type ScheduledSession = {
   status: "Open" | "Full" | "Closed" | "Completed";
 };
 
-/** What a single unit of learning is. */
-export type ContentUnitKind = "Video" | "Reading" | "Activity" | "Quiz" | "Document" | "Package";
+/** The kinds of learning block a unit is built from. */
+export type LearningBlockKind = "Text" | "Video" | "Question" | "Document";
+
+/**
+ * One block inside a unit — a passage of text, a video, a question, or a
+ * document to download. Text and video blocks in the platform's own courses
+ * are what the learner's course player shows.
+ */
+export type LearningBlock = {
+  id: string;
+  kind: LearningBlockKind;
+  title: string;
+  /** Text: paragraphs separated by blank lines. */
+  text?: string;
+  /** Video: a YouTube link, which the learner's player embeds. */
+  videoUrl?: string;
+  /** Video or document: an uploaded file's name. Simulated — nothing is stored. */
+  fileName?: string;
+  /** Question: a single-answer knowledge check. */
+  question?: { prompt: string; options: string[]; correctIndex: number };
+};
 
 export type ContentUnit = {
   id: string;
   title: string;
-  kind: ContentUnitKind;
   /** Minutes to complete. */
   mins: number;
-  /** Name of the file attached, where the unit is an upload. Simulated — nothing is stored. */
-  fileName?: string;
+  blocks: LearningBlock[];
 };
 
 export type ContentModule = {
@@ -196,13 +213,12 @@ export type ContentModule = {
 };
 
 /**
- * One item in the federal content library.
+ * One course in the federal content library.
  *
- * FAHR authors or imports it; the Content Agent draws on published items —
- * down to single units — when it builds a learner's pathway. There is no
- * review step for FAHR's own work: a draft is published by the people who
- * wrote it. Coursera imports arrive as "Imported" and are published once
- * someone has looked through them.
+ * FAHR builds it (module → unit → learning block) or imports it from
+ * Coursera; the Content Agent draws on published courses — down to single
+ * units — when it builds a learner's pathway. FAHR's own work publishes
+ * straight away; a Coursera import arrives unpublished.
  */
 export type ContentItem = {
   id: string;
@@ -216,11 +232,23 @@ export type ContentItem = {
   owner: string;
   summary?: string;
   level?: "Beginner" | "Intermediate" | "Advanced";
-  /** The learner course this item is, when learners take it in the platform's own player. */
+  /** Cover image path, relative to the app's base URL, or an uploaded image's object URL. */
+  cover?: string;
+  /** Impact points a learner earns for each unit completed. */
+  pointsPerUnit?: number;
+  /** Whether finishing the course issues a certificate. */
+  certificate?: boolean;
+  /** Learners enrolled so far. */
+  learners?: number;
+  /** Average learner rating out of 5. */
+  rating?: number;
+  /**
+   * The learner course this item is. Its modules are read from that course
+   * until FAHR edits them, and FAHR's text and video edits flow back into it.
+   */
   courseId?: string;
-  /** Authored structure, for items without a learner course behind them. */
   modules?: ContentModule[];
-  /** Where the units are taken — Coursera items open on Coursera. */
+  /** Coursera items are taken on Coursera; only their settings are editable. */
   source?: "FAHR" | "Coursera";
 };
 

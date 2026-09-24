@@ -31,6 +31,7 @@ import {
   type Course,
   type Lesson,
 } from "@/lib/learningData";
+import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { CoachDock } from "@/components/coach/CoachDock";
 import { StepQuiz } from "@/components/learning/StepQuiz";
@@ -150,7 +151,10 @@ export default function CoursePlayer() {
     setFinalDone,
   } = useLearnerProgress();
 
-  const course = params?.courseId ? COURSE_BY_ID[params.courseId] : undefined;
+  // The course as FAHR has edited it — text and video changes made in the
+  // content library show here straight away.
+  const { learnerCourse } = useFahrConsole();
+  const course = params?.courseId ? learnerCourse(params.courseId) : undefined;
   const progress = course ? getCourseProgress(course.id) : undefined;
   const remediationFor = course ? remediation[course.id] : undefined;
 

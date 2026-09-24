@@ -12,6 +12,9 @@ import WorkshopsAndEvents from "@/pages/WorkshopsAndEvents";
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { COURSERA_CATALOGUE } from "@/lib/federal/fahrConsole";
 import { COURSE_BY_ID } from "@/lib/learningData";
+import FAHRCourseEditor from "@/pages/FAHRCourseEditor";
+import { Route } from "wouter";
+import { applyEditsToCourse, courseToModules } from "@/lib/contentLibrary";
 import { matchesAudience } from "@/lib/events";
 import { FOCUS, PEOPLE } from "@/lib/federal";
 
@@ -40,20 +43,19 @@ describe("federal content library", () => {
     cleanup();
   });
 
-  it("shows a learner course's real modules and units", async () => {
-    const user = userEvent.setup();
+  it("shows every course as a card with Edit, Delete and Open", () => {
     renderScreen(<FAHRContent />, "/fahr/content");
-
-    await user.click(screen.getByTestId("row-content-ct1"));
-    const outline = screen.getByTestId("content-detail-outline");
-    // Units come from the course the learner actually plays.
-    const course = COURSE_BY_ID["ai-foundations"];
-    expect(outline.textContent).toContain(course.groups[0].title);
-    expect(outline.textContent).toContain(course.groups[0].lessons[0].title);
-    expect(screen.getByTestId("link-open-as-learner").getAttribute("href")).toContain("/learner/course/ai-foundations");
+    for (const id of ["ct1", "ct5"]) {
+      expect(screen.getByTestId(`card-course-${id}`)).toBeTruthy();
+      expect(screen.getByTestId(`button-edit-${id}`)).toBeTruthy();
+      expect(screen.getByTestId(`button-open-${id}`)).toBeTruthy();
+    }
+    // A published course can't be deleted; a draft can.
+    expect((screen.getByTestId("button-delete-ct1") as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByTestId("button-delete-ct5") as HTMLButtonElement).disabled).toBe(false);
   });
 
-  it("imports a Coursera course unpublished, and publishing puts it in reach", async () => {
+  it("imports a Coursera course unpublished, with its modules", async () => {
     const user = userEvent.setup();
     renderScreen(
       <>
@@ -70,65 +72,85 @@ describe("federal content library", () => {
     await user.click(screen.getByTestId("button-import-coursera"));
 
     expect(screen.getByTestId("probe-status").textContent ?? "").toContain(`${course.title}::Imported`);
+    expect(screen.getByTestId(`card-course-ct-crs-${course.id}`)).toBeTruthy();
+  });
+});
 
-    await user.click(screen.getByTestId("tab-library"));
-    await user.click(screen.getByTestId(`button-publish-ct-crs-${course.id}`));
-    expect(screen.getByTestId("probe-status").textContent ?? "").toContain(`${course.title}::Published`);
-    expect(screen.getByTestId("probe-mapped").textContent ?? "").toContain(`${course.title}::${course.competencyId}`);
+describe("course editor", () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    cleanup();
   });
 
-  it("builds a course module by module and publishes it without review", async () => {
+  it("opens a learner course with its real modules, units and blocks", () => {
+    renderScreen(<Route path="/fahr/content/:contentId" component={FAHRCourseEditor} />, "/fahr/content/ct1");
+    const course = COURSE_BY_ID["ai-foundations"];
+    expect(screen.getByTestId("editor-title").textContent).toContain("AI Foundations for Federal Service");
+    expect(screen.getByText(course.groups[0].title)).toBeTruthy();
+    expect(screen.getByText(course.groups[0].lessons[0].title)).toBeTruthy();
+    expect(screen.getByTestId("editor-sync-note")).toBeTruthy();
+  });
+
+  it("builds a course: module, unit, text block, then publish", async () => {
     const user = userEvent.setup();
     renderScreen(
       <>
-        <FAHRContent />
+        <Route path="/fahr/content/:contentId" component={FAHRCourseEditor} />
         <Probe />
       </>,
-      "/fahr/content",
+      "/fahr/content/ct8",
     );
 
-    await user.click(screen.getByTestId("button-build-course"));
-    await user.type(screen.getByTestId("input-course-title"), "Writing Service Replies with AI");
-    await user.click(screen.getByTestId("button-builder-next"));
-
-    // Next stays closed until there is a module with at least one unit.
-    expect((screen.getByTestId("button-builder-next") as HTMLButtonElement).disabled).toBe(true);
-    await user.type(screen.getByTestId("input-module-title"), "Getting started");
     await user.click(screen.getByTestId("button-add-module"));
-    await user.type(screen.getByTestId("input-unit-title-0"), "Why tone matters");
-    await user.click(screen.getByTestId("button-add-unit-0"));
-    await user.click(screen.getByTestId("button-builder-next"));
+    await user.type(screen.getByTestId("input-module-title"), "Replying to complaints");
+    await user.click(screen.getByTestId("button-save-module"));
 
-    // The learner preview shows what was built.
-    expect(screen.getByTestId("builder-preview").textContent).toContain("Why tone matters");
-    await user.click(screen.getByTestId("button-publish-course"));
+    await user.click(screen.getByTestId("button-add-unit-1"));
+    await user.type(screen.getByTestId("input-unit-title"), "Acknowledge first");
+    await user.click(screen.getByTestId("button-save-unit"));
 
-    expect(screen.getByTestId("probe-status").textContent ?? "").toContain(
-      "Writing Service Replies with AI::Published",
-    );
+    await user.click(screen.getByTestId("button-add-block-1-0"));
+    await user.type(screen.getByTestId("input-block-title"), "Naming the concern");
+    await user.type(screen.getByTestId("input-block-text"), "Start by naming the resident's concern.");
+    await user.click(screen.getByTestId("button-save-block"));
+
+    expect(screen.getByText("Acknowledge first")).toBeTruthy();
+    expect(screen.getByText("Naming the concern")).toBeTruthy();
+
+    await user.click(screen.getByTestId("button-toggle-publish"));
+    expect(screen.getByTestId("probe-status").textContent ?? "").toContain("Writing Service Replies with AI::Published");
+  });
+});
+
+describe("learner sync", () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    cleanup();
   });
 
-  it("removes an unpublished import so it can be imported again", async () => {
-    const user = userEvent.setup();
-    renderScreen(
-      <>
-        <FAHRContent />
-        <Probe />
-      </>,
-      "/fahr/content",
-    );
+  it("applies FAHR's text and video edits to the course the learner plays", () => {
+    const course = COURSE_BY_ID["ai-foundations"];
+    const modules = courseToModules(course);
+    const unit = modules[0].units[0];
+    unit.title = "Edited lesson title";
+    unit.blocks = [
+      { id: "v", kind: "Video", title: "New video", videoUrl: "https://youtu.be/dQw4w9WgXcQ" },
+      { id: "t", kind: "Text", title: "Reading", text: "First paragraph.\n\nSecond paragraph." },
+    ];
 
-    const course = COURSERA_CATALOGUE[1];
-    await user.click(screen.getByTestId("tab-coursera"));
-    await user.click(screen.getByTestId(`button-preview-${course.id}`));
-    await user.click(screen.getByTestId("button-import-coursera"));
-    await user.click(screen.getByTestId("tab-library"));
-    await user.click(screen.getByTestId(`row-content-ct-crs-${course.id}`));
-    await user.click(screen.getByTestId("button-remove-content"));
+    const learner = applyEditsToCourse(course, modules);
+    const lesson = learner.groups[0].lessons[0];
+    expect(lesson.title).toBe("Edited lesson title");
+    expect(lesson.type).toBe("video");
+    expect(lesson.videoId).toBe("dQw4w9WgXcQ");
+    expect(lesson.body).toEqual(["First paragraph.", "Second paragraph."]);
+    // Untouched lessons keep their ids, so learner progress still lines up.
+    expect(learner.groups[0].lessons.map((l) => l.id)).toEqual(course.groups[0].lessons.map((l) => l.id));
+  });
 
-    expect(screen.getByTestId("probe-library").textContent ?? "").not.toContain(course.title);
-    await user.click(screen.getByTestId("tab-coursera"));
-    expect((screen.getByTestId(`button-preview-${course.id}`) as HTMLButtonElement).disabled).toBe(false);
+  it("leaves an unedited course exactly as it was", () => {
+    const course = COURSE_BY_ID["prompt-craft"];
+    expect(applyEditsToCourse(course, undefined)).toBe(course);
   });
 });
 

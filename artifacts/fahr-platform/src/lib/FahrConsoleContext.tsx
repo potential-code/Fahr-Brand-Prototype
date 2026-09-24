@@ -15,7 +15,9 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 import { AGENTS, CAPABILITY_LEVELS } from "@/lib/constants";
 import { COMPETENCIES, COMPETENCY_BY_ID, type Competency } from "@/lib/learningData";
 import { useFederalData } from "@/lib/FederalDataContext";
-import type { ContentItem, ContentModule, PlatformUser } from "@/lib/federal/model";
+import type { ContentItem, PlatformUser } from "@/lib/federal/model";
+import { COURSE_BY_ID, type Course } from "@/lib/learningData";
+import { applyEditsToCourse } from "@/lib/contentLibrary";
 import { CONTENT_ITEMS, GOVERNANCE_POLICIES, PLATFORM_USERS } from "@/lib/federal/seed";
 import { ladderRows } from "@/lib/federal/reporting";
 import { SESSIONS as SEEDED_SESSIONS, type EventAudience, type Session, type SessionFormat } from "@/lib/events";
@@ -75,6 +77,10 @@ type ConsoleState = {
   newContent: ContentItem[];
   /** Coursera course ids already imported, so one cannot be imported twice. */
   importedCourseraIds: string[];
+  /** FAHR's edits to seeded library items — settings and structure. */
+  contentEdits: Record<string, Partial<ContentItem>>;
+  /** Seeded drafts FAHR deleted this session. */
+  deletedContentIds: string[];
   /** Events scheduled this session, newest first. */
   newSessions: Session[];
   /** Ids of scheduled events withdrawn this session. */
@@ -99,6 +105,8 @@ const EMPTY_STATE: ConsoleState = {
   newOnboardings: [],
   newContent: [],
   importedCourseraIds: [],
+  contentEdits: {},
+  deletedContentIds: [],
   newSessions: [],
   cancelledSessionIds: [],
 };
@@ -161,6 +169,8 @@ function readStored(): ConsoleState {
       importedCourseraIds: asArray<string>(parsed.importedCourseraIds).filter(
         (id) => typeof id === "string",
       ),
+      contentEdits: asMap(parsed.contentEdits),
+      deletedContentIds: asArray<string>(parsed.deletedContentIds).filter((id) => typeof id === "string"),
       newSessions: asArray<Session>(parsed.newSessions).filter(
         (e) => isRecord(e) && typeof e.id === "string",
       ),
@@ -264,20 +274,6 @@ export type UserInvite = {
   by?: string;
 };
 
-/** A course built in the FAHR course builder. */
-export type NewCourseInput = {
-  title: string;
-  summary: string;
-  type: ContentItem["type"];
-  competencyId: string;
-  language: ContentItem["language"];
-  level: NonNullable<ContentItem["level"]>;
-  modules: ContentModule[];
-  /** Publish straight away, or keep it as a draft to finish later. */
-  publish: boolean;
-  by?: string;
-};
-
 /** An event scheduled federally, with the audience it is configured for. */
 export type NewSessionInput = {
   title: string;
@@ -330,14 +326,18 @@ export type FahrConsoleValue = {
   courseraCatalogue: CourseraCourse[];
   /** Coursera courses already pulled into the library. */
   importedCourseraIds: string[];
-  /** Saves a course from the builder — as a draft, or published. FAHR's own work needs no review. */
-  saveCourse: (input: NewCourseInput) => ContentItem;
-  /** Brings a Coursera course in as "Imported", modules and all, tagged to the confirmed competency. */
+  /** Starts a blank draft and returns it, for the editor to open. */
+  createCourse: (options?: ConsoleActionOptions) => ContentItem;
+  /** Changes a course's settings or structure. */
+  updateContent: (contentId: string, patch: Partial<ContentItem>) => void;
+  /** Publishes (in the Content Agent's reach) or unpublishes a course. FAHR's own work needs no review. */
+  setContentPublished: (contentId: string, publish: boolean, options?: ConsoleActionOptions) => void;
+  /** Deletes a draft or an unpublished import. Published courses must be unpublished first. */
+  deleteContent: (contentId: string, options?: ConsoleActionOptions) => void;
+  /** Brings a Coursera course in as "Imported", tagged to the confirmed competency. */
   importCourseraCourse: (courseId: string, competencyId: string, options?: ConsoleActionOptions) => ContentItem | null;
-  /** Makes an item available to the Content Agent. */
-  publishContentItem: (contentId: string, options?: ConsoleActionOptions) => void;
-  /** Takes a draft or an unpublished import out of the library. */
-  removeContentItem: (contentId: string, options?: ConsoleActionOptions) => void;
+  /** A learner course with FAHR's text and video edits applied — what the course player shows. */
+  learnerCourse: (courseId: string) => Course | undefined;
 
   // Events.
   /** Scheduled events, federal and seeded, soonest first and cancellations removed. */
@@ -709,45 +709,128 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
   // -- Content library ------------------------------------------------------
 
   /**
-   * Everything the Content Agent can draw on: the seeded federal catalogue,
-   * plus anything authored or imported this session. Additions come first so
-   * a freshly imported Coursera course is visible without hunting for it.
+   * Everything in the library: the seeded catalogue and anything made or
+   * imported this session, with FAHR's edits applied and deletions removed.
    */
-  const catalogueWithAdditions = useMemo<ContentItem[]>(
-    () => [...state.newContent, ...catalogue],
-    [state.newContent, catalogue],
-  );
+  const catalogueWithAdditions = useMemo<ContentItem[]>(() => {
+    const withEdits = (item: ContentItem): ContentItem => {
+      const edit = state.contentEdits[item.id];
+      return edit ? { ...item, ...edit } : item;
+    };
+    return [...state.newContent, ...catalogue]
+      .filter((item) => !state.deletedContentIds.includes(item.id))
+      .map(withEdits);
+  }, [state.newContent, catalogue, state.contentEdits, state.deletedContentIds]);
 
-  const saveCourse = useCallback(
-    (input: NewCourseInput): ContentItem => {
+  const createCourse = useCallback(
+    (options?: ConsoleActionOptions): ContentItem => {
       const item: ContentItem = {
         id: nextId("ct"),
-        title: input.title.trim(),
-        type: input.type,
-        competencyId: input.competencyId,
-        language: input.language,
-        level: input.level,
-        summary: input.summary.trim(),
-        version: "v1.0",
-        status: input.publish ? "Published" : "Draft",
+        title: "Untitled course",
+        type: "Course",
+        competencyId: COMPETENCIES[0].id,
+        language: "Bilingual",
+        level: "Beginner",
+        summary: "",
+        version: "v0.1",
+        status: "Draft",
         updatedOn: today(),
-        owner: input.by ?? "FAHR Programme Team",
-        modules: input.modules,
+        owner: options?.by ?? "FAHR Programme Team",
+        cover: "brand/learning/course-default.jpg",
+        pointsPerUnit: 10,
+        certificate: true,
+        learners: 0,
+        rating: 0,
+        modules: [],
         source: "FAHR",
       };
       update((prev) => ({ ...prev, newContent: [item, ...prev.newContent] }));
-      const units = input.modules.reduce((n, m) => n + m.units.length, 0);
       recordAudit({
-        actor: input.by ?? "FAHR Programme Team",
+        actor: options?.by ?? "FAHR Programme Team",
         agent: AGENTS.content,
-        action: `${input.publish ? "Published" : "Saved a draft of"} the course "${item.title}"`,
+        action: "Started a new course draft",
         risk: "Low",
-        status: item.status,
-        detail: `${input.modules.length} module${input.modules.length === 1 ? "" : "s"} and ${units} unit${units === 1 ? "" : "s"}, tagged ${COMPETENCY_BY_ID[item.competencyId]?.label ?? item.competencyId}.${input.publish ? " The Content Agent can now use it in learner pathways." : ""}`,
+        status: "Draft",
+        detail: "A blank course was created in the content library and opened in the editor.",
       });
       return item;
     },
     [recordAudit, update],
+  );
+
+  /**
+   * Edits settings or structure. Silent by design — the editor calls this on
+   * every change, and the trail records the decisions (publish, delete), not
+   * every keystroke.
+   */
+  const updateContent = useCallback(
+    (contentId: string, patch: Partial<ContentItem>) => {
+      update((prev) => {
+        const stamped = { ...patch, updatedOn: today() };
+        if (prev.newContent.some((c) => c.id === contentId)) {
+          return {
+            ...prev,
+            newContent: prev.newContent.map((c) => (c.id === contentId ? { ...c, ...stamped } : c)),
+          };
+        }
+        return {
+          ...prev,
+          contentEdits: { ...prev.contentEdits, [contentId]: { ...prev.contentEdits[contentId], ...stamped } },
+        };
+      });
+    },
+    [update],
+  );
+
+  const setContentPublished = useCallback(
+    (contentId: string, publish: boolean, options?: ConsoleActionOptions) => {
+      const item = catalogueWithAdditions.find((c) => c.id === contentId);
+      if (!item) return;
+      const status: ContentItem["status"] = publish ? "Published" : "Draft";
+      if (item.status === status) return;
+      updateContent(contentId, { status });
+      recordAudit({
+        actor: options?.by ?? "FAHR Programme Team",
+        agent: AGENTS.content,
+        action: `${publish ? "Published" : "Unpublished"} "${item.title}"`,
+        risk: "Low",
+        status,
+        detail: publish
+          ? "Now available to the Content Agent for learner pathways."
+          : "Taken out of the Content Agent's reach until it is published again.",
+      });
+    },
+    [catalogueWithAdditions, recordAudit, updateContent],
+  );
+
+  const deleteContent = useCallback(
+    (contentId: string, options?: ConsoleActionOptions) => {
+      const item = catalogueWithAdditions.find((c) => c.id === contentId);
+      if (!item || item.status === "Published") return;
+      const courseraId = item.source === "Coursera" ? contentId.slice("ct-crs-".length) : null;
+      update((prev) => ({
+        ...prev,
+        newContent: prev.newContent.filter((c) => c.id !== contentId),
+        deletedContentIds: prev.newContent.some((c) => c.id === contentId)
+          ? prev.deletedContentIds
+          : [...prev.deletedContentIds, contentId],
+        importedCourseraIds: courseraId
+          ? prev.importedCourseraIds.filter((id) => id !== courseraId)
+          : prev.importedCourseraIds,
+      }));
+      recordAudit({
+        actor: options?.by ?? "FAHR Programme Team",
+        agent: AGENTS.content,
+        action: `Deleted "${item.title}" from the library`,
+        risk: "Low",
+        status: "Deleted",
+        detail:
+          item.source === "Coursera"
+            ? "The course can be imported again from Coursera."
+            : "The draft was deleted before it was published.",
+      });
+    },
+    [catalogueWithAdditions, recordAudit, update],
   );
 
   const importCourseraCourse = useCallback(
@@ -766,6 +849,11 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
         status: "Imported",
         updatedOn: today(),
         owner: `Coursera · ${course.partner}`,
+        cover: "brand/landing/ecosystem-3.jpg",
+        pointsPerUnit: 10,
+        certificate: false,
+        learners: 0,
+        rating: 0,
         source: "Coursera",
         // Coursera shares module titles; the units themselves are taken on Coursera.
         modules: course.syllabus.map((title, i) => ({ id: `${course.id}-m${i + 1}`, title, units: [] })),
@@ -788,64 +876,15 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
     [recordAudit, state.importedCourseraIds, update],
   );
 
-  const publishContentItem = useCallback(
-    (contentId: string, options?: ConsoleActionOptions) => {
-      const item = catalogueWithAdditions.find((c) => c.id === contentId);
-      if (!item || item.status === "Published") return;
-      const isNew = state.newContent.some((c) => c.id === contentId);
-      update((prev) =>
-        isNew
-          ? {
-              ...prev,
-              newContent: prev.newContent.map((c) =>
-                c.id === contentId ? { ...c, status: "Published" as const, updatedOn: today() } : c,
-              ),
-            }
-          : {
-              ...prev,
-              cataloguePatches: {
-                ...prev.cataloguePatches,
-                [contentId]: { ...prev.cataloguePatches[contentId], status: "Published" as const, updatedOn: today() },
-              },
-            },
-      );
-      recordAudit({
-        actor: options?.by ?? "FAHR Programme Team",
-        agent: AGENTS.content,
-        action: `Published "${item.title}"`,
-        risk: "Low",
-        status: "Published",
-        detail: "Now available to the Content Agent for learner pathways.",
-      });
+  /** The learner course with FAHR's text and video edits applied. */
+  const learnerCourse = useCallback(
+    (courseId: string): Course | undefined => {
+      const course = COURSE_BY_ID[courseId];
+      if (!course) return undefined;
+      const item = catalogueWithAdditions.find((c) => c.courseId === courseId);
+      return applyEditsToCourse(course, item?.modules);
     },
-    [catalogueWithAdditions, recordAudit, state.newContent, update],
-  );
-
-  const removeContentItem = useCallback(
-    (contentId: string, options?: ConsoleActionOptions) => {
-      const item = state.newContent.find((c) => c.id === contentId);
-      if (!item || item.status === "Published") return;
-      const courseId = item.source === "Coursera" ? contentId.slice("ct-crs-".length) : null;
-      update((prev) => ({
-        ...prev,
-        newContent: prev.newContent.filter((c) => c.id !== contentId),
-        importedCourseraIds: courseId
-          ? prev.importedCourseraIds.filter((id) => id !== courseId)
-          : prev.importedCourseraIds,
-      }));
-      recordAudit({
-        actor: options?.by ?? "FAHR Programme Team",
-        agent: AGENTS.content,
-        action: `Removed "${item.title}" from the library`,
-        risk: "Low",
-        status: "Removed",
-        detail:
-          item.source === "Coursera"
-            ? "The course can be imported again from Coursera."
-            : "The draft was deleted before publishing.",
-      });
-    },
-    [recordAudit, state.newContent, update],
+    [catalogueWithAdditions],
   );
 
   // -- Events ---------------------------------------------------------------
@@ -1272,10 +1311,12 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
       catalogueWithAdditions,
       courseraCatalogue: COURSERA_CATALOGUE,
       importedCourseraIds: state.importedCourseraIds,
-      saveCourse,
+      createCourse,
+      updateContent,
+      setContentPublished,
+      deleteContent,
       importCourseraCourse,
-      publishContentItem,
-      removeContentItem,
+      learnerCourse,
       learningSessions,
       scheduleSession,
       cancelSession,
@@ -1316,10 +1357,12 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
       catalogue,
       catalogueWithAdditions,
       state.importedCourseraIds,
-      saveCourse,
+      createCourse,
+      updateContent,
+      setContentPublished,
+      deleteContent,
       importCourseraCourse,
-      publishContentItem,
-      removeContentItem,
+      learnerCourse,
       learningSessions,
       scheduleSession,
       cancelSession,

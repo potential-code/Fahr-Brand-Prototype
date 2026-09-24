@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,69 +8,58 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-  BookOpen,
-  CheckCircle2,
-  Download,
-  ExternalLink,
-  Library,
-  PlayCircle,
-  PlusCircle,
-  Search,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { CheckCircle2, Download, ExternalLink, Library, PlusCircle, Search, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { AGENTS } from "@/lib/constants";
 import { COMPETENCIES, COMPETENCY_BY_ID } from "@/lib/learningData";
 import type { ContentItem } from "@/lib/federal/model";
 import type { CourseraCourse } from "@/lib/federal/fahrConsole";
-import { contentStructure, formatMinutes, structureTotals } from "@/lib/contentLibrary";
-import { CourseOutline } from "@/components/content/CourseOutline";
-import { CourseBuilder } from "@/components/content/CourseBuilder";
+import { structureOf, structureTotals } from "@/lib/contentLibrary";
+import { CourseCard } from "@/components/content/CourseCard";
 import { CountUp, PageEnter, Stagger, StaggerItem } from "@/components/motion";
-
-const STATUS_TONE: Record<ContentItem["status"], string> = {
-  Published: "border-green-200 bg-green-50 text-green-700",
-  Draft: "border-border bg-muted text-muted-foreground",
-  Imported: "border-primary/30 bg-primary/10 text-primary",
-};
 
 const ALL = "all";
 const UNPUBLISHED = "unpublished";
 
 /**
- * The federal content library.
+ * The federal content library, as course cards.
  *
- * FAHR stocks it; the Content Agent draws on what is published — down to a
- * single unit — when it builds each learner's pathway. So the screen shows
- * every item's modules and units, lets FAHR build a course of its own, and
- * brings Coursera courses in. FAHR's own courses publish straight away; a
- * Coursera import arrives unpublished so someone looks through it first.
+ * FAHR stocks it — building courses module by module, or importing them from
+ * Coursera — and the Content Agent builds each learner's pathway from what is
+ * published here, whole courses or single units. Edit opens the course editor;
+ * Open shows the course the way a learner takes it.
  */
 export default function FAHRContent() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const {
     catalogueWithAdditions,
     courseraCatalogue,
     importedCourseraIds,
-    saveCourse,
+    createCourse,
+    deleteContent,
     importCourseraCourse,
-    publishContentItem,
-    removeContentItem,
   } = useFahrConsole();
 
   const [tab, setTab] = useState("library");
   const [query, setQuery] = useState("");
   const [competencyFilter, setCompetencyFilter] = useState<string>(ALL);
   const [statusFilter, setStatusFilter] = useState<string>(ALL);
-  const [builderOpen, setBuilderOpen] = useState(false);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ContentItem | null>(null);
 
   // Coursera browse → preview → import.
   const [courseQuery, setCourseQuery] = useState("");
@@ -78,9 +67,6 @@ export default function FAHRContent() {
   const [courseLevel, setCourseLevel] = useState<string>(ALL);
   const [previewCourse, setPreviewCourse] = useState<CourseraCourse | null>(null);
   const [previewCompetency, setPreviewCompetency] = useState<string>("");
-
-  const openItem = openId ? catalogueWithAdditions.find((i) => i.id === openId) ?? null : null;
-  const openStructure = openItem ? contentStructure(openItem) : [];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -97,10 +83,7 @@ export default function FAHRContent() {
   }, [catalogueWithAdditions, competencyFilter, statusFilter, query]);
 
   const published = catalogueWithAdditions.filter((i) => i.status === "Published");
-  const unpublished = catalogueWithAdditions.length - published.length;
-  const unitsInReach = published.reduce((n, item) => n + structureTotals(contentStructure(item)).units, 0);
-
-  /** Competencies with nothing published are holes in the Content Agent's reach. */
+  const unitsInReach = published.reduce((n, item) => n + structureTotals(structureOf(item)).units, 0);
   const uncovered = COMPETENCIES.filter((c) => !published.some((i) => i.competencyId === c.id));
 
   const courseResults = useMemo(() => {
@@ -113,15 +96,19 @@ export default function FAHRContent() {
     });
   }, [courseraCatalogue, courseQuery, courseCompetency, courseLevel]);
 
-  const publish = (item: ContentItem) => {
-    publishContentItem(item.id, { by: "FAHR Programme Team" });
-    toast({ title: "Published", description: `${AGENTS.content} can now use "${item.title}" in learner pathways.` });
+  const newCourse = () => {
+    const item = createCourse({ by: "FAHR Programme Team" });
+    setLocation(`/fahr/content/${item.id}`);
   };
 
-  const remove = (item: ContentItem) => {
-    removeContentItem(item.id, { by: "FAHR Programme Team" });
-    setOpenId(null);
-    toast({ title: "Removed", description: `"${item.title}" is no longer in the library.` });
+  const openItem = (item: ContentItem) =>
+    setLocation(item.courseId ? `/learner/course/${item.courseId}` : `/fahr/content/${item.id}/preview`);
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteContent(deleteTarget.id, { by: "FAHR Programme Team" });
+    toast({ title: "Deleted", description: `"${deleteTarget.title}" was removed from the library.` });
+    setDeleteTarget(null);
   };
 
   const submitImport = () => {
@@ -129,9 +116,10 @@ export default function FAHRContent() {
     const item = importCourseraCourse(previewCourse.id, previewCompetency, { by: "FAHR Programme Team" });
     setPreviewCourse(null);
     if (!item) return;
+    setTab("library");
     toast({
       title: "Imported",
-      description: `"${item.title}" is in the library, not yet published. Publish it when you're happy with it.`,
+      description: `"${item.title}" is in the library, not yet published. Open Edit to check its settings, then publish.`,
     });
   };
 
@@ -143,17 +131,21 @@ export default function FAHRContent() {
           title="Content"
           description={`The federal content library. ${AGENTS.content} builds each learner's pathway from what is published here — whole courses or single units.`}
           actions={
-            <Button className="gap-2" onClick={() => setBuilderOpen(true)} data-testid="button-build-course">
-              <PlusCircle className="h-4 w-4" /> Build a course
+            <Button className="gap-2" onClick={newCourse} data-testid="button-new-course">
+              <PlusCircle className="h-4 w-4" /> New course
             </Button>
           }
         />
 
         <Stagger className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            { label: "Items in the library", value: catalogueWithAdditions.length, testid: "kpi-content-total" },
+            { label: "Courses in the library", value: catalogueWithAdditions.length, testid: "kpi-content-total" },
             { label: "Published units in reach", value: unitsInReach, testid: "kpi-content-units" },
-            { label: "Not yet published", value: unpublished, testid: "kpi-content-unpublished" },
+            {
+              label: "Not yet published",
+              value: catalogueWithAdditions.length - published.length,
+              testid: "kpi-content-unpublished",
+            },
           ].map((kpi) => (
             <StaggerItem key={kpi.label}>
               <StatCard className="h-full">
@@ -179,140 +171,68 @@ export default function FAHRContent() {
           </TabsList>
 
           {/* ------------------------------------------------------ library */}
-          <TabsContent value="library" className="mt-4">
-            <Card>
-              <CardHeader className="gap-3">
-                <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                  <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <BookOpen className="h-5 w-5 text-primary" /> Federal content library
-                    </CardTitle>
-                    <CardDescription>
-                      Open any item to see its modules and units. Each is tagged to an AI competency, which is how{" "}
-                      {AGENTS.content} matches it to a learner&apos;s gap.
-                    </CardDescription>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="relative">
-                      <Search className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search title or owner"
-                        className="w-52 ps-8"
-                        data-testid="input-content-search"
-                      />
-                    </div>
-                    <Select value={competencyFilter} onValueChange={setCompetencyFilter}>
-                      <SelectTrigger className="w-52" data-testid="select-content-competency">
-                        <SelectValue placeholder="Competency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={ALL}>All competencies</SelectItem>
-                        {COMPETENCIES.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-44" data-testid="select-content-status">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={ALL}>All statuses</SelectItem>
-                        <SelectItem value="Published">Published</SelectItem>
-                        <SelectItem value={UNPUBLISHED}>Not yet published</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+          <TabsContent value="library" className="mt-4 space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative min-w-[220px] flex-1">
+                <Search className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search courses"
+                  className="ps-8"
+                  data-testid="input-content-search"
+                />
+              </div>
+              <Select value={competencyFilter} onValueChange={setCompetencyFilter}>
+                <SelectTrigger className="w-56" data-testid="select-content-competency">
+                  <SelectValue placeholder="Competency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All competencies</SelectItem>
+                  {COMPETENCIES.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-44" data-testid="select-content-status">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All statuses</SelectItem>
+                  <SelectItem value="Published">Published</SelectItem>
+                  <SelectItem value={UNPUBLISHED}>Not yet published</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-                {uncovered.length > 0 && (
-                  <p className="text-xs text-muted-foreground" data-testid="text-content-gaps">
-                    Nothing published for {uncovered.map((c) => c.label).join(", ")} — {AGENTS.content} has nothing to
-                    offer a learner whose gap is there.
-                  </p>
-                )}
-              </CardHeader>
-              <CardContent>
-                {filtered.length === 0 ? (
-                  <div className="py-12 text-center" data-testid="empty-content">
-                    <Library className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
-                    <p className="font-medium">Nothing matches these filters</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {catalogueWithAdditions.length} items are in the library in total.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Title</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Competency</TableHead>
-                          <TableHead>Language</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Owner</TableHead>
-                          <TableHead className="text-end">Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filtered.map((item) => {
-                          const totals = structureTotals(contentStructure(item));
-                          return (
-                            <TableRow
-                              key={item.id}
-                              className="cursor-pointer"
-                              onClick={() => setOpenId(item.id)}
-                              data-testid={`row-content-${item.id}`}
-                            >
-                              <TableCell>
-                                <p className="font-medium text-foreground">{item.title}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {totals.modules} module{totals.modules === 1 ? "" : "s"}
-                                  {item.source === "Coursera"
-                                    ? " · units on Coursera"
-                                    : ` · ${totals.units} unit${totals.units === 1 ? "" : "s"} · ${formatMinutes(totals.mins)}`}
-                                </p>
-                              </TableCell>
-                              <TableCell className="text-sm text-muted-foreground">{item.type}</TableCell>
-                              <TableCell className="text-sm">
-                                {COMPETENCY_BY_ID[item.competencyId]?.label ?? item.competencyId}
-                              </TableCell>
-                              <TableCell className="text-sm text-muted-foreground">{item.language}</TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={STATUS_TONE[item.status]}>
-                                  {item.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-sm text-muted-foreground">{item.owner}</TableCell>
-                              <TableCell className="text-end" onClick={(e) => e.stopPropagation()}>
-                                {item.status === "Published" ? (
-                                  <Button size="sm" variant="ghost" onClick={() => setOpenId(item.id)}>
-                                    View
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => publish(item)}
-                                    data-testid={`button-publish-${item.id}`}
-                                  >
-                                    Publish
-                                  </Button>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {uncovered.length > 0 && (
+              <p className="text-xs text-muted-foreground" data-testid="text-content-gaps">
+                Nothing published for {uncovered.map((c) => c.label).join(", ")} — {AGENTS.content} has nothing to offer
+                a learner whose gap is there.
+              </p>
+            )}
+
+            {filtered.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border py-12 text-center" data-testid="empty-content">
+                <Library className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
+                <p className="font-medium">No courses match these filters</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {filtered.map((item) => (
+                  <CourseCard
+                    key={item.id}
+                    item={item}
+                    onEdit={() => setLocation(`/fahr/content/${item.id}`)}
+                    onDelete={() => setDeleteTarget(item)}
+                    onOpen={() => openItem(item)}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* ----------------------------------------------------- coursera */}
@@ -325,8 +245,7 @@ export default function FAHRContent() {
                   </CardTitle>
                   <CardDescription>
                     Search the Coursera for Government catalogue, preview a course&apos;s modules, confirm the
-                    competency it maps to and import it. It arrives in the library unpublished — publish it once
-                    you&apos;ve looked through it.
+                    competency it maps to and import it. It arrives in the library unpublished — check it, then publish.
                   </CardDescription>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -422,88 +341,9 @@ export default function FAHRContent() {
               </CardContent>
             </Card>
           </TabsContent>
+
         </Tabs>
       </PageEnter>
-
-      {/* An item's modules and units. */}
-      <Sheet open={openItem !== null} onOpenChange={(open) => !open && setOpenId(null)}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
-          {openItem && (
-            <div className="space-y-5 py-4" data-testid="content-detail">
-              <SheetHeader className="text-start">
-                <SheetTitle>{openItem.title}</SheetTitle>
-                <SheetDescription>
-                  {openItem.owner} · {openItem.version} · updated {openItem.updatedOn}
-                </SheetDescription>
-              </SheetHeader>
-
-              {openItem.summary && <p className="text-sm text-foreground">{openItem.summary}</p>}
-
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className={STATUS_TONE[openItem.status]}>
-                  {openItem.status}
-                </Badge>
-                <Badge variant="outline">{COMPETENCY_BY_ID[openItem.competencyId]?.label}</Badge>
-                <Badge variant="outline">{openItem.type}</Badge>
-                {openItem.level && <Badge variant="outline">{openItem.level}</Badge>}
-                <Badge variant="outline">{openItem.language}</Badge>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">
-                  Modules and units
-                  {openItem.source !== "Coursera" && (
-                    <span className="ms-2 font-normal text-muted-foreground">
-                      {(() => {
-                        const t = structureTotals(openStructure);
-                        return `${t.modules} modules · ${t.units} units · ${formatMinutes(t.mins)}`;
-                      })()}
-                    </span>
-                  )}
-                </p>
-                <CourseOutline
-                  modules={openStructure}
-                  external={openItem.source === "Coursera"}
-                  testId="content-detail-outline"
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-                {openItem.courseId ? (
-                  <Link
-                    href={`/learner/course/${openItem.courseId}`}
-                    className="inline-flex items-center gap-1.5 text-sm text-primary underline-offset-4 hover:underline"
-                    data-testid="link-open-as-learner"
-                  >
-                    <PlayCircle className="h-4 w-4" /> Open as a learner
-                  </Link>
-                ) : openItem.source === "Coursera" ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <ExternalLink className="h-3.5 w-3.5" /> Learners take this course on Coursera
-                  </span>
-                ) : (
-                  <span />
-                )}
-                {openItem.status !== "Published" && (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => remove(openItem)}
-                      data-testid="button-remove-content"
-                    >
-                      <Trash2 className="me-1 h-4 w-4" /> Remove
-                    </Button>
-                    <Button onClick={() => publish(openItem)} data-testid="button-publish-detail">
-                      Publish
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
 
       {/* Preview a Coursera course and confirm its competency before import. */}
       <Sheet open={previewCourse !== null} onOpenChange={(open) => !open && setPreviewCourse(null)}>
@@ -521,14 +361,17 @@ export default function FAHRContent() {
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">Modules</p>
-                <CourseOutline
-                  modules={previewCourse.syllabus.map((title, i) => ({
-                    id: `${previewCourse.id}-m${i + 1}`,
-                    title,
-                    units: [],
-                  }))}
-                  external
-                />
+                <ol className="space-y-2">
+                  {previewCourse.syllabus.map((title, i) => (
+                    <li key={title} className="flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">Module {i + 1}</span>
+                      <span className="text-foreground">{title}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <ExternalLink className="h-3.5 w-3.5" /> Learners take the units on Coursera.
+                </p>
               </div>
 
               <div className="space-y-1.5 rounded-lg border border-border p-4">
@@ -564,20 +407,23 @@ export default function FAHRContent() {
         </SheetContent>
       </Sheet>
 
-      <CourseBuilder
-        open={builderOpen}
-        onOpenChange={setBuilderOpen}
-        onSave={(input) => {
-          const item = saveCourse({ ...input, by: "FAHR Programme Team" });
-          toast({
-            title: item.status === "Published" ? "Course published" : "Draft saved",
-            description:
-              item.status === "Published"
-                ? `${AGENTS.content} can now use "${item.title}" in learner pathways.`
-                : `"${item.title}" is in the library as a draft. Publish it when it's ready.`,
-          });
-        }}
-      />
+
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete &ldquo;{deleteTarget?.title}&rdquo;?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It has not been published, so no learner has it. This removes it from the library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} data-testid="button-confirm-delete">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

@@ -973,30 +973,39 @@ export const CONTENT_ITEMS: ContentItem[] = [
     id: "ct1", title: "AI Foundations for Federal Service", type: "Course", competencyId: "literacy",
     language: "Bilingual", version: "v3.1", status: "Published", updatedOn: "4 June 2026", owner: "FAHR Programme Team",
     level: "Beginner", courseId: "ai-foundations", source: "FAHR",
+    cover: "brand/learning/course-ai-foundations.jpg", pointsPerUnit: 10, certificate: true, learners: 18420, rating: 4.7,
     summary: "The shared vocabulary and judgement every federal employee needs before using AI on real work.",
   },
   {
     id: "ct2", title: "Prompt Engineering for Public Service", type: "Course", competencyId: "prompting",
     language: "Bilingual", version: "v2.4", status: "Published", updatedOn: "18 June 2026", owner: "FAHR Programme Team",
     level: "Intermediate", courseId: "prompt-craft", source: "FAHR",
+    cover: "brand/learning/course-prompt-engineering.jpg", pointsPerUnit: 10, certificate: true, learners: 12960, rating: 4.8,
     summary: "Structured, context-rich instructions that produce reliable, on-brand government writing.",
   },
   {
     id: "ct3", title: "AI Ethics & Governance in Government", type: "Course", competencyId: "governance",
     language: "Bilingual", version: "v2.0", status: "Published", updatedOn: "2 July 2026", owner: "FAHR Governance Office",
     level: "Intermediate", courseId: "ai-governance", source: "FAHR",
+    cover: "brand/learning/course-ai-governance.jpg", pointsPerUnit: 15, certificate: true, learners: 9840, rating: 4.6,
     summary: "Accountability, personal data and human oversight when AI touches a public service.",
   },
   {
     id: "ct4", title: "Reading Service Data with AI", type: "Microlearning", competencyId: "analytics",
     language: "English", version: "v1.2", status: "Published", updatedOn: "21 July 2026", owner: "FAHR Programme Team",
     level: "Beginner", source: "FAHR",
-    summary: "Three short lessons on asking an AI assistant the right question of a service dataset.",
+    cover: "brand/landing/ecosystem-2.jpg", pointsPerUnit: 5, certificate: false, learners: 4310, rating: 4.4,
+    summary: "Short lessons on asking an AI assistant the right question of a service dataset.",
     modules: [
       { id: "ct4-m1", title: "From data to a decision", units: [
-        { id: "ct4-u1", title: "Framing the question before you open the data", kind: "Video", mins: 6, fileName: "framing-the-question.mp4" },
-        { id: "ct4-u2", title: "Reading an AI summary critically", kind: "Reading", mins: 8 },
-        { id: "ct4-u3", title: "Check your understanding", kind: "Quiz", mins: 5 },
+        { id: "ct4-u1", title: "Framing the question first", mins: 8, blocks: [
+          { id: "ct4-b1", kind: "Video", title: "Why the question comes before the data", fileName: "framing-the-question.mp4" },
+          { id: "ct4-b2", kind: "Text", title: "Three questions worth asking", text: "Before opening a dataset, write down the decision it has to inform.\n\nThen ask the assistant what the data can and cannot tell you about that decision." },
+        ] },
+        { id: "ct4-u2", title: "Reading an AI summary critically", mins: 10, blocks: [
+          { id: "ct4-b3", kind: "Text", title: "What to check", text: "Check the period, the population and what was left out.\n\nAsk the assistant to show the rows behind any headline figure." },
+          { id: "ct4-b4", kind: "Question", title: "Quick check", question: { prompt: "An AI summary reports a 40% rise in complaints. What do you check first?", options: ["The period and population it covers", "Whether the chart looks professional", "How long the summary is"], correctIndex: 0 } },
+        ] },
       ] },
     ],
   },
@@ -1004,16 +1013,24 @@ export const CONTENT_ITEMS: ContentItem[] = [
     id: "ct5", title: "Designing Your First Agentic Workflow", type: "Simulation", competencyId: "agentic",
     language: "English", version: "v1.0", status: "Draft", updatedOn: "13 July 2026", owner: "FAHR Programme Team",
     level: "Advanced", source: "FAHR",
+    cover: "brand/landing/section-lab.jpg", pointsPerUnit: 20, certificate: true, learners: 0, rating: 0,
     summary: "A guided simulation: design a three-step agent for a real service request, with a human checkpoint.",
     modules: [
       { id: "ct5-m1", title: "Plan the agent", units: [
-        { id: "ct5-u1", title: "What an agent is — and what it is not", kind: "Video", mins: 7, fileName: "agents-explained.mp4" },
-        { id: "ct5-u2", title: "Map the task into steps", kind: "Activity", mins: 15 },
+        { id: "ct5-u1", title: "What an agent is — and is not", mins: 12, blocks: [
+          { id: "ct5-b1", kind: "Video", title: "Agents in two minutes", videoUrl: "https://www.youtube.com/watch?v=F8NKVhkZZWI" },
+          { id: "ct5-b2", kind: "Text", title: "Reading: agents vs automation", text: "Automation follows a fixed script. An agent decides the next step itself, within the limits you set.\n\nThat is why every agent in federal service needs a named person who signs off its output." },
+        ] },
+        { id: "ct5-u2", title: "Map the task into steps", mins: 15, blocks: [
+          { id: "ct5-b3", kind: "Text", title: "Activity brief", text: "Pick one service request your team answers every week. Split it into the steps a person takes today." },
+          { id: "ct5-b4", kind: "Document", title: "Step-mapping worksheet", fileName: "step-mapping-worksheet.pdf" },
+        ] },
       ] },
       { id: "ct5-m2", title: "Build and check it", units: [
-        { id: "ct5-u3", title: "Run the simulation", kind: "Package", mins: 25, fileName: "agentic-workflow-sim.zip" },
-        { id: "ct5-u4", title: "Where the human signs off", kind: "Reading", mins: 6 },
-        { id: "ct5-u5", title: "Final check", kind: "Quiz", mins: 8 },
+        { id: "ct5-u3", title: "Where the human signs off", mins: 10, blocks: [
+          { id: "ct5-b5", kind: "Text", title: "Reading", text: "Place the human checkpoint before anything reaches a resident or a record." },
+          { id: "ct5-b6", kind: "Question", title: "Quick check", question: { prompt: "Where should the human checkpoint sit?", options: ["Before the output reaches a resident", "After the resident replies", "Only when the agent fails"], correctIndex: 0 } },
+        ] },
       ] },
     ],
   },
@@ -1021,24 +1038,46 @@ export const CONTENT_ITEMS: ContentItem[] = [
     id: "ct6", title: "Stakeholder Alignment with AI", type: "Microlearning", competencyId: "prompting",
     language: "Bilingual", version: "v1.1", status: "Published", updatedOn: "19 July 2026", owner: "FAHR Programme Team",
     level: "Intermediate", source: "FAHR",
-    summary: "Using an AI assistant to draft, test and tailor a message for different stakeholders.",
+    cover: "brand/landing/stakeholder-manager.jpg", pointsPerUnit: 5, certificate: false, learners: 3120, rating: 4.5,
+    summary: "Using an AI assistant to draft, test and tailor one message for different stakeholders.",
     modules: [
       { id: "ct6-m1", title: "One message, many audiences", units: [
-        { id: "ct6-u1", title: "Who needs to hear what", kind: "Reading", mins: 6 },
-        { id: "ct6-u2", title: "Tailor a briefing with AI", kind: "Activity", mins: 12 },
-        { id: "ct6-u3", title: "Stakeholder briefing template", kind: "Document", mins: 3, fileName: "stakeholder-briefing-template.pdf" },
+        { id: "ct6-u1", title: "Who needs to hear what", mins: 6, blocks: [
+          { id: "ct6-b1", kind: "Text", title: "Reading", text: "A minister, a department head and a resident need the same facts framed three ways." },
+        ] },
+        { id: "ct6-u2", title: "Tailor a briefing with AI", mins: 12, blocks: [
+          { id: "ct6-b2", kind: "Text", title: "Activity brief", text: "Ask the assistant for three versions of one update, then compare what changed." },
+          { id: "ct6-b3", kind: "Document", title: "Stakeholder briefing template", fileName: "stakeholder-briefing-template.pdf" },
+        ] },
       ] },
     ],
   },
   {
-    id: "ct7", title: "Workplace Project Brief Template", type: "Assignment", competencyId: "agentic",
+    id: "ct7", title: "Workplace Project Brief", type: "Assignment", competencyId: "agentic",
     language: "Bilingual", version: "v4.0", status: "Published", updatedOn: "17 June 2026", owner: "FAHR Programme Team",
-    source: "FAHR",
+    level: "Intermediate", source: "FAHR",
+    cover: "brand/landing/stakeholder-learner.jpg", pointsPerUnit: 25, certificate: false, learners: 7640, rating: 4.3,
     summary: "The brief every learner completes before starting their workplace project.",
     modules: [
       { id: "ct7-m1", title: "Write your brief", units: [
-        { id: "ct7-u1", title: "What a strong brief looks like", kind: "Reading", mins: 5 },
-        { id: "ct7-u2", title: "Project brief template", kind: "Document", mins: 20, fileName: "workplace-project-brief.docx" },
+        { id: "ct7-u1", title: "What a strong brief looks like", mins: 5, blocks: [
+          { id: "ct7-b1", kind: "Text", title: "Reading", text: "A strong brief names the task, the people it affects, the time it takes today and how you will measure the change." },
+          { id: "ct7-b2", kind: "Document", title: "Project brief template", fileName: "workplace-project-brief.docx" },
+        ] },
+      ] },
+    ],
+  },
+  {
+    id: "ct8", title: "Writing Service Replies with AI", type: "Course", competencyId: "prompting",
+    language: "Arabic", version: "v0.3", status: "Draft", updatedOn: "22 July 2026", owner: "FAHR Programme Team",
+    level: "Beginner", source: "FAHR",
+    cover: "brand/landing/ecosystem-3.jpg", pointsPerUnit: 10, certificate: true, learners: 0, rating: 0,
+    summary: "Drafting clear, courteous replies to residents in Arabic and English with an AI assistant.",
+    modules: [
+      { id: "ct8-m1", title: "Getting the tone right", units: [
+        { id: "ct8-u1", title: "Why tone matters in a reply", mins: 7, blocks: [
+          { id: "ct8-b1", kind: "Text", title: "Reading", text: "A correct answer in the wrong tone still generates a complaint." },
+        ] },
       ] },
     ],
   },
