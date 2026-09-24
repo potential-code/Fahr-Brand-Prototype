@@ -43,7 +43,6 @@ import FAHRDashboard from "@/pages/FAHRDashboard";
 import FAHRGovernance from "@/pages/FAHRGovernance";
 import FAHRContent from "@/pages/FAHRContent";
 import FAHRCourseEditor from "@/pages/FAHRCourseEditor";
-import FAHRCoursePreview from "@/pages/FAHRCoursePreview";
 import FAHREvents from "@/pages/FAHREvents";
 import FAHREntities from "@/pages/FAHREntities";
 import FAHRUsers from "@/pages/FAHRUsers";
@@ -158,7 +157,6 @@ function Router() {
       <Route path="/fahr" component={FAHRDashboard} />
       <Route path="/fahr/entities" component={FAHREntities} />
       <Route path="/fahr/users" component={FAHRUsers} />
-      <Route path="/fahr/content/:contentId/preview" component={FAHRCoursePreview} />
       <Route path="/fahr/content/:contentId" component={FAHRCourseEditor} />
       <Route path="/fahr/content" component={FAHRContent} />
       <Route path="/fahr/events" component={FAHREvents} />

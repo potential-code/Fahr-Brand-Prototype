@@ -17,7 +17,7 @@ import { COMPETENCIES, COMPETENCY_BY_ID, type Competency } from "@/lib/learningD
 import { useFederalData } from "@/lib/FederalDataContext";
 import type { ContentItem, PlatformUser } from "@/lib/federal/model";
 import { COURSE_BY_ID, type Course } from "@/lib/learningData";
-import { applyEditsToCourse } from "@/lib/contentLibrary";
+import { applyEditsToCourse, courseraToModules, starterModules } from "@/lib/contentLibrary";
 import { CONTENT_ITEMS, GOVERNANCE_POLICIES, PLATFORM_USERS } from "@/lib/federal/seed";
 import { ladderRows } from "@/lib/federal/reporting";
 import { SESSIONS as SEEDED_SESSIONS, type EventAudience, type Session, type SessionFormat } from "@/lib/events";
@@ -713,9 +713,14 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
    * imported this session, with FAHR's edits applied and deletions removed.
    */
   const catalogueWithAdditions = useMemo<ContentItem[]>(() => {
+    const STATUSES: ContentItem["status"][] = ["Draft", "Imported", "Published"];
     const withEdits = (item: ContentItem): ContentItem => {
       const edit = state.contentEdits[item.id];
-      return edit ? { ...item, ...edit } : item;
+      const merged = edit ? { ...item, ...edit } : item;
+      // Session storage can hold an item saved by an earlier build, with a
+      // status that no longer exists — read it as the nearest current one.
+      if (STATUSES.includes(merged.status)) return merged;
+      return { ...merged, status: merged.source === "Coursera" || merged.id.startsWith("ct-crs-") ? "Imported" : "Draft" };
     };
     return [...state.newContent, ...catalogue]
       .filter((item) => !state.deletedContentIds.includes(item.id))
@@ -741,7 +746,7 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
         certificate: true,
         learners: 0,
         rating: 0,
-        modules: [],
+        modules: starterModules(),
         source: "FAHR",
       };
       update((prev) => ({ ...prev, newContent: [item, ...prev.newContent] }));
@@ -855,8 +860,7 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
         learners: 0,
         rating: 0,
         source: "Coursera",
-        // Coursera shares module titles; the units themselves are taken on Coursera.
-        modules: course.syllabus.map((title, i) => ({ id: `${course.id}-m${i + 1}`, title, units: [] })),
+        modules: courseraToModules(course),
       };
       update((prev) => ({
         ...prev,

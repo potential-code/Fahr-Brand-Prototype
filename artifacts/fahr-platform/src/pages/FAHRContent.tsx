@@ -101,8 +101,7 @@ export default function FAHRContent() {
     setLocation(`/fahr/content/${item.id}`);
   };
 
-  const openItem = (item: ContentItem) =>
-    setLocation(item.courseId ? `/learner/course/${item.courseId}` : `/fahr/content/${item.id}/preview`);
+  const openItem = (item: ContentItem) => setLocation(`/fahr/content/${item.id}`);
 
   const confirmDelete = () => {
     if (!deleteTarget) return;

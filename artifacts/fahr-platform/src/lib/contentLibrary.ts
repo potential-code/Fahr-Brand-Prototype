@@ -10,6 +10,7 @@
 
 import { COURSE_BY_ID, type Course, type Lesson } from "@/lib/learningData";
 import type { ContentItem, ContentModule, ContentUnit, LearningBlock, LearningBlockKind } from "@/lib/federal/model";
+import { COURSERA_CATALOGUE, type CourseraCourse } from "@/lib/federal/fahrConsole";
 
 // ---------------------------------------------------------------------------
 // Learner course → library structure
@@ -50,11 +51,98 @@ export function courseToModules(course: Course): ContentModule[] {
   }));
 }
 
-/** Modules for any library item, read from its learner course until it has its own. */
+/**
+ * A Coursera course's structure. Coursera shares its module list; each module
+ * is laid out as a lecture video, a reading and a quick check — the shape
+ * every Coursera module takes — so the course reads in full in the editor.
+ */
+export function courseraToModules(course: CourseraCourse): ContentModule[] {
+  return course.syllabus.map((title, i) => {
+    const m = `${course.id}-m${i + 1}`;
+    return {
+      id: m,
+      title,
+      units: [
+        {
+          id: `${m}-u1`,
+          title: `${title}: lecture`,
+          mins: Math.max(10, Math.round((course.hours * 60) / course.syllabus.length / 2)),
+          blocks: [
+            { id: `${m}-b1`, kind: "Video", title: `${title} — lecture video`, fileName: `coursera-${m}.mp4` },
+            {
+              id: `${m}-b2`,
+              kind: "Text",
+              title: "Key ideas",
+              text: `${course.partner} introduces ${title.toLowerCase()} and why it matters in practice.\n\nTake notes on one example you could use in your own work.`,
+            },
+          ],
+        },
+        {
+          id: `${m}-u2`,
+          title: `${title}: check your understanding`,
+          mins: 10,
+          blocks: [
+            {
+              id: `${m}-b3`,
+              kind: "Question",
+              title: "Quick check",
+              question: {
+                prompt: `Which best describes the aim of "${title}"?`,
+                options: [
+                  `Applying ${title.toLowerCase()} to real work`,
+                  "Memorising definitions",
+                  "Avoiding AI tools altogether",
+                ],
+                correctIndex: 0,
+              },
+            },
+          ],
+        },
+      ],
+    };
+  });
+}
+
+/** What a brand-new course starts with, so the editor never opens empty. */
+export function starterModules(): ContentModule[] {
+  const m = newId("mod");
+  return [
+    {
+      id: m,
+      title: "Introduction",
+      units: [
+        {
+          id: newId("unit"),
+          title: "Welcome to the course",
+          mins: 5,
+          blocks: [
+            {
+              id: newId("block"),
+              kind: "Text",
+              title: "Welcome",
+              text: "Tell learners what this course covers and what they will be able to do by the end.",
+            },
+          ],
+        },
+      ],
+    },
+  ];
+}
+
+/**
+ * Modules for any library item: its own, else its learner course's, else —
+ * for a Coursera import — the course's module list laid out in full.
+ */
 export function structureOf(item: ContentItem): ContentModule[] {
-  if (item.modules) return item.modules;
+  const hasUnits = item.modules?.some((m) => m.units.length > 0);
+  if (item.modules && (hasUnits || item.source !== "Coursera")) return item.modules;
   const course = item.courseId ? COURSE_BY_ID[item.courseId] : undefined;
-  return course ? courseToModules(course) : [];
+  if (course) return courseToModules(course);
+  if (item.source === "Coursera") {
+    const coursera = COURSERA_CATALOGUE.find((c) => item.id === `ct-crs-${c.id}`);
+    if (coursera) return courseraToModules(coursera);
+  }
+  return item.modules ?? [];
 }
 
 // ---------------------------------------------------------------------------

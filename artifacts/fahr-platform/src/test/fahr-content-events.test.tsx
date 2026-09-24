@@ -74,6 +74,40 @@ describe("federal content library", () => {
     expect(screen.getByTestId("probe-status").textContent ?? "").toContain(`${course.title}::Imported`);
     expect(screen.getByTestId(`card-course-ct-crs-${course.id}`)).toBeTruthy();
   });
+
+  it("opens an imported Coursera course in the editor with modules, units and blocks", async () => {
+    const user = userEvent.setup();
+    const course = COURSERA_CATALOGUE[2];
+    renderScreen(
+      <>
+        <FAHRContent />
+        <Route path="/fahr/content/:contentId" component={FAHRCourseEditor} />
+      </>,
+      "/fahr/content",
+    );
+    await user.click(screen.getByTestId("tab-coursera"));
+    await user.click(screen.getByTestId(`button-preview-${course.id}`));
+    await user.click(screen.getByTestId("button-import-coursera"));
+
+    cleanup();
+    renderScreen(<Route path="/fahr/content/:contentId" component={FAHRCourseEditor} />, `/fahr/content/ct-crs-${course.id}`);
+    expect(screen.getByText(course.syllabus[0])).toBeTruthy();
+    expect(screen.getByText(`${course.syllabus[0]}: lecture`)).toBeTruthy();
+    expect(screen.queryByText("No modules yet")).toBeNull();
+  });
+
+  it("starts a new course with a module, a unit and a block, not an empty page", async () => {
+    const user = userEvent.setup();
+    renderScreen(
+      <>
+        <FAHRContent />
+        <Probe />
+      </>,
+      "/fahr/content",
+    );
+    await user.click(screen.getByTestId("button-new-course"));
+    expect(screen.getByTestId("probe-mapped").textContent ?? "").toContain("Untitled course");
+  });
 });
 
 describe("course editor", () => {

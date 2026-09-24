@@ -97,7 +97,6 @@ export default function FAHRCourseEditor() {
     );
   }
 
-  const external = item.source === "Coursera";
   const modules = structureOf(item);
   const totals = structureTotals(modules);
   const published = item.status === "Published";
@@ -153,8 +152,7 @@ export default function FAHRCourseEditor() {
     });
   };
 
-  const openAsLearner = () =>
-    item.courseId ? setLocation(`/learner/course/${item.courseId}`) : setLocation(`/fahr/content/${item.id}/preview`);
+  const openInPlayer = () => item.courseId && setLocation(`/learner/course/${item.courseId}`);
 
   return (
     <Layout role="fahr">
@@ -180,7 +178,7 @@ export default function FAHRCourseEditor() {
             {item.summary && <p className="text-sm text-muted-foreground">{item.summary}</p>}
             <p className="text-xs text-muted-foreground">
               {totals.modules} modules
-              {!external && ` · ${totals.units} units · ${totals.blocks} learning blocks · ${formatMinutes(totals.mins)}`}
+              {` · ${totals.units} units · ${totals.blocks} learning blocks · ${formatMinutes(totals.mins)}`}
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2 md:flex-col">
@@ -188,9 +186,11 @@ export default function FAHRCourseEditor() {
               {published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               {published ? "Unpublish" : "Publish"}
             </Button>
-            <Button variant="ghost" className="gap-2" onClick={openAsLearner} data-testid="button-open-as-learner">
-              <GraduationCap className="h-4 w-4" /> View as a learner
-            </Button>
+            {item.courseId && (
+              <Button variant="ghost" className="gap-2" onClick={openInPlayer} data-testid="button-open-in-player">
+                <GraduationCap className="h-4 w-4" /> Open in learner player
+              </Button>
+            )}
           </div>
         </section>
 
@@ -208,17 +208,15 @@ export default function FAHRCourseEditor() {
                 <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">Curriculum</p>
                 <h2 className="text-xl font-bold text-foreground">Modules &amp; content</h2>
               </div>
-              {!external && (
-                <Button className="gap-2" onClick={() => setDialog({ kind: "module" })} data-testid="button-add-module">
-                  <Plus className="h-4 w-4" /> Add module
-                </Button>
-              )}
+              <Button className="gap-2" onClick={() => setDialog({ kind: "module" })} data-testid="button-add-module">
+                <Plus className="h-4 w-4" /> Add module
+              </Button>
             </div>
 
-            {external && (
+            {item.source === "Coursera" && (
               <p className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-4 py-2.5 text-sm text-muted-foreground">
-                <ExternalLink className="h-4 w-4" /> Coursera course — learners take the units on Coursera, so only the
-                settings on the right are editable.
+                <ExternalLink className="h-4 w-4" /> Imported from Coursera. Videos play on Coursera; you can reorder,
+                add to or trim the course for federal learners here.
               </p>
             )}
 
@@ -235,11 +233,11 @@ export default function FAHRCourseEditor() {
                 <div
                   key={module.id}
                   className="rounded-2xl border border-border bg-card shadow-sm"
-                  {...(external ? {} : drag("modules", mi, modules, setModules))}
+                  {...drag("modules", mi, modules, setModules)}
                   data-testid={`editor-module-${module.id}`}
                 >
                   <div className="flex items-center gap-2 p-4">
-                    {!external && <GripVertical className="h-5 w-5 shrink-0 cursor-grab text-muted-foreground" aria-hidden />}
+                    <GripVertical className="h-5 w-5 shrink-0 cursor-grab text-muted-foreground" aria-hidden />
                     <button
                       type="button"
                       onClick={() => setOpenModules((s) => ({ ...s, [module.id]: !open }))}
@@ -250,11 +248,11 @@ export default function FAHRCourseEditor() {
                       <span className="min-w-0">
                         <span className="block font-semibold text-foreground">{module.title}</span>
                         <span className="block text-xs text-muted-foreground">
-                          {external ? "Taken on Coursera" : `${module.units.length} unit${module.units.length === 1 ? "" : "s"}`}
+                          {`${module.units.length} unit${module.units.length === 1 ? "" : "s"}`}
                         </span>
                       </span>
                     </button>
-                    {!external && (
+                    {(
                       <>
                         <Button size="icon" variant="ghost" onClick={() => setDialog({ kind: "module", moduleId: module.id })} aria-label="Edit module" data-testid={`button-edit-module-${mi}`}>
                           <Pencil className="h-4 w-4" />
@@ -266,7 +264,7 @@ export default function FAHRCourseEditor() {
                     )}
                   </div>
 
-                  {open && !external && (
+                  {open && (
                     <div className="space-y-3 border-t border-border bg-muted/20 p-4">
                       <button
                         type="button"
