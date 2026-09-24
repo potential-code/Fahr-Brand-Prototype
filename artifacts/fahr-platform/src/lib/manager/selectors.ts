@@ -235,8 +235,6 @@ export function teamBenchmark(
 
 export type TeamRosterRow = {
   person: Person;
-  /** The pathway the person's cohort is assigned. */
-  pathway: string;
   cohortName: string;
   pathwayProgress: number;
   capabilityAverage: number;
@@ -258,7 +256,6 @@ export function teamRosterRow(person: Person, credentials: Credential[]): TeamRo
   const days = daysSinceLabel(person.lastActive);
   return {
     person,
-    pathway: cohort?.pathway ?? "Unassigned",
     cohortName: cohort?.name ?? "No cohort",
     pathwayProgress: person.pathwayProgress,
     capabilityAverage: mean(COMPETENCIES.map((c) => competencyScoreFor(person, c.id))),

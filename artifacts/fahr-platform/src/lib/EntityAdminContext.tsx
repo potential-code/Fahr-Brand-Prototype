@@ -49,8 +49,6 @@ type MutableState = {
   cohortOverrides: Record<string, CohortOverride>;
   accounts: EntityAccount[];
   accountOverrides: Record<string, AccountOverride>;
-  content: ContentRecord[];
-  contentOverrides: Record<string, ContentOverride>;
   events: EntityEvent[];
   eventOverrides: Record<string, EventOverride>;
   communications: Communication[];
@@ -61,8 +59,6 @@ const EMPTY_STATE: MutableState = {
   cohortOverrides: {},
   accounts: [],
   accountOverrides: {},
-  content: [],
-  contentOverrides: {},
   events: [],
   eventOverrides: {},
   communications: [],
@@ -95,8 +91,6 @@ function readStored(): MutableState {
       cohortOverrides: map<CohortOverride>(parsed.cohortOverrides),
       accounts: list<EntityAccount>(parsed.accounts),
       accountOverrides: map<AccountOverride>(parsed.accountOverrides),
-      content: list<ContentRecord>(parsed.content),
-      contentOverrides: map<ContentOverride>(parsed.contentOverrides),
       events: list<EntityEvent>(parsed.events),
       eventOverrides: map<EventOverride>(parsed.eventOverrides),
       communications: list<Communication>(parsed.communications),
@@ -134,28 +128,6 @@ const emailFor = (name: string): string =>
     .filter(Boolean)
     .join(".")}@mohap.gov.ae`;
 
-/** The catalogue record for a shared content item plus its publishing metadata. */
-function recordFromContentItem(item: ContentItem): ContentRecord {
-  const meta = CONTENT_META[item.id];
-  return {
-    id: item.id,
-    title: item.title,
-    type: item.type,
-    programme: meta?.programme ?? "Entity Applied AI",
-    pathway: meta?.pathway ?? "Unassigned",
-    competencyId: item.competencyId,
-    audience: meta?.audience ?? "All employees",
-    language: item.language,
-    version: item.version,
-    status: item.status,
-    updatedOn: item.updatedOn,
-    owner: item.owner,
-    durationMins: meta?.durationMins ?? 60,
-    summary: meta?.summary ?? "Catalogue item.",
-    history: meta?.history ?? [],
-  };
-}
-
 /** Bumps a semantic-ish version label: v1.2 -> v1.3. */
 function bumpVersion(version: string, minor = true): string {
   const match = version.match(/^v?(\d+)\.(\d+)$/);
@@ -168,7 +140,6 @@ function bumpVersion(version: string, minor = true): string {
 export type CreateCohortInput = {
   name: string;
   departmentId?: string;
-  pathway: string;
   learners: number;
   startsOn: string;
   status?: CohortStatus;
@@ -228,14 +199,11 @@ export type EntityAdminValue = {
   getCohort: (cohortId: string) => Cohort | undefined;
   accounts: EntityAccount[];
   getAccount: (accountId: string) => EntityAccount | undefined;
-  content: ContentRecord[];
-  getContent: (contentId: string) => ContentRecord | undefined;
   events: EntityEvent[];
   getEvent: (eventId: string) => EntityEvent | undefined;
   communications: Communication[];
 
   createCohort: (input: CreateCohortInput) => Cohort;
-  assignPathway: (cohortId: string, pathway: string) => void;
   setCohortStatus: (cohortId: string, status: CohortStatus) => void;
 
   inviteUser: (input: InviteUserInput) => EntityAccount;
@@ -246,10 +214,6 @@ export type EntityAdminValue = {
   requestConsent: (accountId: string) => void;
   setConsent: (accountId: string, consent: ConsentState) => void;
 
-  createContent: (input: CreateContentInput) => ContentRecord;
-  setContentStatus: (contentId: string, status: ContentStatus, note?: string) => void;
-  publishContent: (contentId: string, note?: string) => void;
-  retireContent: (contentId: string, note?: string) => void;
 
   scheduleEvent: (input: ScheduleEventInput) => EntityEvent;
   rescheduleEvent: (eventId: string, date: string, time: string, note?: string) => void;
@@ -316,40 +280,19 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
         ministryId: FOCUS.ministryId,
         departmentId: input.departmentId,
         name: input.name,
-        status: input.status ?? (input.pathway === "Unassigned" ? "Planning" : "Onboarding"),
-        pathway: input.pathway,
+        status: input.status ?? "Planning",
         learners: Math.max(0, Math.round(input.learners)),
         progress: 0,
         startsOn: input.startsOn,
       };
       update((prev) => ({ ...prev, cohorts: [cohort, ...prev.cohorts] }));
       audit(
-        `Created cohort ${cohort.name} (${cohort.learners} learners, ${cohort.pathway})`,
+        `Created cohort ${cohort.name} (${cohort.learners} learners)`,
         "Created",
       );
       return cohort;
     },
     [audit, update],
-  );
-
-  const assignPathway = useCallback(
-    (cohortId: string, pathway: string) => {
-      const cohort = getCohort(cohortId);
-      update((prev) => ({
-        ...prev,
-        cohortOverrides: {
-          ...prev.cohortOverrides,
-          [cohortId]: { ...prev.cohortOverrides[cohortId], pathway },
-        },
-      }));
-      audit(
-        `Assigned the ${pathway} pathway to ${cohort?.name ?? "a cohort"}`,
-        "Assigned",
-        "Low",
-        AGENTS.capability,
-      );
-    },
-    [audit, getCohort, update],
   );
 
   const setCohortStatus = useCallback(
@@ -486,109 +429,6 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
   );
 
   // -- Content --------------------------------------------------------------
-
-  const content = useMemo<ContentRecord[]>(() => {
-    const apply = (record: ContentRecord): ContentRecord => {
-      const override = state.contentOverrides[record.id];
-      if (!override) return record;
-      return {
-        ...record,
-        ...override,
-        history: override.history ?? record.history,
-      };
-    };
-    return [...state.content.map(apply), ...CONTENT_ITEMS.map(recordFromContentItem).map(apply)];
-  }, [state.content, state.contentOverrides]);
-
-  const getContent = useCallback(
-    (contentId: string) => content.find((c) => c.id === contentId),
-    [content],
-  );
-
-  const createContent = useCallback(
-    (input: CreateContentInput): ContentRecord => {
-      const record: ContentRecord = {
-        id: nextId("ct"),
-        title: input.title,
-        type: input.type,
-        programme: input.programme,
-        pathway: input.pathway,
-        competencyId: input.competencyId,
-        audience: input.audience,
-        language: input.language,
-        version: "v0.1",
-        status: "Draft",
-        updatedOn: today(),
-        owner: ENTITY_ADMIN,
-        durationMins: input.durationMins,
-        summary: input.summary,
-        history: [
-          { version: "v0.1", on: today(), by: ENTITY_ADMIN, note: "Draft created in the entity catalogue." },
-        ],
-        createdInSession: true,
-      };
-      update((prev) => ({ ...prev, content: [record, ...prev.content] }));
-      audit(
-        `Created ${record.type.toLowerCase()} "${record.title}" (${COMPETENCY_BY_ID[record.competencyId]?.label ?? record.competencyId})`,
-        "Draft",
-      );
-      return record;
-    },
-    [audit, update],
-  );
-
-  const setContentStatus = useCallback(
-    (contentId: string, status: ContentStatus, note?: string) => {
-      const record = content.find((c) => c.id === contentId);
-      if (!record) return;
-      const version =
-        status === "Published" && record.status !== "Published"
-          ? bumpVersion(record.version, record.version.startsWith("v0") ? true : true)
-          : record.version;
-      const entry = {
-        version,
-        on: today(),
-        by: ENTITY_ADMIN,
-        note: note?.trim()
-          ? note.trim()
-          : status === "Published"
-            ? "Published to the entity catalogue."
-            : status === "Retired"
-              ? "Retired from the catalogue."
-              : `Moved to ${status}.`,
-      };
-      update((prev) => ({
-        ...prev,
-        contentOverrides: {
-          ...prev.contentOverrides,
-          [contentId]: {
-            ...prev.contentOverrides[contentId],
-            status,
-            version,
-            updatedOn: today(),
-            history: [entry, ...(prev.contentOverrides[contentId]?.history ?? record.history)],
-          },
-        },
-      }));
-      audit(
-        `${status === "Published" ? "Published" : status === "Retired" ? "Retired" : `Moved to ${status}:`} "${record.title}" ${version}`,
-        status,
-        status === "Retired" ? "Medium" : "Low",
-        AGENTS.content,
-      );
-    },
-    [audit, content, update],
-  );
-
-  const publishContent = useCallback(
-    (contentId: string, note?: string) => setContentStatus(contentId, "Published", note),
-    [setContentStatus],
-  );
-
-  const retireContent = useCallback(
-    (contentId: string, note?: string) => setContentStatus(contentId, "Retired", note),
-    [setContentStatus],
-  );
 
   // -- Events ---------------------------------------------------------------
 
@@ -744,13 +584,10 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
       getCohort,
       accounts,
       getAccount,
-      content,
-      getContent,
       events,
       getEvent,
       communications,
       createCohort,
-      assignPathway,
       setCohortStatus,
       inviteUser,
       importUsers,
@@ -758,10 +595,6 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
       setAccountStatus,
       requestConsent,
       setConsent,
-      createContent,
-      setContentStatus,
-      publishContent,
-      retireContent,
       scheduleEvent,
       rescheduleEvent,
       cancelEvent,
@@ -774,13 +607,10 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
       getCohort,
       accounts,
       getAccount,
-      content,
-      getContent,
       events,
       getEvent,
       communications,
       createCohort,
-      assignPathway,
       setCohortStatus,
       inviteUser,
       importUsers,
@@ -788,10 +618,6 @@ export function EntityAdminProvider({ children }: { children: React.ReactNode })
       setAccountStatus,
       requestConsent,
       setConsent,
-      createContent,
-      setContentStatus,
-      publishContent,
-      retireContent,
       scheduleEvent,
       rescheduleEvent,
       cancelEvent,

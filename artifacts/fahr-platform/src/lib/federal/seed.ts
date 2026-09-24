@@ -431,22 +431,22 @@ export const TWIN_ADOPTION = [
  * 3,940 active learners, so the cohort screen reconciles with the dashboard.
  */
 export const COHORTS: Cohort[] = [
-  { id: "mohap-c1", ministryId: "mohap", name: "Executive Leadership Batch 2", status: "Active", pathway: "Strategic AI Leadership", learners: 45, progress: 75, startsOn: "2 March 2026" },
-  { id: "mohap-c2", ministryId: "mohap", departmentId: "mohap-happiness", name: "Customer Happiness Agents", status: "Onboarding", pathway: "AI-Enhanced Service Delivery", learners: 290, progress: 15, startsOn: "6 July 2026" },
-  { id: "mohap-c3", ministryId: "mohap", departmentId: "mohap-digital", name: "Data Analytics Champions", status: "Active", pathway: "Predictive Analytics Mastery", learners: 120, progress: 55, startsOn: "13 April 2026" },
-  { id: "mohap-c4", ministryId: "mohap", departmentId: "mohap-hr", name: "HR Automation Team", status: "Completed", pathway: "Workforce AI Workflows", learners: 80, progress: 100, startsOn: "12 January 2026" },
-  { id: "mohap-c5", ministryId: "mohap", departmentId: "mohap-comms", name: "Comms & Marketing Batch 1", status: "Active", pathway: "Applied Agentic AI for Communications", learners: 115, progress: 46, startsOn: "4 May 2026" },
-  { id: "mohap-c6", ministryId: "mohap", departmentId: "mohap-hospitals", name: "Clinical Operations Wave 1", status: "Active", pathway: "Applied AI for Clinical Support", learners: 780, progress: 48, startsOn: "9 February 2026" },
-  { id: "mohap-c7", ministryId: "mohap", departmentId: "mohap-hospitals", name: "Clinical Operations Wave 2", status: "Onboarding", pathway: "Applied AI for Clinical Support", learners: 620, progress: 12, startsOn: "13 July 2026" },
-  { id: "mohap-c8", ministryId: "mohap", departmentId: "mohap-hospitals", name: "Clinical Operations Wave 3", status: "Planning", pathway: "Unassigned", learners: 450, progress: 0, startsOn: "5 October 2026" },
-  { id: "mohap-c9", ministryId: "mohap", departmentId: "mohap-preventive", name: "Preventive Medicine Cohort", status: "Active", pathway: "AI for Population Health", learners: 520, progress: 41, startsOn: "16 March 2026" },
-  { id: "mohap-c10", ministryId: "mohap", departmentId: "mohap-policy", name: "Health Policy & Licensing Cohort", status: "Active", pathway: "AI in Policy & Regulation", learners: 570, progress: 36, startsOn: "20 April 2026" },
-  { id: "mohap-c11", ministryId: "mohap", departmentId: "mohap-digital", name: "Digital Health Innovators", status: "Active", pathway: "Agentic AI Product Delivery", learners: 140, progress: 68, startsOn: "19 January 2026" },
-  { id: "mohap-c12", ministryId: "mohap", departmentId: "mohap-support", name: "Support Services Uplift", status: "Onboarding", pathway: "AI Foundations for Operations", learners: 210, progress: 22, startsOn: "1 June 2026" },
-  { id: "moe-c1", ministryId: "moe", departmentId: "moe-curriculum", name: "Curriculum AI Design Cohort", status: "Active", pathway: "AI in Curriculum Design", learners: 640, progress: 58, startsOn: "23 February 2026" },
-  { id: "econ-c1", ministryId: "econ", departmentId: "econ-investment", name: "Investment Insight Cohort", status: "Active", pathway: "Predictive Analytics Mastery", learners: 210, progress: 72, startsOn: "16 February 2026" },
-  { id: "moi-c1", ministryId: "moi", departmentId: "moi-traffic", name: "Traffic Services Wave 1", status: "Active", pathway: "AI-Enhanced Service Delivery", learners: 480, progress: 34, startsOn: "11 May 2026" },
-  { id: "mof-c1", ministryId: "mof", departmentId: "mof-budget", name: "Finance Automation Cohort", status: "Onboarding", pathway: "Workforce AI Workflows", learners: 360, progress: 18, startsOn: "29 June 2026" },
+  { id: "mohap-c1", ministryId: "mohap", name: "Executive Leadership Batch 2", status: "Active", learners: 45, progress: 75, startsOn: "2 March 2026" },
+  { id: "mohap-c2", ministryId: "mohap", departmentId: "mohap-happiness", name: "Customer Happiness Agents", status: "Onboarding", learners: 290, progress: 15, startsOn: "6 July 2026" },
+  { id: "mohap-c3", ministryId: "mohap", departmentId: "mohap-digital", name: "Data Analytics Champions", status: "Active", learners: 120, progress: 55, startsOn: "13 April 2026" },
+  { id: "mohap-c4", ministryId: "mohap", departmentId: "mohap-hr", name: "HR Automation Team", status: "Completed", learners: 80, progress: 100, startsOn: "12 January 2026" },
+  { id: "mohap-c5", ministryId: "mohap", departmentId: "mohap-comms", name: "Comms & Marketing Batch 1", status: "Active", learners: 115, progress: 46, startsOn: "4 May 2026" },
+  { id: "mohap-c6", ministryId: "mohap", departmentId: "mohap-hospitals", name: "Clinical Operations Wave 1", status: "Active", learners: 780, progress: 48, startsOn: "9 February 2026" },
+  { id: "mohap-c7", ministryId: "mohap", departmentId: "mohap-hospitals", name: "Clinical Operations Wave 2", status: "Onboarding", learners: 620, progress: 12, startsOn: "13 July 2026" },
+  { id: "mohap-c8", ministryId: "mohap", departmentId: "mohap-hospitals", name: "Clinical Operations Wave 3", status: "Planning", learners: 450, progress: 0, startsOn: "5 October 2026" },
+  { id: "mohap-c9", ministryId: "mohap", departmentId: "mohap-preventive", name: "Preventive Medicine Cohort", status: "Active", learners: 520, progress: 41, startsOn: "16 March 2026" },
+  { id: "mohap-c10", ministryId: "mohap", departmentId: "mohap-policy", name: "Health Policy & Licensing Cohort", status: "Active", learners: 570, progress: 36, startsOn: "20 April 2026" },
+  { id: "mohap-c11", ministryId: "mohap", departmentId: "mohap-digital", name: "Digital Health Innovators", status: "Active", learners: 140, progress: 68, startsOn: "19 January 2026" },
+  { id: "mohap-c12", ministryId: "mohap", departmentId: "mohap-support", name: "Support Services Uplift", status: "Onboarding", learners: 210, progress: 22, startsOn: "1 June 2026" },
+  { id: "moe-c1", ministryId: "moe", departmentId: "moe-curriculum", name: "Curriculum AI Design Cohort", status: "Active", learners: 640, progress: 58, startsOn: "23 February 2026" },
+  { id: "econ-c1", ministryId: "econ", departmentId: "econ-investment", name: "Investment Insight Cohort", status: "Active", learners: 210, progress: 72, startsOn: "16 February 2026" },
+  { id: "moi-c1", ministryId: "moi", departmentId: "moi-traffic", name: "Traffic Services Wave 1", status: "Active", learners: 480, progress: 34, startsOn: "11 May 2026" },
+  { id: "mof-c1", ministryId: "mof", departmentId: "mof-budget", name: "Finance Automation Cohort", status: "Onboarding", learners: 360, progress: 18, startsOn: "29 June 2026" },
 ];
 
 /**

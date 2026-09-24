@@ -58,7 +58,6 @@ import { EntityAdminProvider } from "@/lib/EntityAdminContext";
 import MinistryCohortDetail from "@/pages/MinistryCohortDetail";
 import MinistryUsers from "@/pages/MinistryUsers";
 import MinistryApprovals from "@/pages/MinistryApprovals";
-import MinistryContent from "@/pages/MinistryContent";
 import MinistryEvents from "@/pages/MinistryEvents";
 import MinistryCommunications from "@/pages/MinistryCommunications";
 import MinistryReports from "@/pages/MinistryReports";
@@ -146,7 +145,6 @@ function Router() {
       <Route path="/ministry/users" component={MinistryUsers} />
       <Route path="/ministry/approvals" component={MinistryApprovals} />
       <Route path="/ministry/portfolio" component={MinistryPortfolio} />
-      <Route path="/ministry/content" component={MinistryContent} />
       <Route path="/ministry/events" component={MinistryEvents} />
       <Route path="/ministry/communications" component={MinistryCommunications} />
       <Route path="/ministry/reports" component={MinistryReports} />

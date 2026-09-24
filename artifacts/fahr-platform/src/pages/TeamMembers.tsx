@@ -24,7 +24,7 @@ export default function TeamMembers() {
   const filteredRoster = roster.filter((row) =>
     query.length === 0
       ? true
-      : [row.person.name, row.person.role, row.pathway, row.level.label, row.certification]
+      : [row.person.name, row.person.role, row.cohortName, row.level.label, row.certification]
           .join(" ")
           .toLowerCase()
           .includes(query),
@@ -61,7 +61,7 @@ export default function TeamMembers() {
                 <TableHeader className="bg-muted/30">
                   <TableRow>
                     <TableHead>Employee</TableHead>
-                    <TableHead>Assigned pathway</TableHead>
+                    <TableHead>Cohort</TableHead>
                     <TableHead>Capability</TableHead>
                     <TableHead>Pathway completion</TableHead>
                     <TableHead>Last active</TableHead>
@@ -84,8 +84,7 @@ export default function TeamMembers() {
                         <div className="text-xs text-muted-foreground">{row.person.role}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="max-w-[190px] text-sm text-foreground">{row.pathway}</div>
-                        <div className="text-xs text-muted-foreground">{row.cohortName}</div>
+                        <div className="max-w-[190px] text-sm text-foreground">{row.cohortName}</div>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm font-medium">{row.level.label}</span>

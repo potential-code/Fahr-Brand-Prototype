@@ -55,8 +55,6 @@ export type Cohort = {
   departmentId?: string;
   name: string;
   status: CohortStatus;
-  /** Learning pathway assigned to the cohort, or "Unassigned". */
-  pathway: string;
   learners: number;
   /** Baseline completion percentage; recomputed where member records exist. */
   progress: number;

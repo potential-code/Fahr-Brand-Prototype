@@ -219,7 +219,6 @@ export default function ManagerReports() {
       title: "Team roster",
       headers: [
         "Team member",
-        "Assigned pathway",
         "Cohort",
         "Pathway completion %",
         "Capability average",
@@ -232,7 +231,6 @@ export default function ManagerReports() {
       ],
       rows: roster.map((row) => [
         row.person.name,
-        row.pathway,
         row.cohortName,
         row.pathwayProgress,
         row.capabilityAverage,

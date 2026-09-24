@@ -59,7 +59,6 @@ import type { CohortStatus } from "@/lib/federal/model";
 import {
   CohortStatusBadge,
   CohortStatusSelect,
-  PathwaySelect,
 } from "@/components/ministry/CohortShared";
 import { CohortRosterTable } from "@/components/ministry/CohortRosterTable";
 import { CohortAnnounceDialog } from "@/components/ministry/CohortAnnounceDialog";
@@ -75,7 +74,7 @@ export default function MinistryCohortDetail() {
   const cohortId = params?.cohortId ?? "";
 
   const { focus, people, credentials, submissions, getPerson, issueCredential } = useFederalData();
-  const { getCohort, assignPathway, setCohortStatus, sendCommunication } = useEntityAdmin();
+  const { getCohort, setCohortStatus, sendCommunication } = useEntityAdmin();
 
   const cohort = getCohort(cohortId);
 
@@ -158,18 +157,6 @@ export default function MinistryCohortDetail() {
   }));
 
   // Actions ------------------------------------------------------------------
-  const handleAssignPathway = (pathway: string) => {
-    if (pathway === cohort.pathway) return;
-    assignPathway(cohort.id, pathway);
-    toast({
-      title: pathway === "Unassigned" ? "Pathway cleared" : "Pathway assigned",
-      description:
-        pathway === "Unassigned"
-          ? `${cohort.name} has no Learning Pathway assigned.`
-          : `${cohort.name} now follows the ${pathway} pathway.`,
-    });
-  };
-
   const handleStatus = (status: CohortStatus) => {
     if (status === cohort.status) return;
     setCohortStatus(cohort.id, status);
@@ -183,7 +170,7 @@ export default function MinistryCohortDetail() {
     issueCredential({
       personId: member.id,
       personName: person?.name ?? member.name,
-      title: `${level?.label ?? "Applied AI"} — ${cohort.pathway === "Unassigned" ? cohort.name : cohort.pathway}`,
+      title: `${level?.label ?? "Applied AI"} — ${cohort.name}`,
       levelId: member.levelId,
       by: ministry.entityAdmin,
     });
@@ -218,7 +205,7 @@ export default function MinistryCohortDetail() {
       filename: `cohort-${cohort.id}`,
       title: `${cohort.name} — Roster`,
       notes: [
-        `${ministry.shortName} · ${cohort.pathway}`,
+        `${ministry.shortName} · ${cohort.name}`,
         `Roster sample: ${summary.members.length} of ${cohort.learners.toLocaleString()} learners`,
       ],
       headers: [
@@ -294,18 +281,9 @@ export default function MinistryCohortDetail() {
           }
         />
 
-        {/* Pathway & status controls */}
+        {/* Status controls */}
         <Card>
           <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-end md:justify-between">
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Assigned Learning Pathway</span>
-              <PathwaySelect
-                value={cohort.pathway}
-                onChange={handleAssignPathway}
-                testId="select-detail-pathway"
-                className="h-9 w-[260px]"
-              />
-            </div>
             <div className="flex flex-col gap-2">
               <span className="text-sm font-medium text-muted-foreground">Lifecycle status</span>
               <CohortStatusSelect value={cohort.status} onChange={handleStatus} testId="select-detail-status" />

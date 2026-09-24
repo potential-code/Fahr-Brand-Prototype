@@ -5,6 +5,7 @@ import { Layout } from "@/components/Layout";
 import { RecognitionBand } from "@/components/recognition/RecognitionSurface";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
+import { TIMELINE_PADDING, TimelineNode, TimelineRail } from "@/components/TimelineRail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -336,10 +337,11 @@ export default function MinistryPortfolio() {
                   <h4 className="flex items-center gap-2 font-semibold">
                     <Calendar className="h-5 w-5 text-primary" /> Project Timeline
                   </h4>
-                  <div className="ml-2 space-y-4 border-l-2 border-primary/20 pl-2">
+                  <div className={`relative space-y-4 ${TIMELINE_PADDING}`}>
+                    <TimelineRail inset="inset-y-2" />
                     {selectedProject.timeline.map((event, idx) => (
-                      <div key={`${event.date}-${idx}`} className="relative pl-6">
-                        <div className="absolute -left-[33px] top-1 h-3 w-3 rounded-full border-2 border-primary bg-background" />
+                      <div key={`${event.date}-${idx}`} className="relative">
+                        <TimelineNode top="top-1" testId={`project-timeline-node-${idx}`} />
                         <p className="mb-1 text-xs text-muted-foreground">{event.date}</p>
                         <p className="text-sm font-medium">{event.event}</p>
                       </div>

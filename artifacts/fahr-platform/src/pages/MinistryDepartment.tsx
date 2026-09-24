@@ -235,7 +235,7 @@ export default function MinistryDepartment() {
                       <span className="font-medium">{c.name}</span>
                       <Badge variant="outline">{c.status}</Badge>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{c.pathway} · {c.learners} learners</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{c.learners} learners</p>
                     <Progress value={c.progress} className="mt-2 h-1.5" />
                   </Link>
                 ))

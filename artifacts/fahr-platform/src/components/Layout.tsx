@@ -147,7 +147,6 @@ export function Layout({
           { href: "/ministry/cohorts", label: "Cohorts & Programmes", icon: Users },
           { href: "/ministry/approvals", label: "Approvals", icon: ClipboardCheck },
           { href: "/ministry/portfolio", label: t("nav.portfolio"), icon: Briefcase },
-          { href: "/ministry/content", label: "Content", icon: BookOpen },
           { href: "/ministry/events", label: "Events", icon: CalendarDays },
           { href: "/ministry/communications", label: "Communications", icon: Megaphone },
         ];

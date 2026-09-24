@@ -1,6 +1,6 @@
 // The real "Create Cohort" flow for the entity cohorts screen.
 //
-// Collects a name, department, pathway, learner count and start date, then
+// Collects a name, department, learner count and start date, then
 // hands them to `createCohort`. The parent animates the returned cohort into
 // the top of the list.
 
@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { PlusCircle } from "lucide-react";
 import { departmentsOf } from "@/lib/federal";
-import { PATHWAY_CHOICES } from "./CohortShared";
 import type { CreateCohortInput } from "@/lib/EntityAdminContext";
 
 const UNASSIGNED_DEPARTMENT = "__none__";
@@ -63,14 +62,12 @@ export function CohortCreateDialog({
   const departments = useMemo(() => departmentsOf(ministryId), [ministryId]);
   const [name, setName] = useState("");
   const [departmentId, setDepartmentId] = useState<string>(UNASSIGNED_DEPARTMENT);
-  const [pathway, setPathway] = useState<string>("Unassigned");
   const [learners, setLearners] = useState("40");
   const [startsOn, setStartsOn] = useState(todayIso());
 
   const reset = () => {
     setName("");
     setDepartmentId(UNASSIGNED_DEPARTMENT);
-    setPathway("Unassigned");
     setLearners("40");
     setStartsOn(todayIso());
   };
@@ -84,7 +81,6 @@ export function CohortCreateDialog({
     onCreate({
       name: name.trim(),
       departmentId: departmentId === UNASSIGNED_DEPARTMENT ? undefined : departmentId,
-      pathway,
       learners: Math.max(0, Math.round(learnerCount)),
       startsOn: humaniseDate(startsOn),
     });
@@ -106,7 +102,7 @@ export function CohortCreateDialog({
             <PlusCircle className="h-5 w-5 text-primary" /> Create a cohort
           </DialogTitle>
           <DialogDescription>
-            Set up a new learning batch. You can assign or change its Personalised Learning Pathway at any time.
+            Set up a new learning batch. Each learner generates their own Personalised Learning Pathway from their baseline.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4 py-2">
@@ -134,22 +130,6 @@ export function CohortCreateDialog({
                   {departments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id} data-testid={`option-dept-${dept.id}`}>
                       {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Learning Pathway</Label>
-              <Select value={pathway} onValueChange={setPathway}>
-                <SelectTrigger data-testid="select-cohort-pathway">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PATHWAY_CHOICES.map((choice) => (
-                    <SelectItem key={choice} value={choice}>
-                      {choice}
                     </SelectItem>
                   ))}
                 </SelectContent>

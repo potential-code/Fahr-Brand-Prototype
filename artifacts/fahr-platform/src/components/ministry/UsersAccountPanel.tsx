@@ -174,27 +174,16 @@ export function UsersAccountPanel({ accountId }: { accountId: string }) {
           <p className="text-xs text-muted-foreground">Currently: {cohortName}</p>
         </div>
 
+        {/* Platform roles are granted federally, not by the entity. Stated, not set. */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium" htmlFor={`platform-${account.id}`}>
-            Platform role
-          </label>
-          <Select
-            value={account.platformRole}
-            onValueChange={(value) =>
-              updateAccount(account.id, { platformRole: value as EntityAccount["platformRole"] })
-            }
+          <p className="text-sm font-medium">Platform role</p>
+          <p
+            className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-foreground"
+            data-testid={`text-account-platformrole-${account.id}`}
           >
-            <SelectTrigger id={`platform-${account.id}`} data-testid={`select-account-platformrole-${account.id}`}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PLATFORM_ROLES.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {account.platformRole}
+          </p>
+          <p className="text-xs text-muted-foreground">Granted federally — raise an escalation to change it.</p>
         </div>
       </div>
 

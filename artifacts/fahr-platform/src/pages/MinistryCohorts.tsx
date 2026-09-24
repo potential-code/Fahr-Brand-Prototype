@@ -45,8 +45,6 @@ import {
   CohortStatusBadge,
   CohortStatusSelect,
   COHORT_STATUSES,
-  PathwaySelect,
-  PATHWAY_CHOICES,
 } from "@/components/ministry/CohortShared";
 import { CohortCreateDialog } from "@/components/ministry/CohortCreateDialog";
 import { CohortAnnounceDialog } from "@/components/ministry/CohortAnnounceDialog";
@@ -57,7 +55,7 @@ export default function MinistryCohorts() {
   const { toast } = useToast();
   const reduceMotion = useReducedMotion();
   const { focus } = useFederalData();
-  const { cohorts, createCohort, assignPathway, setCohortStatus, sendCommunication } = useEntityAdmin();
+  const { cohorts, createCohort, setCohortStatus, sendCommunication } = useEntityAdmin();
 
   const ministry = MINISTRY_BY_ID[focus.ministryId];
   const departments = useMemo(() => departmentsOf(focus.ministryId), [focus.ministryId]);
@@ -69,18 +67,16 @@ export default function MinistryCohorts() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(ALL);
   const [departmentFilter, setDepartmentFilter] = useState<string>(ALL);
-  const [pathwayFilter, setPathwayFilter] = useState<string>(ALL);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return cohorts.filter((c) => {
       if (statusFilter !== ALL && c.status !== statusFilter) return false;
       if (departmentFilter !== ALL && (c.departmentId ?? "") !== departmentFilter) return false;
-      if (pathwayFilter !== ALL && c.pathway !== pathwayFilter) return false;
-      if (q && !c.name.toLowerCase().includes(q) && !c.pathway.toLowerCase().includes(q)) return false;
+      if (q && !c.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [cohorts, search, statusFilter, departmentFilter, pathwayFilter]);
+  }, [cohorts, search, statusFilter, departmentFilter]);
 
   // KPIs from the (unfiltered) cohort list so the headline never shifts with a filter.
   const totalLearners = cohorts.reduce((sum, c) => sum + c.learners, 0);
@@ -99,18 +95,6 @@ export default function MinistryCohorts() {
     toast({
       title: "Cohort created",
       description: `${cohort.name} is in your cohort list (${cohort.learners.toLocaleString()} learners).`,
-    });
-  };
-
-  const handleAssignPathway = (cohort: Cohort, pathway: string) => {
-    if (pathway === cohort.pathway) return;
-    assignPathway(cohort.id, pathway);
-    toast({
-      title: pathway === "Unassigned" ? "Pathway cleared" : "Pathway assigned",
-      description:
-        pathway === "Unassigned"
-          ? `${cohort.name} has no Learning Pathway assigned.`
-          : `${cohort.name} now follows the ${pathway} pathway.`,
     });
   };
 
@@ -133,7 +117,6 @@ export default function MinistryCohorts() {
       c.name,
       c.status,
       departmentName(c.departmentId),
-      c.pathway,
       c.learners,
       `${c.progress}%`,
       c.startsOn,
@@ -144,9 +127,8 @@ export default function MinistryCohorts() {
       notes: [
         `Showing ${filtered.length} of ${cohorts.length} cohorts`,
         statusFilter !== ALL ? `Status: ${statusFilter}` : "Status: all",
-        pathwayFilter !== ALL ? `Pathway: ${pathwayFilter}` : "Pathway: all",
       ],
-      headers: ["Cohort", "Status", "Department", "Learning Pathway", "Learners", "Progress", "Starts"],
+      headers: ["Cohort", "Status", "Department", "Learners", "Progress", "Starts"],
       rows,
     });
     toast({ title: "Export ready", description: `Downloaded ${name}.` });
@@ -160,7 +142,7 @@ export default function MinistryCohorts() {
   ];
 
   const filtersActive =
-    search.trim() !== "" || statusFilter !== ALL || departmentFilter !== ALL || pathwayFilter !== ALL;
+    search.trim() !== "" || statusFilter !== ALL || departmentFilter !== ALL;
 
   return (
     <Layout role="ministry">
@@ -169,7 +151,7 @@ export default function MinistryCohorts() {
           tone="primary"
           icon={<Layers className="h-7 w-7 text-primary" />}
           title="Cohorts & Programmes"
-          description={`${ministry.name} — manage learning batches and their Personalised Learning Pathways.`}
+          description={`${ministry.name} — manage learning batches. Each learner's Personalised Learning Pathway is generated from their own baseline.`}
           actions={
             <>
               <Button variant="outline" className="gap-2" onClick={handleExport} data-testid="button-export-cohorts">
@@ -207,7 +189,7 @@ export default function MinistryCohorts() {
             <div className="flex flex-col gap-1">
               <CardTitle>Cohort management</CardTitle>
               <CardDescription>
-                Showing {filtered.length} of {cohorts.length} cohorts. Assign a Learning Pathway, move a cohort along its
+                Showing {filtered.length} of {cohorts.length} cohorts. Move a cohort along its
                 lifecycle or announce to everyone in it.
               </CardDescription>
             </div>
@@ -217,7 +199,7 @@ export default function MinistryCohorts() {
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search cohorts or pathways"
+                  placeholder="Search cohorts"
                   className="pl-9"
                   data-testid="input-cohort-search"
                 />
@@ -248,19 +230,6 @@ export default function MinistryCohorts() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={pathwayFilter} onValueChange={setPathwayFilter}>
-                <SelectTrigger data-testid="select-filter-pathway">
-                  <SelectValue placeholder="Pathway" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL}>All pathways</SelectItem>
-                  {PATHWAY_CHOICES.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {p}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </CardHeader>
           <CardContent>
@@ -282,7 +251,6 @@ export default function MinistryCohorts() {
                         setSearch("");
                         setStatusFilter(ALL);
                         setDepartmentFilter(ALL);
-                        setPathwayFilter(ALL);
                       }}
                       data-testid="button-clear-filters"
                     >
@@ -304,7 +272,6 @@ export default function MinistryCohorts() {
                       <TableHead>Status</TableHead>
                       <TableHead>Learners</TableHead>
                       <TableHead className="w-[180px]">Progress</TableHead>
-                      <TableHead className="w-[240px]">Learning Pathway</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -359,13 +326,6 @@ export default function MinistryCohorts() {
                                 <Progress value={cohort.progress} className="h-2 flex-1" />
                                 <span className="w-9 text-right text-xs text-muted-foreground">{cohort.progress}%</span>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <PathwaySelect
-                                value={cohort.pathway}
-                                onChange={(pathway) => handleAssignPathway(cohort, pathway)}
-                                testId={`select-pathway-${cohort.id}`}
-                              />
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-end gap-2">

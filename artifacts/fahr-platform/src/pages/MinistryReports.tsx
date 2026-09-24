@@ -220,8 +220,8 @@ export default function MinistryReports() {
       filename: "mohap-completion",
       title: "Completion report",
       notes: filterNotes,
-      headers: ["Cohort", "Pathway", "Enrolled", "Completed", "In progress", "Not started", "Completion %"],
-      rows: completion.map((r) => [r.cohort.name, r.cohort.pathway, r.enrolled, r.completed, r.inProgress, r.notStarted, r.completionRate]),
+      headers: ["Cohort", "Enrolled", "Completed", "In progress", "Not started", "Completion %"],
+      rows: completion.map((r) => [r.cohort.name, r.enrolled, r.completed, r.inProgress, r.notStarted, r.completionRate]),
     };
   }
   function competencySheet(): ExportSheet {
@@ -554,7 +554,6 @@ function CompletionReport({ rows }: { rows: ReturnType<typeof completionRows> })
                 <TableHeader>
                   <TableRow>
                     <TableHead>Cohort</TableHead>
-                    <TableHead>Pathway</TableHead>
                     <TableHead className="text-right">Enrolled</TableHead>
                     <TableHead className="text-right">Completed</TableHead>
                     <TableHead className="text-right">In progress</TableHead>
@@ -567,7 +566,6 @@ function CompletionReport({ rows }: { rows: ReturnType<typeof completionRows> })
                   {rows.map((r) => (
                     <StaggerItem as="tr" variant="row" key={r.cohort.id} className="border-b transition-colors hover:bg-muted/50 focus-within:bg-muted/50" data-testid={`row-completion-${r.cohort.id}`}>
                       <TableCell className="font-medium">{r.cohort.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{r.cohort.pathway}</TableCell>
                       <TableCell className="text-right">{r.enrolled.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{r.completed.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{r.inProgress.toLocaleString()}</TableCell>

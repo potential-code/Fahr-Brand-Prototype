@@ -89,7 +89,6 @@ export type CohortMember = {
 
 /** Cohort fields an admin can change after creation. */
 export type CohortOverride = {
-  pathway?: string;
   status?: import("@/lib/federal/model").CohortStatus;
 };
 
@@ -120,8 +119,6 @@ export type ContentRecord = {
   type: ContentItem["type"];
   /** Programme the item belongs to (§4.4 categorisation). */
   programme: string;
-  /** Learning pathway it sits on, or "Unassigned". */
-  pathway: string;
   competencyId: string;
   /** Who it is written for. */
   audience: string;

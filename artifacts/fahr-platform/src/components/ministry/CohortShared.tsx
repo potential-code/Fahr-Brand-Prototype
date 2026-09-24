@@ -14,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { CohortStatus } from "@/lib/federal/model";
-import { PATHWAY_OPTIONS } from "@/lib/entityAdmin/seed";
 import type {
   AssessmentOutcome,
   CertificationState,
@@ -24,7 +23,6 @@ import type { LearnerStatus } from "@/lib/federal/model";
 export const COHORT_STATUSES: CohortStatus[] = ["Planning", "Onboarding", "Active", "Completed"];
 
 /** Pathway options plus the "Unassigned" sentinel the store understands. */
-export const PATHWAY_CHOICES = ["Unassigned", ...PATHWAY_OPTIONS];
 
 const STATUS_CLASS: Record<CohortStatus, string> = {
   Planning: "bg-slate-100 text-slate-700 border-slate-200",
@@ -125,31 +123,3 @@ export function CohortStatusSelect({
   );
 }
 
-/** A pathway control that writes straight through to the store. */
-export function PathwaySelect({
-  value,
-  onChange,
-  testId,
-  className,
-}: {
-  value: string;
-  onChange: (pathway: string) => void;
-  testId: string;
-  className?: string;
-}) {
-  const known = PATHWAY_CHOICES.includes(value) ? value : "Unassigned";
-  return (
-    <Select value={known} onValueChange={onChange}>
-      <SelectTrigger className={className ?? "h-8 w-[220px]"} data-testid={testId}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {PATHWAY_CHOICES.map((pathway) => (
-          <SelectItem key={pathway} value={pathway} data-testid={`${testId}-${pathway.replace(/\s+/g, "-")}`}>
-            {pathway}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}

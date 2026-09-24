@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MOTION } from "@/components/motion";
 import { History } from "lucide-react";
+import { TIMELINE_PADDING, TimelineNode, TimelineRail } from "@/components/TimelineRail";
 import type { AuditEvent } from "@/lib/federal/model";
 
 const riskClass = (risk: AuditEvent["risk"]): string => {
@@ -38,7 +39,8 @@ export function ApprovalsTrail({ events, freshIds }: Props) {
 
   return (
     <ScrollArea className="h-[520px] pr-3">
-      <ol className="relative space-y-3 border-l border-border pl-4">
+      <ol className={`relative space-y-3 ${TIMELINE_PADDING}`}>
+        <TimelineRail inset="inset-y-4" />
         <AnimatePresence initial={false}>
           {events.map((event) => {
             const fresh = freshIds.has(event.id);
@@ -54,7 +56,7 @@ export function ApprovalsTrail({ events, freshIds }: Props) {
                 }`}
                 data-testid={`row-trail-${event.id}`}
               >
-                <span className="absolute -left-[21px] top-4 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
+                <TimelineNode top="top-4" borderedParent testId={`trail-node-${event.id}`} />
                 <div className="flex items-start justify-between gap-3">
                   <p className="font-medium leading-snug">{event.action}</p>
                   <Badge variant="outline" className={`shrink-0 text-[10px] ${riskClass(event.risk)}`}>

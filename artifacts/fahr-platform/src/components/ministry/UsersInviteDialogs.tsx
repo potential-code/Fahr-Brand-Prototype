@@ -47,7 +47,8 @@ export function InviteUserDialog({
   const [jobRole, setJobRole] = useState(JOB_ROLE_OPTIONS[0]);
   const [departmentId, setDepartmentId] = useState<string>("");
   const [cohortId, setCohortId] = useState<string>("none");
-  const [platformRole, setPlatformRole] = useState<PlatformRole>("Federal Employee");
+  /** The entity invites learners; any wider platform role is a federal grant. */
+  const platformRole: PlatformRole = "Federal Employee";
 
   const reset = () => {
     setName("");
@@ -55,7 +56,6 @@ export function InviteUserDialog({
     setJobRole(JOB_ROLE_OPTIONS[0]);
     setDepartmentId("");
     setCohortId("none");
-    setPlatformRole("Federal Employee");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -137,13 +137,14 @@ export function InviteUserDialog({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Platform role</label>
-              <Select value={platformRole} onValueChange={(v) => setPlatformRole(v as PlatformRole)}>
-                <SelectTrigger data-testid="select-invite-platformrole"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {PLATFORM_ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <p className="text-sm font-medium">Platform role</p>
+              <p
+                className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-foreground"
+                data-testid="text-invite-platformrole"
+              >
+                {platformRole}
+              </p>
+              <p className="text-xs text-muted-foreground">Wider roles are granted federally.</p>
             </div>
           </div>
 

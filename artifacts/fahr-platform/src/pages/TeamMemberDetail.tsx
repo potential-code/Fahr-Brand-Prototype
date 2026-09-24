@@ -110,7 +110,7 @@ export default function TeamMemberDetail() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Assigned pathway: <span className="font-medium text-foreground">{standing.pathway}</span> ·{" "}
+                  Personalised Learning Pathway, generated from {person.name.split(" ")[0]}&apos;s own baseline ·{" "}
                   {standing.cohortName}
                 </p>
                 <div className="flex items-center justify-between mb-2">
