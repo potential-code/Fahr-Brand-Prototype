@@ -1,4 +1,6 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { useFederalData } from "@/lib/FederalDataContext";
+import { AGENTS, LEARNER_PROFILE } from "@/lib/constants";
 import {
   defaultDraft,
   demoSubmission,
@@ -59,13 +61,24 @@ export function WorkplaceProjectProvider({
     setDraft((current) => ({ ...current, ...patch }));
   }, []);
 
+  const { recordAudit, focus } = useFederalData();
+
   const submit = useCallback(
     (impact: ImpactEstimate, policies: PolicyResult[]) => {
       const next: ProjectSubmission = { draft, impact, policies, submittedAt: new Date().toISOString() };
       setSubmission(next);
+      recordAudit({
+        actor: LEARNER_PROFILE.name,
+        agent: AGENTS.capability,
+        action: `Submitted workplace project "${draft.title || "Untitled project"}"`,
+        risk: "Low",
+        status: "Submitted",
+        ministryId: focus.ministryId,
+        detail: `Sent for department manager sign-off, estimating ${impact.hoursPerMonth} hours saved a month.`,
+      });
       return next;
     },
-    [draft],
+    [draft, recordAudit, focus.ministryId],
   );
 
   const reopen = useCallback(() => setSubmission(null), []);

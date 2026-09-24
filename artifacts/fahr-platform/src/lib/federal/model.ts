@@ -159,6 +159,8 @@ export type AuditEvent = {
   risk: AuditRisk;
   status: string;
   ministryId?: string;
+  /** One plain sentence on what happened, shown when the entry is opened. */
+  detail?: string;
 };
 
 export type ScheduledSession = {

@@ -154,7 +154,7 @@ export default function FAHRGovernance() {
       if (auditAgent !== "all" && event.agent !== auditAgent) return false;
       if (auditEntity !== "all" && (event.ministryId ?? "federal") !== auditEntity) return false;
       if (!query) return true;
-      return [event.actor, event.agent, event.action, event.status, event.time]
+      return [event.actor, event.agent, event.action, event.status, event.time, event.detail ?? ""]
         .join(" ")
         .toLowerCase()
         .includes(query);
@@ -350,8 +350,8 @@ export default function FAHRGovernance() {
                   <Activity className="w-5 h-5 text-primary" /> Security audit trail
                 </CardTitle>
                 <CardDescription>
-                  Showing {filteredEvents.length} of {auditEvents.length} entries. Decisions taken elsewhere in this
-                  session appear here.
+                  Showing {filteredEvents.length} of {auditEvents.length} entries — every sign-in, course, Digital
+                  Twin, project and approval on the platform. Actions taken in this session appear here as they happen.
                 </CardDescription>
               </div>
               <div className="flex gap-2">
@@ -538,6 +538,14 @@ export default function FAHRGovernance() {
                     </div>
                   ))}
                 </dl>
+                {openEvent.detail && (
+                  <div className="rounded-md border border-border p-3" data-testid="text-audit-detail">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      What happened
+                    </p>
+                    <p className="mt-1">{openEvent.detail}</p>
+                  </div>
+                )}
                 <div className="rounded-md border border-border bg-muted/40 p-3">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Who did this

@@ -1,4 +1,6 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { useFederalData } from "@/lib/FederalDataContext";
+import { AGENTS, LEARNER_PROFILE } from "@/lib/constants";
 import {
   emptyProfile,
   isTrainable,
@@ -35,6 +37,7 @@ const DigitalTwinContext = createContext<Ctx | undefined>(undefined);
  */
 export function DigitalTwinProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<TwinProfile>(() => emptyProfile());
+  const { recordAudit, focus } = useFederalData();
 
   const capture = useCallback((field: TwinFieldId, value: string) => {
     const trimmed = value.trim();
@@ -106,7 +109,17 @@ export function DigitalTwinProvider({ children }: { children: React.ReactNode })
 
   const completeTraining = useCallback(() => {
     setProfile((current) => ({ ...current, trainedAt: new Date().toISOString() }));
-  }, []);
+    recordAudit({
+      actor: LEARNER_PROFILE.name,
+      agent: AGENTS.practice,
+      action: "Created an AI Digital Twin",
+      risk: "Low",
+      status: "Live",
+      ministryId: focus.ministryId,
+      detail:
+        "Finished the twin interview and training run. The twin now drafts routine work in their style, with their own guardrails applied.",
+    });
+  }, [recordAudit, focus.ministryId]);
 
   const reset = useCallback(() => setProfile(emptyProfile()), []);
 
