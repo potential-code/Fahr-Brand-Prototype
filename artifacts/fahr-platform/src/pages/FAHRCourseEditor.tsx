@@ -35,10 +35,12 @@ import { BlockDialog, ModuleDialog, UnitDialog } from "@/components/content/Edit
 import { PageEnter } from "@/components/motion";
 
 const BLOCK_STYLE: Record<LearningBlockKind, { icon: React.ComponentType<{ className?: string }>; pill: string }> = {
-  Video: { icon: Video, pill: "bg-primary/10 text-primary" },
-  Text: { icon: FileText, pill: "bg-secondary/15 text-secondary-foreground" },
-  Question: { icon: HelpCircle, pill: "bg-amber-50 text-amber-700" },
-  Document: { icon: FileDown, pill: "bg-sky-50 text-sky-700" },
+  // Explicit, contrast-checked pairs — theme "foreground" tokens are meant for
+  // solid fills and wash out on a tinted pill.
+  Video: { icon: Video, pill: "border border-violet-200 bg-violet-50 text-violet-700" },
+  Text: { icon: FileText, pill: "border border-emerald-200 bg-emerald-50 text-emerald-700" },
+  Question: { icon: HelpCircle, pill: "border border-amber-200 bg-amber-50 text-amber-800" },
+  Document: { icon: FileDown, pill: "border border-sky-200 bg-sky-50 text-sky-700" },
 };
 
 const STATUS_PILL: Record<ContentItem["status"], string> = {

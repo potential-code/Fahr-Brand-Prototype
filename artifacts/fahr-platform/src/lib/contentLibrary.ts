@@ -130,10 +130,82 @@ export function starterModules(): ContentModule[] {
 }
 
 /**
+ * A full sample structure for a course that has none — three modules of
+ * video, reading and a quick check, worded from its own title — so no course
+ * in the demo ever opens onto an empty page.
+ */
+export function sampleModulesFor(item: Pick<ContentItem, "id" | "title">): ContentModule[] {
+  const plan: { title: string; units: { title: string; kinds: LearningBlockKind[] }[] }[] = [
+    {
+      title: "Getting started",
+      units: [
+        { title: `Why ${item.title} matters`, kinds: ["Video", "Text"] },
+        { title: "What you will be able to do", kinds: ["Text"] },
+      ],
+    },
+    {
+      title: "Core skills",
+      units: [
+        { title: "The key ideas", kinds: ["Video", "Text"] },
+        { title: "Try it on your own work", kinds: ["Text", "Document"] },
+        { title: "Check your understanding", kinds: ["Question"] },
+      ],
+    },
+    {
+      title: "Putting it into practice",
+      units: [
+        { title: "A worked federal example", kinds: ["Video", "Text"] },
+        { title: "Final check", kinds: ["Question"] },
+      ],
+    },
+  ];
+  return plan.map((module, mi) => ({
+    id: `${item.id}-s${mi + 1}`,
+    title: module.title,
+    units: module.units.map((unit, ui) => {
+      const u = `${item.id}-s${mi + 1}-u${ui + 1}`;
+      return {
+        id: u,
+        title: unit.title,
+        mins: unit.kinds.includes("Video") ? 12 : 8,
+        blocks: unit.kinds.map((kind, bi): LearningBlock => {
+          const id = `${u}-b${bi + 1}`;
+          if (kind === "Video") return { id, kind, title: `${unit.title} — video`, fileName: `${u}.mp4` };
+          if (kind === "Document") return { id, kind, title: "Worksheet", fileName: `${u}-worksheet.pdf` };
+          if (kind === "Question")
+            return {
+              id,
+              kind,
+              title: "Quick check",
+              question: {
+                prompt: `Which of these is the best first step when applying ${item.title} at work?`,
+                options: ["Define the task and who it affects", "Start with the tool", "Skip the human review"],
+                correctIndex: 0,
+              },
+            };
+          return {
+            id,
+            kind,
+            title: "Reading",
+            text: `${unit.title}.\n\nA short reading learners work through before moving on.`,
+          };
+        }),
+      };
+    }),
+  }));
+}
+
+/**
  * Modules for any library item: its own, else its learner course's, else —
- * for a Coursera import — the course's module list laid out in full.
+ * for a Coursera import — the course's module list laid out in full, else a
+ * full sample structure. Never empty.
  */
 export function structureOf(item: ContentItem): ContentModule[] {
+  const resolved = resolveStructure(item);
+  return resolved.length > 0 ? resolved : sampleModulesFor(item);
+}
+
+function resolveStructure(item: ContentItem): ContentModule[] {
   const hasUnits = item.modules?.some((m) => m.units.length > 0);
   if (item.modules && (hasUnits || item.source !== "Coursera")) return item.modules;
   const course = item.courseId ? COURSE_BY_ID[item.courseId] : undefined;

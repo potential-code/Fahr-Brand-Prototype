@@ -111,7 +111,9 @@ const EMPTY_STATE: ConsoleState = {
   cancelledSessionIds: [],
 };
 
-const STORAGE_KEY = "fahr.console.session.v1";
+// Bumped when the stored shape changes: a session saved by an earlier build
+// (courses without modules, retired statuses) is discarded, not half-read.
+const STORAGE_KEY = "fahr.console.session.v2";
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
@@ -854,7 +856,7 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
         status: "Imported",
         updatedOn: today(),
         owner: `Coursera · ${course.partner}`,
-        cover: "brand/landing/ecosystem-3.jpg",
+        cover: course.cover,
         pointsPerUnit: 10,
         certificate: false,
         learners: 0,

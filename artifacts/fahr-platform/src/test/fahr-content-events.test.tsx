@@ -14,7 +14,8 @@ import { COURSERA_CATALOGUE } from "@/lib/federal/fahrConsole";
 import { COURSE_BY_ID } from "@/lib/learningData";
 import FAHRCourseEditor from "@/pages/FAHRCourseEditor";
 import { Route } from "wouter";
-import { applyEditsToCourse, courseToModules } from "@/lib/contentLibrary";
+import { applyEditsToCourse, courseToModules, structureOf } from "@/lib/contentLibrary";
+import { CONTENT_ITEMS } from "@/lib/federal";
 import { matchesAudience } from "@/lib/events";
 import { FOCUS, PEOPLE } from "@/lib/federal";
 
@@ -153,6 +154,26 @@ describe("course editor", () => {
 
     await user.click(screen.getByTestId("button-toggle-publish"));
     expect(screen.getByTestId("probe-status").textContent ?? "").toContain("Writing Service Replies with AI::Published");
+  });
+});
+
+describe("never empty", () => {
+  it("gives a course with no modules a full structure", () => {
+    const modules = structureOf({
+      id: "ct-x", title: "Empty course", type: "Course", competencyId: "literacy", language: "English",
+      version: "v1", status: "Draft", updatedOn: "", owner: "", modules: [],
+    });
+    expect(modules.length).toBeGreaterThan(0);
+    expect(modules.every((m) => m.units.length > 0 && m.units.every((u) => u.blocks.length > 0))).toBe(true);
+  });
+
+  it("opens every seeded course with modules in the editor", () => {
+    for (const item of CONTENT_ITEMS) {
+      window.sessionStorage.clear();
+      cleanup();
+      renderScreen(<Route path="/fahr/content/:contentId" component={FAHRCourseEditor} />, `/fahr/content/${item.id}`);
+      expect(screen.queryByText("No modules yet")).toBeNull();
+    }
   });
 });
 

@@ -751,6 +751,11 @@ export type CourseraCourse = {
   summary: string;
   /** Module titles, shown in the preview before import. */
   syllabus: string[];
+  /** Cover image path, relative to the app's base URL. */
+  cover: string;
+  /** Coursera learner rating out of 5, and learners enrolled worldwide. */
+  rating: number;
+  enrolled: number;
 };
 
 export const COURSERA_CATALOGUE: CourseraCourse[] = [
@@ -763,6 +768,9 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     level: "Beginner",
     summary: "What generative and agentic AI can and cannot do, for non-technical staff.",
     syllabus: ["What AI is — and is not", "Building AI projects", "AI in your organisation", "AI and society"],
+    cover: "brand/landing/stakeholder-entity.jpg",
+    rating: 4.8,
+    enrolled: 1540000,
   },
   {
     id: "crs-prompt-eng",
@@ -773,6 +781,9 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     level: "Intermediate",
     summary: "Patterns for structured, context-rich instructions that produce reliable output.",
     syllabus: ["Prompt patterns", "Persona and context", "Few-shot examples", "Evaluating outputs"],
+    cover: "brand/landing/hero-bg.jpg",
+    rating: 4.8,
+    enrolled: 612000,
   },
   {
     id: "crs-data-analysis",
@@ -783,6 +794,9 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     level: "Intermediate",
     summary: "Turning service and campaign data into decisions with an AI assistant.",
     syllabus: ["Framing an analytical question", "Cleaning data with an assistant", "Reading the result critically", "Presenting a decision"],
+    cover: "brand/landing/stakeholder-fahr.jpg",
+    rating: 4.7,
+    enrolled: 238000,
   },
   {
     id: "crs-agentic",
@@ -793,6 +807,9 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     level: "Advanced",
     summary: "Designing multi-step agents with human checkpoints and measurable outcomes.",
     syllabus: ["Agents and tools", "Planning and memory", "Human checkpoints", "Measuring outcomes"],
+    cover: "brand/landing/ecosystem-agents.jpg",
+    rating: 4.7,
+    enrolled: 97000,
   },
   {
     id: "crs-ai-ethics",
@@ -803,6 +820,9 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     level: "Intermediate",
     summary: "Accountability, bias and personal-data handling in public-sector AI.",
     syllabus: ["Accountability", "Bias and fairness", "Personal data", "Governance in practice"],
+    cover: "brand/landing/stakeholder-leadership.jpg",
+    rating: 4.6,
+    enrolled: 154000,
   },
   {
     id: "crs-ml-foundations",
@@ -813,5 +833,8 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     level: "Beginner",
     summary: "Enough of the mechanics to commission and read an AI project honestly.",
     syllabus: ["How models learn", "Data you need", "Commissioning an AI project", "Reading results honestly"],
+    cover: "brand/landing/cta-band.jpg",
+    rating: 4.6,
+    enrolled: 181000,
   },
 ];
