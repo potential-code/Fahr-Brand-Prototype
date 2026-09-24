@@ -946,11 +946,7 @@ export default function FAHRDashboard() {
                       {personCredentials.length > 0 && (
                         <p className="text-xs text-muted-foreground">
                           {personCredentials.length} credential
-                          {personCredentials.length === 1 ? "" : "s"} issued against these projects —{" "}
-                          <Link href="/fahr/credentials" className="text-primary underline-offset-4 hover:underline">
-                            open the national register
-                          </Link>
-                          .
+                          {personCredentials.length === 1 ? "" : "s"} issued against these projects.
                         </p>
                       )}
                     </div>

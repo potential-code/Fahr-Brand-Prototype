@@ -50,7 +50,6 @@ import {
   ChevronsUpDown,
   ChevronRight,
   UserPlus,
-  KeyRound,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -88,7 +87,7 @@ const entityName = (id?: string): string => (id ? MINISTRY_BY_ID[id]?.shortName 
 export default function FAHRUsers() {
   const { toast } = useToast();
   const { people, submissions, ministries } = useFederalData();
-  const { users, setUserRole, setUserStatus, inviteUser } = useFahrConsole();
+  const { users, setUserStatus, inviteUser } = useFahrConsole();
 
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -198,11 +197,6 @@ export default function FAHRUsers() {
     setInviteOpen(false);
   };
 
-  const handleRoleChange = (userId: string, roleLabel: string) => {
-    setUserRole(userId, roleLabel, { by: "FAHR Programme Team" });
-    toast({ title: "Role changed", description: `Platform role set to ${roleLabel}.` });
-  };
-
   const handleToggleStatus = (user: PlatformUser) => {
     const next: PlatformUser["status"] = user.status === "Suspended" ? "Active" : "Suspended";
     setUserStatus(user.id, next, { by: "FAHR Programme Team" });
@@ -248,13 +242,6 @@ export default function FAHRUsers() {
             { label: "Suspended", value: String(counts.suspended) },
             { label: "Federal-role holders", value: String(counts.federal) },
           ],
-        },
-        {
-          heading: "Role catalogue",
-          table: {
-            headers: ["Role", "Scope", "Permissions"],
-            rows: FEDERAL_ROLES.map((r) => [r.label, r.scope, r.permissions.join("; ")]),
-          },
         },
         {
           heading: "Accounts",
@@ -329,53 +316,13 @@ export default function FAHRUsers() {
           ))}
         </Stagger>
 
-        {/* Role catalogue */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <KeyRound className="h-5 w-5 text-primary" /> Role catalogue
-            </CardTitle>
-            <CardDescription>What each platform role grants, and the scope it operates at.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {FEDERAL_ROLES.map((role) => (
-                <div key={role.id} className="rounded-lg border border-border p-4" data-testid={`role-${role.id}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium text-foreground">{role.label}</p>
-                    <Badge
-                      variant="outline"
-                      className={
-                        role.scope === "Federal"
-                          ? "text-primary border-primary/30 bg-primary/5"
-                          : "text-muted-foreground"
-                      }
-                    >
-                      {role.scope}
-                    </Badge>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{role.description}</p>
-                  <ul className="mt-2 space-y-0.5">
-                    {role.permissions.map((p) => (
-                      <li key={p} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-primary/60" />
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* User directory */}
         <Card>
           <CardHeader className="gap-4">
             <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
               <div>
                 <CardTitle className="text-lg">User directory</CardTitle>
-                <CardDescription>Change a role or status inline, or open a user for their detail.</CardDescription>
+                <CardDescription>Set a status inline, or open a user for their detail.</CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="relative">
@@ -464,17 +411,10 @@ export default function FAHRUsers() {
                             <span className="block">{u.name}</span>
                             <span className="block text-xs font-normal text-muted-foreground">{u.email}</span>
                           </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <Select value={u.roleLabel} onValueChange={(v) => handleRoleChange(u.id, v)}>
-                              <SelectTrigger className="h-8 w-48 text-xs" data-testid={`select-user-role-${u.id}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {FEDERAL_ROLES.map((r) => (
-                                  <SelectItem key={r.id} value={r.label}>{r.label}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          <TableCell className="cursor-pointer" onClick={() => setSelectedId(u.id)}>
+                            <span className="text-sm text-foreground" data-testid={`text-user-role-${u.id}`}>
+                              {u.roleLabel}
+                            </span>
                           </TableCell>
                           <TableCell className="cursor-pointer text-sm" onClick={() => setSelectedId(u.id)}>
                             {entityName(u.ministryId)}
@@ -613,16 +553,12 @@ export default function FAHRUsers() {
                 <div className="space-y-3 rounded-md border border-border p-4">
                   <div className="grid gap-1.5">
                     <Label className="text-sm">Platform role</Label>
-                    <Select value={selected.roleLabel} onValueChange={(v) => handleRoleChange(selected.id, v)}>
-                      <SelectTrigger data-testid="select-detail-role">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FEDERAL_ROLES.map((r) => (
-                          <SelectItem key={r.id} value={r.label}>{r.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <p
+                      className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-foreground"
+                      data-testid="text-detail-role"
+                    >
+                      {selected.roleLabel}
+                    </p>
                   </div>
                   <Button
                     variant={selected.status === "Suspended" ? "default" : "outline"}

@@ -43,9 +43,7 @@ import FAHRDashboard from "@/pages/FAHRDashboard";
 import FAHRGovernance from "@/pages/FAHRGovernance";
 import FAHREntities from "@/pages/FAHREntities";
 import FAHRUsers from "@/pages/FAHRUsers";
-import FAHRFramework from "@/pages/FAHRFramework";
 import FAHREscalations from "@/pages/FAHREscalations";
-import FAHRCredentials from "@/pages/FAHRCredentials";
 import FAHRIntegrations from "@/pages/FAHRIntegrations";
 import FAHRCommunications from "@/pages/FAHRCommunications";
 import FAHRReports from "@/pages/FAHRReports";
@@ -156,10 +154,8 @@ function Router() {
       <Route path="/fahr" component={FAHRDashboard} />
       <Route path="/fahr/entities" component={FAHREntities} />
       <Route path="/fahr/users" component={FAHRUsers} />
-      <Route path="/fahr/framework" component={FAHRFramework} />
       <Route path="/fahr/governance" component={FAHRGovernance} />
       <Route path="/fahr/escalations" component={FAHREscalations} />
-      <Route path="/fahr/credentials" component={FAHRCredentials} />
       <Route path="/fahr/integrations" component={FAHRIntegrations} />
       <Route path="/fahr/communications" component={FAHRCommunications} />
       <Route path="/fahr/reports" component={FAHRReports} />

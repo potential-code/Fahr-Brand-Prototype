@@ -263,7 +263,6 @@ export type FahrConsoleValue = {
 
   // Users.
   users: PlatformUser[];
-  setUserRole: (userId: string, roleLabel: string, options?: ConsoleActionOptions) => void;
   setUserStatus: (userId: string, status: PlatformUser["status"], options?: ConsoleActionOptions) => void;
   inviteUser: (invite: UserInvite) => string | null;
 
@@ -540,26 +539,6 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
         return { ...user, roleLabel: patch.roleLabel ?? user.roleLabel, status: patch.status ?? user.status };
       }),
     [state.invitedUsers, state.userPatches],
-  );
-
-  const setUserRole = useCallback(
-    (userId: string, roleLabel: string, options?: ConsoleActionOptions) => {
-      const user = [...state.invitedUsers, ...PLATFORM_USERS].find((u) => u.id === userId);
-      if (!user) return;
-      update((prev) => ({
-        ...prev,
-        userPatches: { ...prev.userPatches, [userId]: { ...prev.userPatches[userId], roleLabel } },
-      }));
-      recordAudit({
-        actor: options?.by ?? "FAHR Programme Team",
-        agent: "Human decision",
-        action: `Changed ${user.name}'s platform role to ${roleLabel}`,
-        risk: roleLabel.startsWith("FAHR") ? "Medium" : "Low",
-        status: "Applied",
-        ministryId: user.ministryId,
-      });
-    },
-    [recordAudit, state.invitedUsers, update],
   );
 
   const setUserStatus = useCallback(
@@ -1000,7 +979,6 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
       createApiCredential,
       revokeApiCredential,
       users,
-      setUserRole,
       setUserStatus,
       inviteUser,
       competencies,
@@ -1036,7 +1014,6 @@ export function FahrConsoleProvider({ children }: { children: React.ReactNode })
       createApiCredential,
       revokeApiCredential,
       users,
-      setUserRole,
       setUserStatus,
       inviteUser,
       competencies,

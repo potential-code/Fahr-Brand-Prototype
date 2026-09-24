@@ -156,10 +156,8 @@ export function Layout({
           { href: "/fahr/reports", label: "Reports", icon: BarChart3 },
           { href: "/fahr/entities", label: "Entities", icon: Landmark },
           { href: "/fahr/users", label: "Users", icon: UserCog },
-          { href: "/fahr/framework", label: "Framework & Catalogue", icon: BookOpen },
           { href: "/fahr/governance", label: t("nav.governance"), icon: ShieldCheck },
           { href: "/fahr/escalations", label: "Escalations", icon: AlertTriangle },
-          { href: "/fahr/credentials", label: "Credential Registry", icon: BadgeCheck },
           { href: "/fahr/integrations", label: "Integrations", icon: Plug },
           { href: "/fahr/communications", label: "Communications", icon: Megaphone },
         ];
