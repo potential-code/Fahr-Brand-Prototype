@@ -253,7 +253,7 @@ export default function FAHRContent() {
               <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold tracking-tight">coursera</span>
+                    <span className="text-2xl font-bold tracking-tight">Coursera</span>
                     <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">for Government</span>
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/20 px-2.5 py-0.5 text-xs font-medium text-emerald-100">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" /> Connected
