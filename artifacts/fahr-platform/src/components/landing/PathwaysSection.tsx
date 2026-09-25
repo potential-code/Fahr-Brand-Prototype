@@ -93,7 +93,7 @@ export function PathwaysSection({ onSelect }: { onSelect: (role: Stakeholder) =>
                     />
                     <span
                       aria-hidden
-                      className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-primary transition-transform duration-500 group-hover:scale-x-100"
+                      className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-primary transition-transform duration-500 group-hover:scale-x-100 rtl:origin-right"
                     />
 
                     <span className="absolute start-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/35 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/85 backdrop-blur-sm">

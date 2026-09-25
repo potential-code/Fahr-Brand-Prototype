@@ -43,7 +43,11 @@ export function HeroSection({ onPrimary }: { onPrimary: () => void }) {
           decoding="async"
         />
       </Parallax>
-      <div aria-hidden className="absolute inset-0 z-10 bg-gradient-to-r from-black/88 via-black/60 to-black/25" />
+      {/* Scrim anchored to the side the copy sits on, so it mirrors with the text in Arabic. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 z-10 bg-gradient-to-r from-black/88 via-black/60 to-black/25 rtl:bg-gradient-to-l"
+      />
       <div aria-hidden className="absolute inset-0 z-10 bg-gradient-to-t from-black/70 via-transparent to-black/40" />
       <LightSweep className="z-20" delay={0.9} />
 

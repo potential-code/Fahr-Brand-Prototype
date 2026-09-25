@@ -183,7 +183,7 @@ export function EcosystemSection() {
                     {isActive && !reduced && (
                       <motion.span
                         aria-hidden
-                        className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-primary/60"
+                        className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-primary/60 rtl:origin-right"
                         style={{ scaleX: progress }}
                       />
                     )}

@@ -26,6 +26,7 @@ import {
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { cn } from "@/lib/utils";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -387,22 +388,44 @@ export function TiltCard({
   );
 }
 
+/* -------------------------------------------------------------- Direction */
+
+/**
+ * `1` while the page reads left-to-right, `-1` while it reads right-to-left.
+ *
+ * Transforms are physical: `x: 40` moves right in both directions. Anything
+ * whose motion carries meaning along the reading axis multiplies by this so the
+ * gesture mirrors with the language instead of running backwards in Arabic.
+ */
+export function useInlineDirection(): 1 | -1 {
+  const { language } = useLanguage();
+  return language === "ar" ? -1 : 1;
+}
+
 /* ------------------------------------------------------------- Decorations */
 
-/** A single diagonal light pass over a photo or band, played once in view. */
+/**
+ * A single diagonal light pass over a photo or band, played once in view.
+ *
+ * The travel is an inline-axis move, so it runs right-to-left in Arabic. It has
+ * to be computed rather than declared with an `rtl:` class: framer-motion writes
+ * the whole `transform` inline, which beats any Tailwind transform utility on
+ * the same element — the skew is part of the animated target for that reason.
+ */
 export function LightSweep({ className, delay = 0.2 }: { className?: string; delay?: number }) {
   const reduced = useReducedMotion();
+  const sign = useInlineDirection();
   if (reduced) return null;
   return (
     <motion.span
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-y-0 -inset-x-1/3 z-20 w-1/3 skew-x-12",
+        "pointer-events-none absolute inset-y-0 -inset-x-1/3 z-20 w-1/3",
         "bg-gradient-to-r from-transparent via-white/25 to-transparent",
         className,
       )}
-      initial={{ x: "-40%", opacity: 0 }}
-      whileInView={{ x: "420%", opacity: [0, 1, 0] }}
+      initial={{ x: `${-40 * sign}%`, skewX: 12 * sign, opacity: 0 }}
+      whileInView={{ x: `${420 * sign}%`, skewX: 12 * sign, opacity: [0, 1, 0] }}
       viewport={{ once: true, amount: 0.4 }}
       transition={{ duration: 1.5, delay, ease: "easeInOut" }}
     />
@@ -434,7 +457,7 @@ export function ScrollProgressBar({ className }: { className?: string }) {
   return (
     <motion.span
       aria-hidden
-      className={cn("absolute inset-x-0 bottom-0 h-0.5 origin-left bg-primary/80", className)}
+      className={cn("absolute inset-x-0 bottom-0 h-0.5 origin-left bg-primary/80 rtl:origin-right", className)}
       style={{ scaleX }}
     />
   );
