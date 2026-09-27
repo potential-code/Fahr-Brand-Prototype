@@ -258,8 +258,8 @@ export default function PersonalisedLearningPathway() {
             </p>
             <h2 className="mt-1 text-lg font-bold text-foreground">Every step, in sequence</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Courses, microlearning, live sessions, practical work and your re-check in one pathway. Activities
-              unlock as you complete the one before.
+              Courses, microlearning, live sessions, practical work and your re-check in one pathway. Take them in
+              order, or open any step when you are ready.
             </p>
           </div>
 

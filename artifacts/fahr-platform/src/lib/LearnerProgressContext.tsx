@@ -80,10 +80,8 @@ const STORAGE_KEY = "fahr.learner.progress.v1";
 
 const EMPTY_COURSE: CourseProgress = { completedLessonIds: [], pretestDone: false, finalDone: false };
 
-/** Seeded so the demo opens with one course already part-way through. */
-const SEED_COURSE_PROGRESS: Record<string, CourseProgress> = {
-  "ai-foundations": { completedLessonIds: ["l1", "l2", "l3"], pretestDone: false, finalDone: false },
-};
+/** A freshly built pathway has no progress: every course starts at 0%. */
+const SEED_COURSE_PROGRESS: Record<string, CourseProgress> = {};
 
 const INITIAL_STATE: State = {
   answers: {},

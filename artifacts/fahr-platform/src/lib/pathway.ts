@@ -102,10 +102,10 @@ export type PathwayItem = {
 export type ItemStatus = "completed" | "in-progress" | "recommended" | "available" | "locked";
 
 /**
- * Gating rule for the pathway, kept pure so the page never has to reason about
- * it: courses stay open at any time, and the activities between them unlock in
- * order — the first incomplete one is in progress, the next is recommended,
- * everything after that is locked.
+ * Status rule for the pathway, kept pure so the page never has to reason about
+ * it. Nothing is locked: courses and activities can be opened in any order.
+ * The first incomplete activity is in progress, the next is recommended, and
+ * everything after that is available.
  */
 export function derivePathwayStatuses(
   items: PathwayItem[],
@@ -120,8 +120,10 @@ export function derivePathwayStatuses(
       return percent > 0 ? "in-progress" : "available";
     }
     if (completedActivityIds.includes(item.id)) return "completed";
+    // Nothing is gated: the next two open activities are highlighted and the
+    // rest stay available, so any step can be opened in any order.
     const status: ItemStatus =
-      incompleteActivities === 0 ? "in-progress" : incompleteActivities === 1 ? "recommended" : "locked";
+      incompleteActivities === 0 ? "in-progress" : incompleteActivities === 1 ? "recommended" : "available";
     incompleteActivities += 1;
     return status;
   });
