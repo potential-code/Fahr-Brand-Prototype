@@ -25,6 +25,7 @@ import {
   GAP_TRENDS,
   MINISTRIES,
   PEOPLE,
+  SUBMISSIONS,
 } from "./seed";
 
 export const MINISTRY_BY_ID: Record<string, Ministry> = Object.fromEntries(
@@ -40,8 +41,7 @@ function buildDepartments(): Department[] {
     const employees = distribute(ministry.employees, seeds.map((s) => s.employeeWeight));
     const learners = distribute(ministry.activeLearners, seeds.map((s) => s.learnerWeight));
     const twins = distribute(ministry.twins, seeds.map((s) => s.learnerWeight));
-    const projects = distribute(ministry.projectsSubmitted, seeds.map((s) => s.learnerWeight));
-    const hours = distribute(ministry.hoursSavedPerMonth, seeds.map((s) => s.learnerWeight));
+
     const readiness = normaliseReadiness(
       ministry.readiness,
       employees,
@@ -56,8 +56,7 @@ function buildDepartments(): Department[] {
         activeLearners: Math.min(learners[i], employees[i]),
         readiness: readiness[i],
         twins: twins[i],
-        projects: projects[i],
-        hoursSavedPerMonth: hours[i],
+        ...departmentProjects(`${ministry.id}-${seed.id}`),
         risk: riskForReadiness(readiness[i]),
       });
     });
@@ -146,6 +145,17 @@ export const FEDERAL: FederalTotals = (() => {
     coverage: Math.round((activeLearners / employees) * 100),
   };
 })();
+
+/** A department's projects and the hours its live ones return, counted from the projects that exist. */
+function departmentProjects(departmentId: string) {
+  const own = SUBMISSIONS.filter((s) => s.departmentId === departmentId);
+  return {
+    projects: own.length,
+    hoursSavedPerMonth: own
+      .filter((s) => s.state === "endorsed" || s.state === "deployed")
+      .reduce((n, s) => n + s.hoursSavedPerMonth, 0),
+  };
+}
 
 /** Ministry figures with the department roll-up alongside, for drill-downs. */
 export function ministryRollup(ministryId: string) {

@@ -33,9 +33,10 @@ export const FOCUS = {
 /**
  * Fourteen federal entities. Employees sum to 80,000, active learners to
  * 41,850 and the employee-weighted readiness mean rounds to 64 — the figures
- * the leadership and FAHR views headline.
+ * the leadership and FAHR views headline. Project figures are not authored
+ * here: `MINISTRIES` counts them from the projects that exist.
  */
-export const MINISTRIES: Ministry[] = [
+const MINISTRY_SEEDS: Omit<Ministry, ProjectFigureKey>[] = [
   {
     id: "mohap",
     name: "Ministry of Health and Prevention",
@@ -44,9 +45,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 3940,
     readiness: 68,
     twins: 260,
-    projectsSubmitted: 57,
-    projectsLive: 17,
-    hoursSavedPerMonth: 760,
     credentialsIssued: 260,
     topGapCompetencyId: "agentic",
     entityAdmin: "Noura Al Kaabi",
@@ -61,9 +59,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 8200,
     readiness: 71,
     twins: 715,
-    projectsSubmitted: 151,
-    projectsLive: 45,
-    hoursSavedPerMonth: 2020,
     credentialsIssued: 540,
     topGapCompetencyId: "prompting",
     entityAdmin: "Ahmed Al Shamsi",
@@ -78,9 +73,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 1850,
     readiness: 82,
     twins: 230,
-    projectsSubmitted: 76,
-    projectsLive: 23,
-    hoursSavedPerMonth: 1040,
     credentialsIssued: 165,
     topGapCompetencyId: "analytics",
     entityAdmin: "Latifa Al Marzooqi",
@@ -95,9 +87,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 2900,
     readiness: 75,
     twins: 345,
-    projectsSubmitted: 68,
-    projectsLive: 20,
-    hoursSavedPerMonth: 900,
     credentialsIssued: 215,
     topGapCompetencyId: "agentic",
     entityAdmin: "Hamad Al Falasi",
@@ -112,9 +101,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 1700,
     readiness: 66,
     twins: 110,
-    projectsSubmitted: 22,
-    projectsLive: 7,
-    hoursSavedPerMonth: 320,
     credentialsIssued: 95,
     topGapCompetencyId: "analytics",
     entityAdmin: "Shamma Al Hosani",
@@ -129,9 +115,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 2300,
     readiness: 65,
     twins: 145,
-    projectsSubmitted: 30,
-    projectsLive: 9,
-    hoursSavedPerMonth: 400,
     credentialsIssued: 125,
     topGapCompetencyId: "agentic",
     entityAdmin: "Rashid Al Muhairi",
@@ -146,9 +129,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 1250,
     readiness: 70,
     twins: 100,
-    projectsSubmitted: 20,
-    projectsLive: 6,
-    hoursSavedPerMonth: 270,
     credentialsIssued: 75,
     topGapCompetencyId: "governance",
     entityAdmin: "Maitha Al Suwaidi",
@@ -163,9 +143,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 1080,
     readiness: 88,
     twins: 130,
-    projectsSubmitted: 34,
-    projectsLive: 10,
-    hoursSavedPerMonth: 450,
     credentialsIssued: 115,
     topGapCompetencyId: "governance",
     entityAdmin: "Sultan Al Neyadi",
@@ -180,9 +157,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 2150,
     readiness: 63,
     twins: 135,
-    projectsSubmitted: 25,
-    projectsLive: 8,
-    hoursSavedPerMonth: 360,
     credentialsIssued: 105,
     topGapCompetencyId: "prompting",
     entityAdmin: "Khalifa Al Mansouri",
@@ -197,9 +171,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 6300,
     readiness: 58,
     twins: 400,
-    projectsSubmitted: 68,
-    projectsLive: 20,
-    hoursSavedPerMonth: 900,
     credentialsIssued: 275,
     topGapCompetencyId: "literacy",
     entityAdmin: "Obaid Al Ketbi",
@@ -214,9 +185,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 1480,
     readiness: 55,
     twins: 80,
-    projectsSubmitted: 17,
-    projectsLive: 5,
-    hoursSavedPerMonth: 220,
     credentialsIssued: 70,
     topGapCompetencyId: "governance",
     entityAdmin: "Salem Al Dhaheri",
@@ -231,9 +199,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 1300,
     readiness: 61,
     twins: 75,
-    projectsSubmitted: 16,
-    projectsLive: 5,
-    hoursSavedPerMonth: 220,
     credentialsIssued: 60,
     topGapCompetencyId: "analytics",
     entityAdmin: "Amal Al Qubaisi",
@@ -248,9 +213,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 1200,
     readiness: 65,
     twins: 65,
-    projectsSubmitted: 18,
-    projectsLive: 5,
-    hoursSavedPerMonth: 220,
     credentialsIssued: 55,
     topGapCompetencyId: "prompting",
     entityAdmin: "Reem Al Hashimi",
@@ -265,9 +227,6 @@ export const MINISTRIES: Ministry[] = [
     activeLearners: 6200,
     readiness: 61,
     twins: 280,
-    projectsSubmitted: 23,
-    projectsLive: 7,
-    hoursSavedPerMonth: 320,
     credentialsIssued: 255,
     topGapCompetencyId: "analytics",
     entityAdmin: "Younis Al Khoori",
@@ -906,6 +865,26 @@ export const SUBMISSIONS: Submission[] = [
 ];
 
 /** Decisions already taken before the demo starts. */
+type ProjectFigureKey = "projectsSubmitted" | "projectsLive" | "hoursSavedPerMonth";
+
+/**
+ * An entity's project figures, counted from the projects that actually exist,
+ * so every total matches a list someone can open. Live means endorsed by the
+ * entity or approved by FAHR; hours are what those live projects return.
+ */
+export function projectFigures(submissions: Submission[], ministryId: string): Pick<Ministry, ProjectFigureKey> {
+  const own = submissions.filter((s) => s.ministryId === ministryId);
+  const live = own.filter((s) => s.state === "endorsed" || s.state === "deployed");
+  return {
+    projectsSubmitted: own.length,
+    projectsLive: live.length,
+    hoursSavedPerMonth: live.reduce((n, s) => n + s.hoursSavedPerMonth, 0),
+  };
+}
+
+/** Fourteen federal entities, with project figures counted from `SUBMISSIONS`. */
+export const MINISTRIES: Ministry[] = MINISTRY_SEEDS.map((m) => ({ ...m, ...projectFigures(SUBMISSIONS, m.id) }));
+
 export const APPROVALS: ApprovalRecord[] = [
   { id: "a1", submissionId: "s2", role: "manager", decision: "signed_off", by: "Noura Al Kaabi", on: "9 June 2026" },
   { id: "a2", submissionId: "s2", role: "ministry", decision: "endorsed", by: "Noura Al Kaabi", on: "14 June 2026", note: "Approved for a six-clinic pilot." },

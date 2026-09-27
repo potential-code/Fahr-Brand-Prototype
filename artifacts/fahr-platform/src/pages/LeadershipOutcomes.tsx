@@ -4,7 +4,7 @@ import { RecognitionBand } from "@/components/recognition/RecognitionSurface";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
 import { useFederalData } from "@/lib/FederalDataContext";
-import { FEDERAL, METRICS, NATIONAL_TARGET, workingDaysPerYear } from "@/lib/federal";
+import { FEDERAL, METRICS, NATIONAL_TARGET, nationalLine, workingDaysPerYear } from "@/lib/federal";
 import { PageEnter, Stagger, StaggerItem, CountUp, ChartReveal } from "@/components/motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Rocket, Clock, Award } from "lucide-react";
@@ -15,7 +15,8 @@ import { useLiveProjects } from "@/components/leadership/LiveProjects";
 
 export default function LeadershipOutcomes() {
   const { ministries } = useFederalData();
-  // Projects that went live in this session sit on top of the static national record.
+  // Counted from the live project list; the session figures only label what is new.
+  const national = useMemo(() => nationalLine(ministries), [ministries]);
   const { session } = useLiveProjects();
   const hasSession = session.count > 0;
 
@@ -31,14 +32,14 @@ export default function LeadershipOutcomes() {
   }[] = [
     {
       label: METRICS.projectsLive.label,
-      value: FEDERAL.projectsLive + session.count,
+      value: national.projectsLive,
       icon: Rocket,
-      caption: `of ${FEDERAL.projectsSubmitted.toLocaleString()} submitted · ${METRICS.projectsLive.caption.toLowerCase()}`,
+      caption: `of ${national.projects.toLocaleString()} submitted · ${METRICS.projectsLive.caption.toLowerCase()}`,
       delta: hasSession ? `+${session.count} this session` : undefined,
     },
     {
       label: METRICS.hoursSaved.label,
-      value: FEDERAL.hoursSavedPerMonth + session.hoursSaved,
+      value: national.hoursSavedPerMonth,
       icon: Clock,
       caption: METRICS.hoursSaved.caption,
       delta: hasSession ? `+${session.hoursSaved.toLocaleString()} h this session` : undefined,
@@ -104,8 +105,8 @@ export default function LeadershipOutcomes() {
           <Card className="h-full border-0 shadow-none bg-transparent">
             <CardHeader className="px-0 pt-0">
               <CardDescription>
-                Top 5 entities by hours returned a month, of {FEDERAL.hoursSavedPerMonth.toLocaleString()} nationally from{" "}
-                {FEDERAL.projectsLive.toLocaleString()} live projects
+                Top 5 entities by hours returned a month, of {national.hoursSavedPerMonth.toLocaleString()} nationally from{" "}
+                {national.projectsLive.toLocaleString()} live projects
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0 pb-0 h-[300px]">
@@ -190,7 +191,7 @@ export default function LeadershipOutcomes() {
               className="bg-primary/5 border-primary/20"
             >
               <div className="text-sm space-y-3">
-                <p>{FEDERAL.projectsLive.toLocaleString()} of {FEDERAL.projectsSubmitted.toLocaleString()} submitted projects are live, returning an estimated <strong>{FEDERAL.hoursSavedPerMonth.toLocaleString()} hours a month</strong> — about {workingDaysPerYear(FEDERAL.hoursSavedPerMonth).toLocaleString()} working days a year.</p>
+                <p>{national.projectsLive.toLocaleString()} of {national.projects.toLocaleString()} submitted projects are live, returning an estimated <strong>{national.hoursSavedPerMonth.toLocaleString()} hours a month</strong> — about {workingDaysPerYear(national.hoursSavedPerMonth).toLocaleString()} working days a year.</p>
                 <p>Most of that time comes back in policy analysis and customer service delivery, where early projects automate drafting and triage.</p>
               </div>
             </AIAnalysisPanel>

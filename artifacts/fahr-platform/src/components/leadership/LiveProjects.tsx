@@ -10,7 +10,7 @@ import { ProjectBriefView } from "@/components/project/ProjectBrief";
 import { SubmissionStateBadge } from "@/components/project/SubmissionStateBadge";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { isLive } from "@/lib/federal/journey";
-import { FEDERAL, workingDaysPerYear } from "@/lib/federal/selectors";
+import { workingDaysPerYear } from "@/lib/federal/selectors";
 import type { ApprovalRecord, Submission } from "@/lib/federal/model";
 
 /** Seeded live projects shown under the ones that went live this session. */
@@ -177,8 +177,8 @@ export function LiveProjectsCard() {
   }, [requested]);
 
   const shown = [...fresh, ...seeded.slice(0, SEEDED_SHOWN)];
-  /** National live count: the seeded roll-up plus anything that went live this session. */
-  const totalLive = FEDERAL.projectsLive + fresh.length;
+  /** Every live project that exists, this session's included. */
+  const totalLive = all.length;
   const selected = openId ? all.find((p) => p.submission.id === openId)?.submission : undefined;
 
   const close = () => {

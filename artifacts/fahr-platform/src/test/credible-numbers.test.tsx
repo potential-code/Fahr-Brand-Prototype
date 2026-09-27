@@ -5,7 +5,7 @@ import React from "react";
 import { describe, it, expect, beforeEach } from "vitest";
 import { cleanup } from "@testing-library/react";
 import { renderScreen } from "./providers";
-import { FEDERAL, MINISTRIES, CAPABILITY_DISTRIBUTION } from "@/lib/federal";
+import { FEDERAL, MINISTRIES, CAPABILITY_DISTRIBUTION, SUBMISSIONS, INTEGRATIONS, COURSERA_CATALOGUE } from "@/lib/federal";
 import LeadershipDashboard from "@/pages/LeadershipDashboard";
 import LeadershipOutcomes from "@/pages/LeadershipOutcomes";
 import LeadershipBriefings from "@/pages/LeadershipBriefings";
@@ -33,6 +33,14 @@ describe("national figures add up", () => {
     expect(FEDERAL.projectsLive).toBe(sum(MINISTRIES.map((m) => m.projectsLive)));
     expect(FEDERAL.hoursSavedPerMonth).toBe(sum(MINISTRIES.map((m) => m.hoursSavedPerMonth)));
     expect(sum(Object.values(CAPABILITY_DISTRIBUTION))).toBe(FEDERAL.activeLearners);
+  });
+
+  it("counts only projects that exist", () => {
+    for (const m of MINISTRIES) {
+      expect(m.projectsSubmitted).toBe(SUBMISSIONS.filter((s) => s.ministryId === m.id).length);
+    }
+    expect(FEDERAL.projectsSubmitted).toBe(SUBMISSIONS.length);
+    expect(INTEGRATIONS.find((i) => i.id === "coursera")?.records).toBe(COURSERA_CATALOGUE.length);
   });
 
   it("stays at an early-rollout scale", () => {

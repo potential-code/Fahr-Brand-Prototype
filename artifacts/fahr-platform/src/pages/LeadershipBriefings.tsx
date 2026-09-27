@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageEnter, PanelEnter } from "@/components/motion";
 import { FileText, Loader2, Calendar, Users, Eye } from "lucide-react";
-import { FEDERAL, METRICS, NATIONAL_TARGET, ON_TRACK_READINESS, workingDaysPerYear } from "@/lib/federal";
+import { FEDERAL, METRICS, NATIONAL_TARGET, ON_TRACK_READINESS, nationalLine, workingDaysPerYear } from "@/lib/federal";
+import { useFederalData } from "@/lib/FederalDataContext";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { AGENTS } from "@/lib/constants";
 
 export default function LeadershipBriefings() {
+  const { ministries } = useFederalData();
+  const national = nationalLine(ministries);
   const [period, setPeriod] = useState("q3-2026");
   const [audience, setAudience] = useState("cabinet");
   
@@ -155,18 +158,18 @@ export default function LeadershipBriefings() {
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-2">
                         <div className="bg-muted/30 p-4 rounded-lg">
                           <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">{METRICS.hoursSaved.label}</p>
-                          <p className="text-2xl font-bold text-primary">{FEDERAL.hoursSavedPerMonth.toLocaleString()}</p>
+                          <p className="text-2xl font-bold text-primary">{national.hoursSavedPerMonth.toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground mt-1">{METRICS.hoursSaved.caption}</p>
                         </div>
                         <div className="bg-muted/30 p-4 rounded-lg">
                           <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Working days / year</p>
-                          <p className="text-2xl font-bold text-foreground">{workingDaysPerYear(FEDERAL.hoursSavedPerMonth).toLocaleString()}</p>
+                          <p className="text-2xl font-bold text-foreground">{workingDaysPerYear(national.hoursSavedPerMonth).toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground mt-1">Hours a month × 12, at 7.5 h a working day</p>
                         </div>
                         <div className="bg-muted/30 p-4 rounded-lg">
                           <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">{METRICS.projectsLive.label}</p>
-                          <p className="text-2xl font-bold text-foreground">{FEDERAL.projectsLive.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground mt-1">of {FEDERAL.projectsSubmitted.toLocaleString()} submitted</p>
+                          <p className="text-2xl font-bold text-foreground">{national.projectsLive.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground mt-1">of {national.projects.toLocaleString()} submitted</p>
                         </div>
                       </div>
                     </section>

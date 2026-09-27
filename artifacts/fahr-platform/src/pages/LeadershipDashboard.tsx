@@ -15,10 +15,11 @@ import { AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { PageEnter, Stagger, StaggerItem, CountUp, ChartReveal } from "@/components/motion";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
-import { LiveProjectsCard, useLiveProjects } from "@/components/leadership/LiveProjects";
+import { LiveProjectsCard } from "@/components/leadership/LiveProjects";
 import {
   CAPABILITY_BANDS,
   FEDERAL,
+  nationalLine,
   METRICS,
   NATIONAL_TARGET,
   ON_TRACK_READINESS,
@@ -54,8 +55,9 @@ export default function LeadershipDashboard() {
   const [grouping, setGrouping] = useState("entity");
   const [showTarget, setShowTarget] = useState(true);
 
-  const { session } = useLiveProjects();
-  const hoursPerMonth = FEDERAL.hoursSavedPerMonth + session.hoursSaved;
+  // Counted from the live project list, so this session's go-lives are already in.
+  const national = useMemo(() => nationalLine(ministries), [ministries]);
+  const hoursPerMonth = national.hoursSavedPerMonth;
   const champions = CAPABILITY_BANDS.find((b) => b.level.id === "champion")?.count ?? 0;
   const gaps = useMemo(() => nationalGaps(), []);
 
@@ -98,7 +100,7 @@ export default function LeadershipDashboard() {
     {
       label: METRICS.hoursSaved.label,
       value: hoursPerMonth,
-      subtitle: `${METRICS.hoursSaved.caption} · ${FEDERAL.projectsLive + session.count} live`,
+      subtitle: `${METRICS.hoursSaved.caption} · ${national.projectsLive} live`,
       icon: Clock,
     },
     {

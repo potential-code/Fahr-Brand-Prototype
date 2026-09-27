@@ -37,6 +37,7 @@ import {
   PEOPLE,
   SESSIONS,
   SUBMISSIONS,
+  projectFigures,
 } from "@/lib/federal/seed";
 import { levelForScore, statusForSignals } from "@/lib/federal/selectors";
 
@@ -467,20 +468,6 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
     [live],
   );
 
-  const ministries = useMemo<Ministry[]>(
-    () =>
-      MINISTRIES.map((ministry) => {
-        const quota = state.quotas[ministry.id];
-        const admin = state.entityAdmins[ministry.id];
-        if (!quota && !admin) return ministry;
-        return {
-          ...ministry,
-          tokenQuotaM: quota ?? ministry.tokenQuotaM,
-          entityAdmin: admin ?? ministry.entityAdmin,
-        };
-      }),
-    [state.quotas, state.entityAdmins],
-  );
 
   const submissions = useMemo<Submission[]>(
     () =>
@@ -495,6 +482,23 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         };
       }),
     [state.created, state.submissions],
+  );
+
+  const ministries = useMemo<Ministry[]>(
+    () =>
+      MINISTRIES.map((ministry) => {
+        const quota = state.quotas[ministry.id];
+        const admin = state.entityAdmins[ministry.id];
+        return {
+          ...ministry,
+          // Counted from the live project list, so a project submitted or taken
+          // live this session moves every total that includes it.
+          ...projectFigures(submissions, ministry.id),
+          tokenQuotaM: quota ?? ministry.tokenQuotaM,
+          entityAdmin: admin ?? ministry.entityAdmin,
+        };
+      }),
+    [state.quotas, state.entityAdmins, submissions],
   );
 
   const approvals = useMemo(() => [...APPROVALS, ...state.approvals], [state.approvals]);

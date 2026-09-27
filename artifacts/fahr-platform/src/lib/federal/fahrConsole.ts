@@ -262,7 +262,10 @@ export const INTEGRATIONS: Integration[] = [
     status: "Connected",
     lastSync: "Today, 04:20",
     direction: "Inbound",
-    records: 318,
+    // The courses actually in the catalogue, not an authored figure.
+    get records() {
+      return COURSERA_CATALOGUE.length;
+    },
     owner: "Maitha Al Suwaidi",
     dataPoints: ["Course title and summary", "Duration", "Level", "Competency tags", "Enrolment link"],
   },
@@ -766,7 +769,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["What AI is — and is not", "Building AI projects", "AI in your organisation", "AI and society"],
     cover: "brand/landing/stakeholder-entity.jpg",
     rating: 4.8,
-    enrolled: 12400,
+    enrolled: 420,
   },
   {
     id: "crs-prompt-eng",
@@ -779,7 +782,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["Prompt patterns", "Persona and context", "Few-shot examples", "Evaluating outputs"],
     cover: "brand/landing/hero-bg.jpg",
     rating: 4.8,
-    enrolled: 6850,
+    enrolled: 310,
   },
   {
     id: "crs-data-analysis",
@@ -792,7 +795,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["Framing an analytical question", "Cleaning data with an assistant", "Reading the result critically", "Presenting a decision"],
     cover: "brand/landing/stakeholder-fahr.jpg",
     rating: 4.7,
-    enrolled: 2310,
+    enrolled: 180,
   },
   {
     id: "crs-agentic",
@@ -805,7 +808,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["Agents and tools", "Planning and memory", "Human checkpoints", "Measuring outcomes"],
     cover: "brand/landing/ecosystem-agents.jpg",
     rating: 4.7,
-    enrolled: 940,
+    enrolled: 95,
   },
   {
     id: "crs-ai-ethics",
@@ -818,7 +821,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["Accountability", "Bias and fairness", "Personal data", "Governance in practice"],
     cover: "brand/landing/stakeholder-leadership.jpg",
     rating: 4.6,
-    enrolled: 3180,
+    enrolled: 240,
   },
   {
     id: "crs-ml-foundations",
@@ -831,6 +834,6 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["How models learn", "Data you need", "Commissioning an AI project", "Reading results honestly"],
     cover: "brand/landing/cta-band.jpg",
     rating: 4.6,
-    enrolled: 1620,
+    enrolled: 130,
   },
 ];

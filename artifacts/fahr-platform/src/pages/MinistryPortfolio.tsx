@@ -38,7 +38,6 @@ import {
   competencyLabel,
   workingDaysPerYear,
 } from "@/lib/federal";
-import { useLiveProjects } from "@/components/leadership/LiveProjects";
 import type { Submission } from "@/lib/federal/model";
 import { ENTITY_ADMIN } from "@/lib/entityAdmin/seed";
 import { downloadCsv } from "@/lib/exportFile";
@@ -62,6 +61,7 @@ export default function MinistryPortfolio() {
   const [, setLocation] = useLocation();
   const {
     focus,
+    ministries,
     submissions,
     credentials,
     getPerson,
@@ -75,7 +75,7 @@ export default function MinistryPortfolio() {
     null,
   );
 
-  const ministry = MINISTRY_BY_ID[focus.ministryId];
+  const ministry = ministries.find((m) => m.id === focus.ministryId) ?? MINISTRY_BY_ID[focus.ministryId];
   const projects = useMemo(
     () => submissions.filter((s) => s.ministryId === focus.ministryId),
     [submissions, focus.ministryId],
@@ -88,23 +88,20 @@ export default function MinistryPortfolio() {
   const ownerName = (personId: string) => getPerson(personId)?.name ?? "Entity team";
   const departmentName = (departmentId: string) => DEPARTMENT_BY_ID[departmentId]?.name ?? departmentId;
 
-  const { fresh } = useLiveProjects();
   const kpis = useMemo(() => {
-    // The entity record since launch, plus anything that went live in this session.
-    const freshHere = fresh.filter((p) => p.submission.ministryId === focus.ministryId);
-    const sessionHours = freshHere.reduce((sum, p) => sum + p.submission.hoursSavedPerMonth, 0);
+    // Counted from this entity's projects, including any that went live this session.
     const awaiting = projects.filter(
       (p) => p.state === "awaiting_entity" || p.state === "awaiting_manager",
     ).length;
-    const hoursPerMonth = ministry.hoursSavedPerMonth + sessionHours;
+    const hoursPerMonth = ministry.hoursSavedPerMonth;
     return {
-      submitted: Math.max(ministry.projectsSubmitted, projects.length),
-      live: ministry.projectsLive + freshHere.length,
+      submitted: ministry.projectsSubmitted,
+      live: ministry.projectsLive,
       awaiting,
       hoursPerMonth,
       workingDays: workingDaysPerYear(hoursPerMonth),
     };
-  }, [projects, fresh, focus.ministryId, ministry]);
+  }, [projects, ministry]);
 
   /** The learner and their line manager, named for the "who was notified" toasts. */
   const notifiedNames = (submission: Submission) => {

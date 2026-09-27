@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PlugZap, AlertTriangle, Database, FileDown } from "lucide-react";
+import { PlugZap, AlertTriangle, BookOpen, Clock, FileDown, Fingerprint } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import type { Integration, IntegrationCategory } from "@/lib/federal";
@@ -21,6 +21,12 @@ const CATEGORY_ORDER: IntegrationCategory[] = [
   "Content",
   "API",
 ];
+
+/** What a connection's record count is a count of, in plain words. */
+const RECORD_NOUN: Partial<Record<IntegrationCategory, string>> = {
+  Identity: "federal employees can sign in with it",
+  Content: "courses available in the federal catalogue",
+};
 
 const CATEGORY_BLURB: Record<IntegrationCategory, string> = {
   Identity: "How federal employees sign in.",
@@ -47,12 +53,9 @@ export default function FAHRIntegrations() {
   const liveCount = integrations.filter((i) => i.status === "Connected").length;
   const degradedCount = integrations.filter((i) => i.status === "Degraded").length;
   const notConnectedCount = integrations.filter((i) => i.status === "Not connected").length;
-  // Records synced today: sum the record counts of connections whose last sync
-  // reads "Today" or "Live", since those are the ones that moved data today.
-  const syncedToday = integrations.filter(
-    (i) => i.status !== "Not connected" && (i.lastSync.startsWith("Today") || i.lastSync === "Live"),
-  );
-  const recordsToday = syncedToday.reduce((sum, i) => sum + (i.records ?? 0), 0);
+  // Each connection's records, in the plain terms a client reads them in.
+  const recordsOf = (category: string) =>
+    integrations.find((i) => i.category === category && i.status !== "Not connected")?.records ?? 0;
 
   const kpis = [
     {
@@ -64,16 +67,20 @@ export default function FAHRIntegrations() {
       testid: "kpi-live",
     },
     {
-      label: "Records synced today",
-      caption:
-        syncedToday
-          .filter((i) => i.records)
-          .map((i) => `${(i.records ?? 0).toLocaleString()} from ${i.name}`)
-          .join(" + ") || "No connection has synced today",
-      value: recordsToday,
-      icon: Database,
+      label: "Employees who can sign in",
+      caption: "Through UAE PASS, the national digital identity",
+      value: recordsOf("Identity"),
+      icon: Fingerprint,
       tone: "text-primary",
-      testid: "kpi-records-today",
+      testid: "kpi-employees-signin",
+    },
+    {
+      label: "Courses from Coursera",
+      caption: "Available to the Content Agent for learners' pathways",
+      value: recordsOf("Content"),
+      icon: BookOpen,
+      tone: "text-primary",
+      testid: "kpi-coursera-courses",
     },
   ];
 
@@ -134,7 +141,7 @@ export default function FAHRIntegrations() {
         />
 
         {/* KPI row */}
-        <Stagger className="grid grid-cols-2 gap-4">
+        <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {kpis.map((kpi) => (
             <StaggerItem key={kpi.label}>
               <StatCard className="h-full">
@@ -179,30 +186,16 @@ export default function FAHRIntegrations() {
                       <CardContent className="flex-1 flex flex-col gap-3 text-sm">
                         <p className="text-muted-foreground">{integration.purpose}</p>
 
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                          <div>
-                            <span className="text-muted-foreground">Direction</span>
-                            <p className="font-medium">{integration.direction}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Last sync</span>
-                            <p className="font-medium" data-testid={`lastsync-${integration.id}`}>
-                              {integration.lastSync}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Records</span>
-                            <p className="font-medium">
-                              {integration.records ? integration.records.toLocaleString() : "—"}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Owner</span>
-                            <p className="font-medium">{integration.owner}</p>
-                          </div>
-                        </div>
+                        {integration.records ? (
+                          <p className="text-sm font-medium text-foreground" data-testid={`fact-${integration.id}`}>
+                            {integration.records.toLocaleString()} {RECORD_NOUN[integration.category] ?? "records"}
+                          </p>
+                        ) : null}
 
-                        <div className="flex flex-wrap gap-1.5">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          What it brings in
+                        </p>
+                        <div className="-mt-1.5 flex flex-wrap gap-1.5">
                           {integration.dataPoints.map((dp) => (
                             <span
                               key={dp}
@@ -218,6 +211,14 @@ export default function FAHRIntegrations() {
                             {integration.statusNote}
                           </div>
                         )}
+
+                        <p
+                          className="mt-auto flex items-center gap-1.5 text-xs text-muted-foreground"
+                          data-testid={`lastsync-${integration.id}`}
+                        >
+                          <Clock className="h-3.5 w-3.5" />{" "}
+                          {integration.lastSync === "Live" ? "Syncing live" : `Last synced ${integration.lastSync.toLowerCase()}`}
+                        </p>
 
                       </CardContent>
                     </Card>

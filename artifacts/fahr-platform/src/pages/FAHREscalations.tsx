@@ -33,7 +33,6 @@ import {
   Loader2 as LoaderIcon,
   CheckCircle2,
   UserX,
-  Clock,
   Search,
   FileDown,
   ArrowUpRight,
@@ -89,16 +88,6 @@ function statusPill(status: Escalation["status"]) {
   if (status === "Resolved") return "bg-green-50 text-green-700 border-green-200";
   if (status === "In progress") return "bg-amber-50 text-amber-700 border-amber-200";
   return "bg-muted text-muted-foreground border-border";
-}
-
-/**
- * Parses the seeded "15 July 2026" date form into a Date, so an average age can
- * be derived honestly from `raisedOn`. Returns null when the string is a
- * relative form we cannot place ("Just now", "Today, …").
- */
-function parseRaisedOn(raisedOn: string): Date | null {
-  const parsed = new Date(raisedOn);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 export default function FAHREscalations() {
@@ -200,24 +189,11 @@ export default function FAHREscalations() {
   const resolvedCount = escalations.filter((e) => e.status === "Resolved").length;
   const unassignedCount = escalations.filter((e) => e.status !== "Resolved" && !e.assignee).length;
 
-  // Average age of open/in-progress items, derived from `raisedOn` where it can
-  // be parsed. Dropped from the KPI row when no dates are placeable.
-  const nowMs = Date.now();
-  const openAges = escalations
-    .filter((e) => e.status !== "Resolved")
-    .map((e) => parseRaisedOn(e.raisedOn))
-    .filter((d): d is Date => d !== null)
-    .map((d) => Math.max(0, Math.round((nowMs - d.getTime()) / 86_400_000)));
-  const avgAge = openAges.length > 0 ? Math.round(openAges.reduce((a, b) => a + b, 0) / openAges.length) : null;
-
   const kpis = [
     { label: "Open", value: openCount, icon: Inbox, tone: "text-muted-foreground", testid: "kpi-open" },
     { label: "In progress", value: inProgressCount, icon: LoaderIcon, tone: "text-amber-600", testid: "kpi-in-progress" },
     { label: "Resolved", value: resolvedCount, icon: CheckCircle2, tone: "text-green-600", testid: "kpi-resolved" },
     { label: "Unassigned", value: unassignedCount, icon: UserX, tone: "text-destructive", testid: "kpi-unassigned" },
-    ...(avgAge !== null
-      ? [{ label: "Avg age (days)", value: avgAge, icon: Clock, tone: "text-primary", testid: "kpi-avg-age" }]
-      : []),
   ];
 
   // --- Filtering -----------------------------------------------------------
@@ -356,7 +332,7 @@ export default function FAHREscalations() {
         />
 
         {/* KPI row */}
-        <Stagger className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {kpis.map((kpi) => (
             <StaggerItem key={kpi.label}>
               <StatCard className="h-full">
