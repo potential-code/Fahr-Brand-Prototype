@@ -78,6 +78,22 @@ type Ctx = State & {
 
 const STORAGE_KEY = "fahr.learner.progress.v1";
 
+/**
+ * The baseline result every demo run produces: an Emerging Practitioner at 42%
+ * readiness. Prompting is the strength and governance the widest gap, which is
+ * the story the landing page, the pathway and the workplace project all tell.
+ */
+/** The course every demo pathway opens with. */
+export const DEMO_FIRST_COURSE_ID = "ai-foundations";
+
+export const DEMO_BASELINE_SCORES: Record<string, number> = {
+  prompting: 65,
+  literacy: 50,
+  analytics: 40,
+  agentic: 30,
+  governance: 25,
+};
+
 const EMPTY_COURSE: CourseProgress = { completedLessonIds: [], pretestDone: false, finalDone: false };
 
 /** A freshly built pathway has no progress: every course starts at 0%. */
@@ -254,22 +270,8 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
     [update],
   );
 
-  const scoreAnswers = useCallback((answers: Record<string, number>): AssessmentResult => {
-    // Per-competency score: mean of the chosen option scores, normalised to 0-100.
-    const buckets: Record<string, number[]> = {};
-    for (const q of ASSESSMENT_QUESTIONS) {
-      const idx = answers[q.id];
-      const score = idx === undefined ? 0 : q.options[idx].score;
-      (buckets[q.competencyId] ??= []).push(score);
-    }
-
-    const scores: Record<string, number> = {};
-    for (const c of COMPETENCIES) {
-      const vals = buckets[c.id] ?? [0];
-      const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-      scores[c.id] = Math.round((mean / 3) * 100);
-    }
-
+  /** The full result — level, strengths, gaps, course order — for a set of competency scores. */
+  const resultFor = useCallback((scores: Record<string, number>): AssessmentResult => {
     const overall = Math.round(COMPETENCIES.reduce((sum, c) => sum + scores[c.id], 0) / COMPETENCIES.length);
     const band = bandForScore(overall);
 
@@ -283,19 +285,23 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       scores,
       strengths: ranked.slice(0, 2).map((c) => c.id),
       gaps: ranked.slice(-3).reverse().map((c) => c.id),
-      // Every course is recommended; the weakest mapped competency comes first.
+      // Every course is recommended. The demo opens on AI Foundations, the course
+      // its story runs through; the rest follow weakest competency first.
       recommendedCourseIds: [...COURSES]
         .sort((a, b) => (scores[a.competencyId] ?? 0) - (scores[b.competencyId] ?? 0))
-        .map((c) => c.id),
+        .map((c) => c.id)
+        .sort((a, b) => Number(b === DEMO_FIRST_COURSE_ID) - Number(a === DEMO_FIRST_COURSE_ID)),
       completedOn: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
     };
   }, []);
 
+  // The demo always lands on the same realistic starting point, whatever is
+  // clicked, so the pathway, twin and project all have real gaps to close.
   const completeAssessment = useCallback((): AssessmentResult => {
-    const computed = scoreAnswers(state.answers);
+    const computed = resultFor(DEMO_BASELINE_SCORES);
     update((prev) => ({ ...prev, result: computed }));
     return computed;
-  }, [scoreAnswers, state.answers, update]);
+  }, [resultFor, update]);
 
   // Retaking rebuilds the whole pathway, so activity completion and the
   // adaptive insertion go with the old result rather than surviving it.
