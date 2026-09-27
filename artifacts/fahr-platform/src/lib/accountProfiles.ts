@@ -29,12 +29,6 @@ export type AccountProfile = {
   avatar?: string;
   /** What this portal lets them do, for the access card. */
   access: string[];
-  /** Notification defaults, so each role's preferences read differently. */
-  notifications: {
-    announcements: boolean;
-    digest: boolean;
-    reminders: boolean;
-  };
 };
 
 export const ACCOUNT_PROFILES: Record<PortalRole, AccountProfile> = {
@@ -55,7 +49,6 @@ export const ACCOUNT_PROFILES: Record<PortalRole, AccountProfile> = {
       "Agentic AI Lab — digital twin and workplace project",
       "Evaluation, certification and recognition",
     ],
-    notifications: { announcements: true, digest: true, reminders: true },
   },
   manager: {
     name: "Mariam Al Zaabi",
@@ -73,7 +66,6 @@ export const ACCOUNT_PROFILES: Record<PortalRole, AccountProfile> = {
       "Workplace project validation and endorsement",
       "Team reports, recognition and impact",
     ],
-    notifications: { announcements: true, digest: true, reminders: false },
   },
   ministry: {
     name: "Noura Al Kaabi",
@@ -91,7 +83,6 @@ export const ACCOUNT_PROFILES: Record<PortalRole, AccountProfile> = {
       "Approvals, content library and communications",
       "Entity reporting for all 3,940 active learners",
     ],
-    notifications: { announcements: true, digest: true, reminders: true },
   },
   fahr: {
     name: "Hind Al Owais",
@@ -109,7 +100,6 @@ export const ACCOUNT_PROFILES: Record<PortalRole, AccountProfile> = {
       "Escalations, credential registry and integrations",
       "Federal reporting and programme communications",
     ],
-    notifications: { announcements: true, digest: true, reminders: true },
   },
   leadership: {
     name: "Fahad Al Zeyoudi",
@@ -127,7 +117,6 @@ export const ACCOUNT_PROFILES: Record<PortalRole, AccountProfile> = {
       "Ministry comparison, outcomes and value realised",
       "Quarterly leadership briefings",
     ],
-    notifications: { announcements: true, digest: false, reminders: false },
   },
 };
 

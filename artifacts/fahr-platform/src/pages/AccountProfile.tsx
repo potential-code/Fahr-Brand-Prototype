@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
@@ -6,7 +5,6 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
   ACCOUNT_PROFILES,
@@ -34,28 +32,6 @@ const ROLE_LABELS: Record<PortalRole, string> = {
   leadership: "Federal Leadership",
 };
 
-const NOTIFICATION_ROWS: {
-  id: "announcements" | "digest" | "reminders";
-  label: string;
-  detail: string;
-}[] = [
-  {
-    id: "announcements",
-    label: "Programme announcements",
-    detail: "Policy changes, new framework versions and federal notices.",
-  },
-  {
-    id: "digest",
-    label: "Weekly progress digest",
-    detail: "One email each Sunday summarising the week's movement.",
-  },
-  {
-    id: "reminders",
-    label: "Session and deadline reminders",
-    detail: "Live sessions, validation queues and re-assessment dates.",
-  },
-];
-
 /** One label/value row in the organisation card. */
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
@@ -72,7 +48,6 @@ export default function AccountProfile({ role }: { role: PortalRole }) {
   const profile = ACCOUNT_PROFILES[role];
   const { language, setLanguage } = useLanguage();
   const [, setLocation] = useLocation();
-  const [notifications, setNotifications] = useState(profile.notifications);
 
   return (
     <Layout role={role}>
@@ -216,24 +191,6 @@ export default function AccountProfile({ role }: { role: PortalRole }) {
                 </p>
               </div>
 
-              <div className="mt-6 space-y-4 border-t border-border pt-5">
-                {NOTIFICATION_ROWS.map((row) => (
-                  <div key={row.id} className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">{row.label}</p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{row.detail}</p>
-                    </div>
-                    <Switch
-                      checked={notifications[row.id]}
-                      onCheckedChange={(next) =>
-                        setNotifications((current) => ({ ...current, [row.id]: next }))
-                      }
-                      aria-label={row.label}
-                      data-testid={`switch-${row.id}`}
-                    />
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
         </ScrollReveal>
