@@ -27,14 +27,14 @@ describe("demo baseline", () => {
     expect(result.levelLabel).toBe("Emerging Practitioner");
     expect(result.overall).toBe(42);
     expect(result.strengths[0]).toBe("prompting");
-    expect(result.gaps[0]).toBe("governance");
+    expect(result.gaps).toEqual(["literacy", "governance", "agentic"]);
   });
 
   it("gives the same result however the questions are answered", () => {
     expect(completeWith(() => 0)).toMatchObject({ overall: 42, levelId: "emerging" });
   });
 
-  it("opens the pathway on AI Foundations, then weakest competency first", () => {
+  it("opens the pathway on AI Foundations, the course for the weakest competency", () => {
     const { recommendedCourseIds } = completeWith(best);
     expect(recommendedCourseIds[0]).toBe("ai-foundations");
     expect(recommendedCourseIds[1]).toBe("ai-governance");

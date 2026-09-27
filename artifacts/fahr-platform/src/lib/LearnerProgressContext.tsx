@@ -80,18 +80,16 @@ const STORAGE_KEY = "fahr.learner.progress.v1";
 
 /**
  * The baseline result every demo run produces: an Emerging Practitioner at 42%
- * readiness. Prompting is the strength and governance the widest gap, which is
- * the story the landing page, the pathway and the workplace project all tell.
+ * readiness. Prompting is the strength and AI literacy — knowing where AI fails
+ * and checking its output — the widest gap, so the pathway opens on AI
+ * Foundations on its own merits.
  */
-/** The course every demo pathway opens with. */
-export const DEMO_FIRST_COURSE_ID = "ai-foundations";
-
 export const DEMO_BASELINE_SCORES: Record<string, number> = {
   prompting: 65,
-  literacy: 50,
-  analytics: 40,
-  agentic: 30,
-  governance: 25,
+  analytics: 45,
+  agentic: 40,
+  governance: 35,
+  literacy: 25,
 };
 
 const EMPTY_COURSE: CourseProgress = { completedLessonIds: [], pretestDone: false, finalDone: false };
@@ -285,12 +283,10 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       scores,
       strengths: ranked.slice(0, 2).map((c) => c.id),
       gaps: ranked.slice(-3).reverse().map((c) => c.id),
-      // Every course is recommended. The demo opens on AI Foundations, the course
-      // its story runs through; the rest follow weakest competency first.
+      // Every course is recommended; the weakest mapped competency comes first.
       recommendedCourseIds: [...COURSES]
         .sort((a, b) => (scores[a.competencyId] ?? 0) - (scores[b.competencyId] ?? 0))
-        .map((c) => c.id)
-        .sort((a, b) => Number(b === DEMO_FIRST_COURSE_ID) - Number(a === DEMO_FIRST_COURSE_ID)),
+        .map((c) => c.id),
       completedOn: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
     };
   }, []);
