@@ -184,12 +184,12 @@ const translations = {
     "landing.agents.capability.capabilities.0": "Role-aware pathways",
     "landing.agents.capability.capabilities.1": "Aligned to the ladder",
     "landing.agents.learning.name": "{{name}}",
-    "landing.agents.learning.tagline": "Guides the individual",
+    "landing.agents.learning.tagline": "Tutors and guides the individual",
     "landing.agents.learning.description":
-      "Interprets assessment outcomes and turns them into a weekly plan the employee can actually follow.",
+      "Answers questions on any course topic, right inside the lesson, and turns assessment results into a weekly plan the employee can actually follow.",
     "landing.agents.learning.sample":
-      "Your baseline puts you at Emerging Practitioner. Prompt design is your strength; oversight of AI output is the gap. I have put a 20-minute human-in-the-loop module at the top of this week.",
-    "landing.agents.learning.capabilities.0": "Reads every assessment",
+      "Human-in-the-loop means a person checks the AI's output before it is used. In your role, that is reviewing the draft reply before it goes to the customer. Want a quick example?",
+    "landing.agents.learning.capabilities.0": "Answers course questions in the lesson",
     "landing.agents.learning.capabilities.1": "Replans as you progress",
     "landing.agents.assessment.name": "{{name}}",
     "landing.agents.assessment.tagline": "Sets and marks the test",
@@ -452,12 +452,12 @@ const translations = {
     "landing.agents.capability.capabilities.0": "مسارات مراعية للدور",
     "landing.agents.capability.capabilities.1": "متوافقة مع سلّم القدرات",
     "landing.agents.learning.name": "وكيل التعلم الذكي",
-    "landing.agents.learning.tagline": "يوجّه الموظف",
+    "landing.agents.learning.tagline": "يشرح ويوجّه الموظف",
     "landing.agents.learning.description":
-      "يفسّر نتائج التقييم ويحوّلها إلى خطة أسبوعية يستطيع الموظف الالتزام بها فعلًا.",
+      "يجيب عن أسئلة أي موضوع في الدورة داخل الدرس نفسه، ويحوّل نتائج التقييم إلى خطة أسبوعية يستطيع الموظف الالتزام بها فعلًا.",
     "landing.agents.learning.sample":
-      "يضعك تقييم خط الأساس عند مستوى ممارس ناشئ. تصميم الأوامر نقطة قوتك، والإشراف على مخرجات الذكاء الاصطناعي هو الفجوة. وضعت على رأس أسبوعك وحدة مدتها 20 دقيقة عن إبقاء الإنسان في الحلقة.",
-    "landing.agents.learning.capabilities.0": "يقرأ كل تقييم",
+      "إبقاء الإنسان في الحلقة يعني أن يراجع شخص مخرجات الذكاء الاصطناعي قبل استخدامها. في دورك، هذا يعني مراجعة مسودة الرد قبل إرسالها إلى المتعامل. هل تريد مثالًا سريعًا؟",
+    "landing.agents.learning.capabilities.0": "يجيب عن أسئلة الدورة داخل الدرس",
     "landing.agents.learning.capabilities.1": "يعيد التخطيط مع تقدّمك",
     "landing.agents.assessment.name": "وكيل التقييم الذكي",
     "landing.agents.assessment.tagline": "يضع الاختبار ويصحّحه",

@@ -32,7 +32,7 @@ export function ManagerActionDialogs({
   onClose: () => void;
 }) {
   const { toast } = useToast();
-  const { recordAudit } = useFederalData();
+  const { recordAudit, sendDirectMessage, focus } = useFederalData();
 
   const [message, setMessage] = useState("");
   const [date, setDate] = useState("");
@@ -43,23 +43,30 @@ export function ManagerActionDialogs({
   const isMeeting = action === "Schedule Intervention Meeting" || action === "Schedule Intervention";
 
   const handleConfirm = () => {
-    const auditAction = isMessage
-      ? `Sent direct message to ${subject.name}: "${message}"`
-      : `Scheduled intervention meeting with ${subject.name} on ${date}`;
-
-    recordAudit({
-      actor: "Department Manager",
-      agent: "Human decision",
-      action: auditAction,
-      risk: "Low",
-      status: "Completed",
-      ministryId: subject.ministryId
-    });
-
-    toast({
-      title: "Action completed",
-      description: `Successfully executed: ${action} for ${subject.name}.`
-    });
+    if (isMessage) {
+      // Saved to the shared store, so it lands in the learner's inbox.
+      sendDirectMessage(subject.id, message);
+      toast({
+        title: `Message sent to ${subject.name}`,
+        description:
+          subject.id === focus.learnerId
+            ? "It is waiting in their Messages, with a notification on their bell."
+            : "They will see it in their Messages.",
+      });
+    } else {
+      recordAudit({
+        actor: "Department Manager",
+        agent: "Human decision",
+        action: `Scheduled intervention meeting with ${subject.name} on ${date}`,
+        risk: "Low",
+        status: "Completed",
+        ministryId: subject.ministryId,
+      });
+      toast({
+        title: "Meeting scheduled",
+        description: `${subject.name} has been invited for ${date}.`,
+      });
+    }
 
     setMessage("");
     setDate("");
@@ -83,6 +90,7 @@ export function ManagerActionDialogs({
               <Label htmlFor="manager-action-message">Message</Label>
               <Textarea
                 id="manager-action-message"
+                data-testid="input-manager-message"
                 placeholder="Type your message here..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -105,8 +113,12 @@ export function ManagerActionDialogs({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleConfirm} disabled={(isMessage && !message) || (isMeeting && !date)}>
-            Confirm
+          <Button
+            onClick={handleConfirm}
+            disabled={(isMessage && !message.trim()) || (isMeeting && !date)}
+            data-testid="button-manager-action-confirm"
+          >
+            {isMessage ? "Send" : "Confirm"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Bot, FlaskConical, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, Check, FlaskConical, ShieldCheck, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
 import { GUARDRAILS } from "@/lib/digitalTwin";
@@ -18,10 +18,13 @@ import { GUARDRAILS } from "@/lib/digitalTwin";
  */
 export function TwinHandoff({
   onUseTask,
+  selectedTask,
   disabled = false,
 }: {
-  /** Seeds the challenge with a task the twin already handles. */
+  /** Writes the project title and challenge from a task the twin already handles. */
   onUseTask: (task: string) => void;
+  /** The task the current title and challenge were written from, if any. */
+  selectedTask?: string;
   disabled?: boolean;
 }) {
   const { language } = useLanguage();
@@ -88,24 +91,38 @@ export function TwinHandoff({
         {/* The twin's recurring tasks, as the candidate work to automate. */}
         {profile.tasks.length > 0 && (
           <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {isAr
                 ? "اختر المهمة التي سيتولاها هذا المشروع"
                 : "Pick the task this project takes on"}
             </p>
+            <p className="mb-2 mt-0.5 text-xs text-muted-foreground">
+              {isAr
+                ? "تكتب عنوان المشروع والتحدي من إجابات توأمك."
+                : "Writes your project title and challenge from what you taught your twin."}
+            </p>
             <div className="flex flex-wrap gap-2">
-              {profile.tasks.map((task) => (
-                <button
-                  key={task}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onUseTask(task)}
-                  className="rounded-full border border-primary/30 bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
-                  data-testid="twin-task-option"
-                >
-                  {task}
-                </button>
-              ))}
+              {profile.tasks.map((task) => {
+                const selected = task === selectedTask;
+                return (
+                  <button
+                    key={task}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => onUseTask(task)}
+                    aria-pressed={selected}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+                      selected
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "border-primary/30 bg-background hover:border-primary hover:bg-primary/10"
+                    }`}
+                    data-testid="twin-task-option"
+                  >
+                    {selected && <Check className="h-3.5 w-3.5" />}
+                    {task}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

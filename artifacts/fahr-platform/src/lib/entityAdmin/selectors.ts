@@ -30,6 +30,7 @@ import {
   peopleOf,
   statusForSignals,
 } from "@/lib/federal/selectors";
+import { COMPETENCY_OFFSETS, TOP_GAP_PENALTY } from "@/lib/federal/reporting";
 import { EVENT_ATTENDANCE_RATE, EVENT_META } from "./seed";
 import type {
   AssessmentOutcome,
@@ -171,13 +172,18 @@ export function cohortRoster(
 export type CohortSummary = {
   cohort: Cohort;
   members: CohortMember[];
-  /** Members in the sample who cleared their assessment. */
+  /**
+   * Outcome counts across the whole cohort (`cohort.learners`), not the roster
+   * sample: named members count as themselves and the generated sample is
+   * scaled up to everyone else, so every tile on the cohort screen shares one base.
+   */
   passed: number;
   retakes: number;
   awaiting: number;
   certified: number;
   readyToCertify: number;
   atRisk: number;
+  /** Mean assessment score of the scored roster sample. */
   averageScore: number;
   /** Learners the cohort's progress figure implies have finished. */
   completed: number;
@@ -190,17 +196,33 @@ export function cohortSummary(
 ): CohortSummary {
   const members = cohortRoster(cohort, people, credentials);
   const scored = members.filter((m) => m.assessmentOutcome !== "Awaiting assessment");
-  const share = (count: number) =>
-    members.length === 0 ? 0 : Math.round((count / members.length) * cohort.learners);
+  const named = members.filter((m) => !m.synthetic);
+  const sampled = members.filter((m) => m.synthetic);
+
+  /** Scale a roster count to the whole cohort. */
+  const cohortWide = (match: (m: CohortMember) => boolean): number => {
+    const namedCount = named.filter(match).length;
+    if (sampled.length === 0) {
+      // An all-named roster: exact when it is the whole cohort, else scaled.
+      return named.length === 0 || named.length >= cohort.learners
+        ? namedCount
+        : Math.round((namedCount / named.length) * cohort.learners);
+    }
+    const rest = Math.max(0, cohort.learners - named.length);
+    return namedCount + Math.round((sampled.filter(match).length / sampled.length) * rest);
+  };
+
+  const passed = cohortWide((m) => m.assessmentOutcome === "Passed");
+  const retakes = cohortWide((m) => m.assessmentOutcome === "Retake needed");
   return {
     cohort,
     members,
-    passed: members.filter((m) => m.assessmentOutcome === "Passed").length,
-    retakes: members.filter((m) => m.assessmentOutcome === "Retake needed").length,
-    awaiting: members.filter((m) => m.assessmentOutcome === "Awaiting assessment").length,
-    certified: members.filter((m) => m.certification === "Certified").length,
-    readyToCertify: members.filter((m) => m.certification === "Ready to certify").length,
-    atRisk: share(members.filter((m) => m.status === "at-risk").length),
+    passed,
+    retakes,
+    awaiting: Math.max(0, cohort.learners - passed - retakes),
+    certified: cohortWide((m) => m.certification === "Certified"),
+    readyToCertify: cohortWide((m) => m.certification === "Ready to certify"),
+    atRisk: cohortWide((m) => m.status === "at-risk"),
     averageScore:
       scored.length === 0
         ? 0
@@ -239,21 +261,6 @@ export function entityCapabilityBands(ministry: Ministry): EntityCapabilityBand[
     percentage: Math.round((counts[index] / ministry.activeLearners) * 100),
   }));
 }
-
-/**
- * Per-competency offsets from the entity's overall readiness. Authored once so
- * every gap view — dashboard, reports, department drill-down — agrees.
- */
-const COMPETENCY_OFFSETS: Record<string, number> = {
-  literacy: 12,
-  prompting: 4,
-  analytics: -6,
-  agentic: -11,
-  governance: 1,
-};
-
-/** Extra penalty applied to whichever competency the entity names as its gap. */
-const TOP_GAP_PENALTY = 7;
 
 export type CompetencyGapRow = {
   competency: Competency;
@@ -323,6 +330,7 @@ export type EngagementRow = {
   coverage: number;
   /** Learners active in the last seven days. */
   activeThisWeek: number;
+  /** Learners with no activity in the last 14 days. */
   atRisk: number;
   averageProgress: number;
 };
@@ -337,15 +345,18 @@ export function engagementRows(ministryId: string, cohorts: Cohort[]): Engagemen
               Math.max(1, departmentCohorts.reduce((sum, c) => sum + c.learners, 0)),
           )
         : Math.round(department.readiness * 0.7);
-    const engagementRate = clamp(department.readiness / 100 + 0.12, 0.35, 0.95);
+    // Early rollout: roughly a third to a half of enrolled learners touch the
+    // platform in a given week, and only a small tail has gone quiet for 14+ days.
+    const engagementRate = clamp(department.readiness / 100 - 0.2, 0.3, 0.55);
     const activeThisWeek = Math.round(department.activeLearners * engagementRate);
+    const inactiveRate = clamp((75 - department.readiness) / 200 + 0.08, 0.06, 0.16);
     return {
       department,
       employees: department.employees,
       activeLearners: department.activeLearners,
       coverage: Math.round((department.activeLearners / department.employees) * 100),
       activeThisWeek,
-      atRisk: Math.max(0, department.activeLearners - activeThisWeek),
+      atRisk: Math.round(department.activeLearners * inactiveRate),
       averageProgress,
     };
   });
@@ -395,17 +406,16 @@ export function assessmentRows(
   credentials: Credential[],
 ): AssessmentRow[] {
   return cohorts.map((cohort) => {
+    // cohortSummary already reports outcomes across the whole cohort.
     const summary = cohortSummary(cohort, people, credentials);
-    const sample = Math.max(1, summary.members.length);
-    const assessed = Math.round((cohort.learners * (sample - summary.awaiting)) / sample);
-    const passed = Math.round((cohort.learners * summary.passed) / sample);
+    const assessed = summary.passed + summary.retakes;
     return {
       cohort,
       assessed,
       averageScore: summary.averageScore,
-      passRate: assessed === 0 ? 0 : Math.round((passed / assessed) * 100),
-      retakes: Math.round((cohort.learners * summary.retakes) / sample),
-      awaiting: cohort.learners - assessed,
+      passRate: assessed === 0 ? 0 : Math.round((summary.passed / assessed) * 100),
+      retakes: summary.retakes,
+      awaiting: summary.awaiting,
     };
   });
 }

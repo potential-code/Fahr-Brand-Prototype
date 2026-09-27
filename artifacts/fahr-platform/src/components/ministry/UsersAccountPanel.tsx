@@ -194,7 +194,7 @@ export function UsersAccountPanel({ accountId }: { accountId: string }) {
         <div>
           <p className="text-sm font-medium">Data-processing consent</p>
           <p className="text-xs text-muted-foreground">
-            Record the consent state or send the learner a fresh request (§4.2).
+            Record the consent state or send the learner a fresh request.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

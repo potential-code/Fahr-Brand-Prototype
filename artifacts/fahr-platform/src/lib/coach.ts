@@ -38,7 +38,7 @@ function simplerAnswer(ctx: CoachContext): string {
 
 function roleAnswer(ctx: CoachContext): string {
   const area = ctx.competency ? ctx.competency.short : "this";
-  return `You are a ${LEARNER_PROFILE.role} in ${LEARNER_PROFILE.department} at ${LEARNER_PROFILE.entity}. The realistic use of ${area} in that job is the recurring work: campaign briefs, public notices, reporting upward. Take the next one of those that lands on your desk and run it through what you have just read, then compare the review time against your usual.`;
+  return `You are a ${LEARNER_PROFILE.role} in ${LEARNER_PROFILE.department} at ${LEARNER_PROFILE.entity}. The realistic use of ${area} in that job is the recurring work: weekly performance reports, campaign briefs, public notices. Take the next one of those that lands on your desk and run it through what you have just read, then compare the review time against your usual.`;
 }
 
 function readingAnswer(ctx: CoachContext): string {

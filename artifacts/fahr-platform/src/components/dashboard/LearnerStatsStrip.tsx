@@ -2,8 +2,10 @@ import { motion, useReducedMotion } from "framer-motion";
 import { CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
 import { CountUp } from "@/components/CountUp";
-import { Clock, ListChecks, Sparkles, TrendingUp, type LucideIcon } from "lucide-react";
-import { CAPABILITY_LEVELS } from "@/lib/constants";
+import { BookOpen, ListChecks, Sparkles, TrendingUp, type LucideIcon } from "lucide-react";
+import { CAPABILITY_LEVELS, IMPACT_POINTS } from "@/lib/constants";
+import { LEARNER_STANDING } from "@/lib/engagement";
+import { PointsLegend } from "@/components/recognition/PointsLegend";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { COURSES } from "@/lib/learningData";
 
@@ -18,14 +20,17 @@ type Stat = {
   caption: string;
   /** Rendered instead of the counted value, for states with no number yet. */
   display?: string;
+  /** Shows the "How points are earned" legend beside the label. */
+  pointsLegend?: boolean;
 };
 
 /**
  * Headline learning analytics for the signed-in learner. Activity counts come
- * from real course progress; the hours and points are demo programme figures.
+ * from real course progress; points and rank read the shared programme figures
+ * (`IMPACT_POINTS`, `LEARNER_STANDING`) every other screen uses.
  */
 export function LearnerStatsStrip() {
-  const { result, courseProgress } = useLearnerProgress();
+  const { result, courseProgress, getCoursePercent } = useLearnerProgress();
   const reduceMotion = useReducedMotion();
 
   const activities = COURSES.reduce((sum, course) => {
@@ -36,18 +41,21 @@ export function LearnerStatsStrip() {
     );
   }, 0);
 
+  const coursePercents = COURSES.map((course) => getCoursePercent(course.id));
+  const coursesInProgress = coursePercents.filter((p) => p > 0 && p < 100).length;
+  const coursesCompleted = coursePercents.filter((p) => p === 100).length;
+
   const levelOrder = result
     ? (CAPABILITY_LEVELS.find((l) => l.id === result.levelId)?.order ?? 1)
     : 0;
 
   const stats: Stat[] = [
     {
-      id: "hours",
-      icon: Clock,
-      label: "Learning hours",
-      value: 18.5,
-      decimals: 1,
-      caption: "Logged this quarter",
+      id: "courses",
+      icon: BookOpen,
+      label: "Courses in progress",
+      value: coursesInProgress,
+      caption: coursesCompleted > 0 ? `${coursesCompleted} completed so far` : "None completed yet",
     },
     {
       id: "activities",
@@ -60,8 +68,9 @@ export function LearnerStatsStrip() {
       id: "points",
       icon: Sparkles,
       label: "Impact points",
-      value: 13200,
-      caption: "Rank 2 in your entity",
+      value: IMPACT_POINTS,
+      caption: `Rank ${LEARNER_STANDING.entity} in your entity`,
+      pointsLegend: true,
     },
     {
       id: "level",
@@ -100,7 +109,10 @@ export function LearnerStatsStrip() {
                   )}
                   {stat.total && <span className="text-sm font-medium text-muted-foreground">{stat.total}</span>}
                 </p>
-                <p className="mt-2 text-sm font-medium text-foreground">{stat.label}</p>
+                <p className="mt-2 flex items-center gap-1 text-sm font-medium text-foreground">
+                  {stat.label}
+                  {stat.pointsLegend && <PointsLegend />}
+                </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{stat.caption}</p>
               </CardContent>
             </StatCard>

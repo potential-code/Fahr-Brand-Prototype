@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { AGENTS, LEARNER_PROFILE } from "@/lib/constants";
 import {
@@ -28,16 +28,56 @@ type Ctx = {
 
 const DigitalTwinContext = createContext<Ctx | undefined>(undefined);
 
+const STORAGE_KEY = "fahr.twin.v1";
+
+/** The twin saved earlier in this tab, merged over an empty one so a stale shape can't break it. */
+function readStored(): TwinProfile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<TwinProfile>;
+    if (!parsed || typeof parsed !== "object") return null;
+    const empty = emptyProfile();
+    const list = (value: unknown) =>
+      Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : [];
+    return {
+      ...empty,
+      role: typeof parsed.role === "string" ? parsed.role : "",
+      tone: typeof parsed.tone === "string" ? parsed.tone : "",
+      tasks: list(parsed.tasks),
+      briefs: list(parsed.briefs),
+      knowledge: list(parsed.knowledge),
+      customGuardrails: Array.isArray(parsed.customGuardrails)
+        ? parsed.customGuardrails.filter(
+            (rule) => rule && typeof rule.id === "string" && typeof rule.label === "string",
+          )
+        : [],
+      trainedAt: typeof parsed.trainedAt === "string" ? parsed.trainedAt : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Holds the Digital Twin the learner builds in the Agentic AI Lab.
  *
- * In-memory for the demo, in line with every other store in this prototype:
- * closing the tab starts a fresh twin, which is what you want when the same
- * laptop is used to demo to the next room.
+ * Kept in session storage so a reload or a trip to another screen mid-demo
+ * keeps the twin; closing the tab still starts a fresh one for the next room.
+ * The federal guardrails are never read back from storage — they are always on.
  */
 export function DigitalTwinProvider({ children }: { children: React.ReactNode }) {
-  const [profile, setProfile] = useState<TwinProfile>(() => emptyProfile());
+  const [profile, setProfile] = useState<TwinProfile>(() => readStored() ?? emptyProfile());
   const { recordAudit, focus } = useFederalData();
+
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    } catch {
+      // Storage is a convenience; the demo still works without it.
+    }
+  }, [profile]);
 
   const capture = useCallback((field: TwinFieldId, value: string) => {
     const trimmed = value.trim();

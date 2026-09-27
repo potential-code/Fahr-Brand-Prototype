@@ -15,6 +15,7 @@ import {
   LEVEL_BY_ID,
   MINISTRY_BY_ID,
   ON_TRACK_READINESS,
+  workingDaysPerYear,
   levelForScore,
   type Credential,
   type Department,
@@ -454,7 +455,6 @@ export type ImpactCategoryRow = {
   competency: Competency;
   projects: number;
   hoursSavedPerMonth: number;
-  valueAed: number;
 };
 
 /** Validated impact grouped by the competency each project is recorded under. */
@@ -465,7 +465,6 @@ export function teamImpactRows(validated: Submission[]): ImpactCategoryRow[] {
       competency,
       projects: matching.length,
       hoursSavedPerMonth: matching.reduce((n, s) => n + s.hoursSavedPerMonth, 0),
-      valueAed: matching.reduce((n, s) => n + s.estimatedValueAed, 0),
     };
   }).filter((row) => row.projects > 0);
 }
@@ -476,9 +475,8 @@ export type TeamImpact = {
   projectsAwaitingSignOff: number;
   hoursPerMonth: number;
   hoursPerYear: number;
-  /** Working days returned to the team each year, at 8 hours a day. */
+  /** Working days returned to the team each year, at 7.5 hours a day. */
   workingDaysReturned: number;
-  valueAed: number;
   categories: ImpactCategoryRow[];
 };
 
@@ -491,8 +489,7 @@ export function teamImpact(teamSubmissions: Submission[]): TeamImpact {
     projectsAwaitingSignOff: teamSubmissions.filter((s) => s.state === "awaiting_manager").length,
     hoursPerMonth,
     hoursPerYear: hoursPerMonth * 12,
-    workingDaysReturned: Math.round((hoursPerMonth * 12) / 8),
-    valueAed: validated.reduce((n, s) => n + s.estimatedValueAed, 0),
+    workingDaysReturned: workingDaysPerYear(hoursPerMonth),
     categories: teamImpactRows(validated),
   };
 }
@@ -521,7 +518,6 @@ export type TeamRecognitionMember = {
   validatedProjects: number;
   deployedProjects: number;
   hoursSavedPerMonth: number;
-  valueAed: number;
   badgeCount: number;
   challengeEligible: boolean;
   /** Impact points, for the demo learner only — hers are the shared figure. */
@@ -664,7 +660,6 @@ export function teamRecognition(input: {
       validatedProjects: own.length,
       deployedProjects: own.filter((s) => s.state === "deployed").length,
       hoursSavedPerMonth: own.reduce((n, s) => n + s.hoursSavedPerMonth, 0),
-      valueAed: own.reduce((n, s) => n + s.estimatedValueAed, 0),
       badgeCount: badges.filter((b) => b.earnedBy.some((p) => p.id === person.id)).length,
       // Every entity may enter three projects: a validated, compliant,
       // high-impact project is what qualifies someone to be put forward.

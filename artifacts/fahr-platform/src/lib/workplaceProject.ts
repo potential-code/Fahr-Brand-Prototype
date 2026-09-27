@@ -9,10 +9,9 @@
 //
 // Front-end mock content only: no AI calls, no persistence.
 
-import { AGENTS, LEARNER_PROFILE } from "@/lib/constants";
-import type { ProjectIdea } from "@/lib/recommendations";
-import type { Competency } from "@/lib/learningData";
+import { AGENTS, DEMO_PROJECT, LEARNER_PROFILE } from "@/lib/constants";
 import { assessTwin, type TwinProfile } from "@/lib/digitalTwin";
+import { pointsFor } from "@/lib/engagement";
 
 // ---------------------------------------------------------------------------
 // The draft
@@ -55,29 +54,13 @@ export const HUMAN_CHECKPOINTS = [
 ] as const;
 
 /**
- * The starting draft. Seeded from the learner's recommended project when they
- * have taken the assessment, so the project they build is the one their own
- * results asked for.
+ * The starting draft. The demo always builds the same project — the weekly
+ * performance report the learner taught their twin in the Lab — so every
+ * stage, every Practice Partner draft and every dashboard tells one story.
  */
-export function defaultDraft(project?: (ProjectIdea & { competency: Competency }) | null): ProjectDraft {
-  if (project) {
-    return {
-      title: project.title,
-      challenge: "",
-      solution: "",
-      outcomes: [project.outcome, "", ""],
-      measures: ["", "", ""],
-      humanCheckpoint: "",
-      sensitivity: "internal",
-      disclosure: true,
-      hoursPerWeek: 6,
-      peopleAffected: 8,
-      automationPct: 55,
-    };
-  }
-
+export function defaultDraft(): ProjectDraft {
   return {
-    title: "AI-assisted public health campaign brief generator",
+    title: DEMO_PROJECT.title,
     challenge: "",
     solution: "",
     outcomes: ["", "", ""],
@@ -169,36 +152,37 @@ export function suggestFor(stage: StageId, draft: ProjectDraft): Suggestion | nu
       return {
         rationale: `Drafted from your project title and your role in ${DEPARTMENT}, ${ENTITY}. Edit the numbers to match what you actually see.`,
         text:
-          `Every campaign we run starts with a brief that ${draft.peopleAffected} people in ${DEPARTMENT} assemble by hand. ` +
-          `It takes roughly ${draft.hoursPerWeek} hours a week of back-and-forth between communications, content and the technical team, ` +
-          `and the same audience and messaging decisions get re-argued each time. ` +
-          `The delay pushes campaign launches back by days, and the briefs that come out are inconsistent enough that approvals bounce.`,
+          `Every Monday, each of the ${draft.peopleAffected} specialists in ${DEPARTMENT} prepares a weekly performance report for their campaigns. ` +
+          `It takes roughly ${draft.hoursPerWeek} hours each: pulling reach, engagement and enquiry figures from four separate dashboards, ` +
+          `reconciling them in a spreadsheet and writing the summary for the department head. ` +
+          `The figures rarely match between sources, reports arrive on Tuesday afternoon instead of Monday morning, and there is no time left to explain what actually changed.`,
       };
     case "solution":
       return {
         rationale: `A multi-step design with the human checkpoint written in — the part evaluators look for first.`,
         text:
-          `An assistant that turns an approved campaign objective into a complete draft brief: it pulls the audience segments from our own performance data, ` +
-          `proposes content angles, drafts Arabic and English messaging against the approved tone guide, and produces the reporting template. ` +
-          `It never publishes. Each brief goes to the named reviewer, who accepts, edits or rejects it, and the accepted version is what feeds the campaign. ` +
+          `An assistant that prepares the first draft of the weekly performance report. Every Monday at 7am it pulls the week's reach, engagement, website and call-centre enquiry figures from the approved campaign analytics dashboard, ` +
+          `compares them with the previous week, and drafts the report in the ministry template in Arabic and English: headline results, what changed and why, and three points for the department head's attention. ` +
+          `Any figure that moved by more than 20% is flagged for checking rather than explained away. ` +
+          `It never sends anything. The named reviewer checks the figures and the commentary, then accepts, edits or rejects the draft, and only the approved version goes to the department head. ` +
           `Rejected drafts are logged with the reason so the instructions improve over time.`,
       };
     case "outcomes":
       return {
         rationale: `Three observable outcomes sized to ${subject}.`,
         text: [
-          `Brief preparation drops from ${draft.hoursPerWeek} hours a week to under two`,
-          `Every campaign launches with an Arabic and English brief from the same source`,
-          `Approval cycles shorten because reviewers receive a consistent structure each time`,
+          `The weekly performance report reaches the department head by 10am every Monday, not Tuesday afternoon`,
+          `Preparation time drops from ${draft.hoursPerWeek} hours a week to under two`,
+          `Every figure in the report traces back to one approved source, so the numbers match across teams`,
         ].join("\n"),
       };
     case "measurement":
       return {
         rationale: `Each measure has a baseline you can take this week, before anything is built.`,
         text: [
-          `Hours per brief, measured against the current manual baseline`,
-          `Number of briefs produced and accepted without rework`,
-          `Days from objective to approved brief, before and after`,
+          `Hours spent per report, logged for the four weeks before launch as the baseline`,
+          `Share of reports delivered by 10am Monday, against the current on-time rate`,
+          `Figures corrected at review per report, tracked week by week`,
         ].join("\n"),
       };
     default:
@@ -230,7 +214,7 @@ export function improveSolution(text: string): ImprovementPass {
   if (!has("feedback", "improve over time", "learns", "logged"))
     additions.push("Rejected drafts are logged with the reason, and the instructions are revised monthly from that log.");
   if (!has("fails", "fallback", "unavailable", "manual route"))
-    additions.push("If the assistant is unavailable the manual route stays open, so no campaign is blocked by it.");
+    additions.push("If the assistant is unavailable the manual route stays open, so the report still goes out on time.");
   if (!has("source", "data", "record"))
     additions.push("Every output records which data sources it drew on, so the trail can be audited.");
 
@@ -498,8 +482,8 @@ export type ProjectSubmission = {
  * reachable from the sidebar without building anything first, so it needs a
  * worked example when nothing was submitted this session.
  */
-export function demoSubmission(project?: (ProjectIdea & { competency: Competency }) | null): ProjectSubmission {
-  const base = defaultDraft(project);
+export function demoSubmission(): ProjectSubmission {
+  const base = defaultDraft();
   const draft: ProjectDraft = {
     ...base,
     challenge: suggestFor("challenge", base)?.text ?? "",
@@ -649,7 +633,9 @@ export function evaluateSubmission(
   }
 
   const overall = Math.round(dimensions.reduce((sum, d) => sum + d.value, 0) / dimensions.length);
-  const points = Math.round((overall * 5) / 10) * 10;
+  // A passed project earns the published rate from POINT_RULES — the same
+  // figure the points ledger and "How points are earned" legend show.
+  const points = pointsFor("project");
 
   const verdict =
     overall >= 88
@@ -659,65 +645,4 @@ export function evaluateSubmission(
         : "Approved for a limited trial. Return with measured results before wider rollout.";
 
   return { dimensions, overall, points, verdict };
-}
-
-// ---------------------------------------------------------------------------
-// The human review thread
-// ---------------------------------------------------------------------------
-
-export type ReviewMessage = {
-  id: string;
-  author: string;
-  initials: string;
-  role: string;
-  /** The learner's own messages sit on the other side of the thread. */
-  side: "learner" | "reviewer";
-  when: string;
-  body: string;
-  decision?: "approved";
-};
-
-export function reviewThread(submission: ProjectSubmission, evaluation: Evaluation): ReviewMessage[] {
-  const weakest = [...evaluation.dimensions].sort((a, b) => a.value - b.value)[0];
-  const measures = filled(submission.draft.measures);
-
-  return [
-    {
-      id: "r1",
-      author: LEARNER_PROFILE.name,
-      initials: "AM",
-      role: LEARNER_PROFILE.role,
-      side: "learner",
-      when: "On submission",
-      body: `Submitting "${submission.draft.title}". The estimate is ${submission.impact.hoursPerMonth} hours a month back to the team, measured on ${measures.length || "the recorded"} baselines.`,
-    },
-    {
-      id: "r2",
-      author: "Fatima Al Suwaidi",
-      initials: "FA",
-      role: "Ministry Innovation Lead",
-      side: "reviewer",
-      when: "Two days later",
-      body: `Read it over the weekend. This targets the bottleneck I hear about most, and the oversight point is the right one. One question before I sign: ${weakest.label.toLowerCase()} scored ${weakest.value}. How would you handle it in the first month?`,
-    },
-    {
-      id: "r3",
-      author: LEARNER_PROFILE.name,
-      initials: "AM",
-      role: LEARNER_PROFILE.role,
-      side: "learner",
-      when: "Same day",
-      body: `I would keep the first month deliberately narrow — one campaign type, the named reviewer on every output, and a weekly look at what was rejected and why. If the rejection rate holds under a fifth, we widen it.`,
-    },
-    {
-      id: "r4",
-      author: "Fatima Al Suwaidi",
-      initials: "FA",
-      role: "Ministry Innovation Lead",
-      side: "reviewer",
-      when: "Today",
-      decision: "approved",
-      body: `That is exactly the answer I wanted. Approved for immediate pilot within the communications team. I have asked the section head to hold the review slot, and I want the first month's figures at the entity review.`,
-    },
-  ];
 }

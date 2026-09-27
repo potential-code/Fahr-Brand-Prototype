@@ -46,7 +46,6 @@ import {
   ShieldCheck,
   Search,
   Download,
-  Printer,
   ChevronsUpDown,
   ChevronRight,
   UserPlus,
@@ -71,7 +70,7 @@ import {
   Stagger,
   StaggerItem,
 } from "@/components/motion";
-import { downloadCsv, printReport } from "@/lib/exportFile";
+import { downloadCsv } from "@/lib/exportFile";
 
 type SortKey = "name" | "role" | "lastActive";
 
@@ -223,46 +222,6 @@ export default function FAHRUsers() {
     toast({ title: "Directory exported", description: `Saved ${name}.` });
   };
 
-  const handlePrintRegister = () => {
-    printReport({
-      title: "Federal user and role register",
-      subtitle: "Federal AI Learning Programme — platform accounts and their roles",
-      meta: [
-        `Accounts: ${filtered.length} of ${users.length}`,
-        `Role: ${roleFilter === "all" ? "All roles" : roleFilter}`,
-        `Status: ${statusFilter === "all" ? "All" : statusFilter}`,
-      ],
-      sections: [
-        {
-          heading: "Directory summary",
-          facts: [
-            { label: "Accounts", value: String(counts.total) },
-            { label: "Active", value: String(counts.active) },
-            { label: "Invited", value: String(counts.invited) },
-            { label: "Suspended", value: String(counts.suspended) },
-            { label: "Federal-role holders", value: String(counts.federal) },
-          ],
-        },
-        {
-          heading: "Accounts",
-          table: {
-            headers: ["Name", "Email", "Role", "Entity", "Status", "Last active"],
-            rows: filtered.map((u) => [
-              u.name,
-              u.email,
-              u.roleLabel,
-              entityName(u.ministryId),
-              u.status,
-              u.lastActive,
-            ]),
-          },
-        },
-      ],
-      footnote: "Federal-role holders hold roles scoped across every entity. Suspended accounts cannot sign in.",
-    });
-    toast({ title: "Register ready", description: "The user and role register has opened for printing." });
-  };
-
   const SortHead = ({ label, k }: { label: string; k: SortKey }) => (
     <button
       type="button"
@@ -286,9 +245,6 @@ export default function FAHRUsers() {
             <>
               <Button variant="outline" onClick={handleExportCsv} className="gap-2" data-testid="button-export-csv">
                 <Download className="h-4 w-4" /> Export CSV
-              </Button>
-              <Button variant="outline" onClick={handlePrintRegister} className="gap-2" data-testid="button-print-register">
-                <Printer className="h-4 w-4" /> Role register
               </Button>
               <Button onClick={() => setInviteOpen(true)} className="gap-2" data-testid="button-invite-user">
                 <UserPlus className="h-4 w-4" /> Invite a user

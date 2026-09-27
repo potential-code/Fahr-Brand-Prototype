@@ -28,7 +28,13 @@ export type CourseProgress = {
   completedLessonIds: string[];
   pretestDone: boolean;
   finalDone: boolean;
+  /** The option picked for each question on the latest finished pretest attempt. */
+  pretestAnswers?: number[];
+  /** The option picked for each question on the latest finished final assessment attempt. */
+  finalAnswers?: number[];
 };
+
+export type CourseQuiz = "pretest" | "final";
 
 export type Remediation = {
   /** The competency the low post-assessment identified as weakest. */
@@ -59,6 +65,8 @@ type Ctx = State & {
   toggleLessonComplete: (courseId: string, lessonId: string) => void;
   setPretestDone: (courseId: string) => void;
   setFinalDone: (courseId: string) => void;
+  /** Keeps a finished quiz attempt, so its result survives a reload or a return visit. */
+  saveQuizAnswers: (courseId: string, quiz: CourseQuiz, answers: number[]) => void;
   /** Idempotent: completing the same activity twice changes nothing. */
   completeActivity: (activityId: string) => void;
   unlockAdaptiveItem: () => void;
@@ -108,6 +116,12 @@ function readStored(): State {
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
+
+/** A stored attempt, kept only if it answers every question with a valid option index. */
+function answersFor(v: unknown, questionCount: number): number[] | undefined {
+  if (!Array.isArray(v) || v.length !== questionCount) return undefined;
+  return v.every((a) => Number.isInteger(a) && a >= 0) ? (v as number[]) : undefined;
+}
 
 const isStringArray = (v: unknown): v is string[] =>
   Array.isArray(v) && v.every((x) => typeof x === "string");
@@ -187,6 +201,8 @@ function sanitizeCourseProgress(v: unknown): Record<string, CourseProgress> {
         : [],
       pretestDone: raw.pretestDone === true,
       finalDone: raw.finalDone === true,
+      pretestAnswers: answersFor(raw.pretestAnswers, course.pretest.questions.length),
+      finalAnswers: answersFor(raw.finalAnswers, course.finalAssessment.questions.length),
     };
   }
   return out;
@@ -388,6 +404,12 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
     [updateCourse],
   );
 
+  const saveQuizAnswers = useCallback(
+    (courseId: string, quiz: CourseQuiz, answers: number[]) =>
+      updateCourse(courseId, (p) => ({ ...p, [quiz === "pretest" ? "pretestAnswers" : "finalAnswers"]: answers })),
+    [updateCourse],
+  );
+
   const value = useMemo<Ctx>(
     () => ({
       ...state,
@@ -399,6 +421,7 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       toggleLessonComplete,
       setPretestDone,
       setFinalDone,
+      saveQuizAnswers,
       completeActivity,
       unlockAdaptiveItem,
       openRemediation,
@@ -414,6 +437,7 @@ export function LearnerProgressProvider({ children }: { children: React.ReactNod
       toggleLessonComplete,
       setPretestDone,
       setFinalDone,
+      saveQuizAnswers,
       completeActivity,
       unlockAdaptiveItem,
       openRemediation,

@@ -82,7 +82,8 @@ describe("Agentic AI Lab — Stage 1", () => {
     await ask(user, within(chat).getAllByTestId("twin-suggested-question")[0]);
     expect(screen.getByTestId("twin-reply-ok")).toBeTruthy();
 
-    // The personal-data chip must be refused outright.
+    // The personal-data chip must be refused outright. It carries the demo
+    // learner's own name and a realistic UAE mobile so the block is believable.
     const personalData = within(chat)
       .getAllByTestId("twin-suggested-question")
       .find((node) => (node.textContent ?? "").includes("personal data"));
@@ -97,26 +98,18 @@ describe("Agentic AI Lab — Stage 1", () => {
     expect(block.textContent).toContain("[full name]");
     expect(block.textContent).toContain("[phone number]");
     expect(block.textContent).not.toContain("Aisha");
-    expect(block.textContent).not.toContain("0501234567");
+    expect(block.textContent).not.toContain("+971 50 418 2736");
     expect(block.textContent).toContain("Discarded: full name");
     expect(block.textContent).toContain("Discarded: phone number");
     expect(block.textContent).toContain("Not sent to the model");
     expect(block.textContent).toContain("Not stored");
     expect(block.textContent).toContain("Not written to any log");
 
-    // The learner's own bubble is redacted too, with a quiet marker that the
-    // message was screened before it was sent.
-    expect(chat.textContent).toContain("[full name]");
-    expect(chat.textContent).toContain("[phone number]");
-    expect(screen.getByText("Screened before it reached the model")).toBeTruthy();
-
-    // The strongest proof of the whole feature: after submitting a message
-    // carrying a real name and phone number, neither the learner's own bubble
-    // nor the assistant's card holds the raw sensitive text anywhere in the
-    // rendered tree — checked over the whole chat container, not just the
-    // one card.
-    expect(chat.textContent ?? "").not.toContain("Aisha");
-    expect(chat.textContent ?? "").not.toContain("0501234567");
+    // The learner's own bubble shows what they typed, with each value the
+    // screen caught marked in place.
+    const caught = screen.getAllByTestId("pii-caught").map((node) => node.textContent);
+    expect(caught).toEqual(["Aisha Al Mansoori", "+971 50 418 2736"]);
+    expect(screen.getByText("Screen caught 2 personal details")).toBeTruthy();
   }, 20000);
 
   it("the other two chips demonstrate an honest refusal and a useful draft", async () => {
@@ -150,11 +143,13 @@ describe("Agentic AI Lab — Stage 1", () => {
     expect(screen.getByTestId("twin-reply-out-of-scope")).toBeTruthy();
 
     // Chip 4: the twin doing real, useful work, grounded in the learner's
-    // second task ("Writing social media copy").
-    expect(chips[3].textContent ?? "").toContain("Writing social media copy");
-    await ask(user, chips[3]);
+    // second task ("Drafting campaign briefs").
+    expect(chips[3].textContent ?? "").toContain("Drafting campaign briefs");
+    // Once the conversation starts the scenario cards collapse into compact
+    // chips, so look them up again.
+    await ask(user, within(chat).getAllByTestId("twin-suggested-question")[3]);
     expect(screen.getByTestId("twin-reply-ok")).toBeTruthy();
-    expect(within(chat).getByText("Writing social media copy")).toBeTruthy();
+    expect(within(chat).getByText("Drafting campaign briefs")).toBeTruthy();
   }, 20000);
 
   it("the federal guardrails render locked, with no switch to turn either off", async () => {
@@ -169,6 +164,22 @@ describe("Agentic AI Lab — Stage 1", () => {
     expect(screen.queryByTestId("switch-noPersonalData")).toBeNull();
     expect(screen.queryByTestId("switch-approvedKnowledgeOnly")).toBeNull();
     expect(screen.getAllByText("Always on").length).toBe(2);
+  }, 20000);
+
+  it("a trained twin survives a reload", async () => {
+    const user = userEvent.setup();
+    renderScreen(<AgenticAILabTwin />, "/learner/lab/twin");
+
+    await completeInterview(user);
+    await screen.findByTestId("twin-summary", {}, TRAINED);
+
+    // Unmount everything, as a page refresh would, and open the Lab again.
+    cleanup();
+    renderScreen(<AgenticAILabTwin />, "/learner/lab/twin");
+
+    expect(screen.getByTestId("twin-summary")).toBeTruthy();
+    expect(screen.getByTestId("twin-live-panels")).toBeTruthy();
+    expect(screen.getByTestId("twin-readiness").textContent).toBe("100%");
   }, 20000);
 
   it("rebuilding clears the twin back to an empty interview", async () => {

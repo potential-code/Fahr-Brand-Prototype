@@ -7,7 +7,7 @@
 // numbers, and the deployment rate comes from the live submission store so a
 // decision taken in another role shows up in the impact report.
 
-import type { Credential, Ministry, Submission } from "./model";
+import type { Credential, Ministry } from "./model";
 import { normaliseReadiness } from "./model";
 import { CAPABILITY_DISTRIBUTION, GAP_TRENDS, MINISTRIES } from "./seed";
 import { COMPETENCIES } from "@/lib/learningData";
@@ -16,9 +16,6 @@ import { FEDERAL } from "./selectors";
 import type { ReportPeriod } from "./fahrConsole";
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
-
-/** Learning hours a single active learner records over a rolling year. */
-const HOURS_PER_LEARNER_YEAR = 38;
 
 /** Share of active learners at Practitioner or above, nationally. */
 const NATIONAL_PRACTITIONER_SHARE =
@@ -59,12 +56,10 @@ export type EngagementRow = {
   activeLearners: number;
   /** Share of the targeted workforce that is learning. */
   coverage: number;
-  learningHours: number;
-  pathwayCompletions: number;
   readiness: number;
 };
 
-export function engagementRows({ ministries, period }: ReportScope): EngagementRow[] {
+export function engagementRows({ ministries }: ReportScope): EngagementRow[] {
   return ministries.map((m) => ({
     ministryId: m.id,
     entity: m.name,
@@ -72,8 +67,6 @@ export function engagementRows({ ministries, period }: ReportScope): EngagementR
     employees: m.employees,
     activeLearners: m.activeLearners,
     coverage: Math.round((m.activeLearners / m.employees) * 100),
-    learningHours: scaled(m.activeLearners * HOURS_PER_LEARNER_YEAR, period.share),
-    pathwayCompletions: scaled(m.activeLearners * (m.readiness / 100), period.share),
     readiness: m.readiness,
   }));
 }
@@ -82,14 +75,21 @@ export function engagementRows({ ministries, period }: ReportScope): EngagementR
 // Competency development
 // ---------------------------------------------------------------------------
 
-/** Fixed per-competency shape of the national capability profile. */
-const COMPETENCY_OFFSETS: Record<string, number> = {
+/**
+ * Fixed per-competency shape of the capability profile, offset from an
+ * entity's overall readiness. The one definition every gap view — national,
+ * entity and department — reads from, so they agree.
+ */
+export const COMPETENCY_OFFSETS: Record<string, number> = {
   literacy: 14,
   prompting: 6,
   analytics: -2,
   agentic: -12,
   governance: -6,
 };
+
+/** Extra points taken off whichever competency an entity names as its top gap. */
+export const TOP_GAP_PENALTY = 8;
 
 /**
  * An entity's score per competency. Offsets are normalised so the mean returns
@@ -99,7 +99,7 @@ const COMPETENCY_OFFSETS: Record<string, number> = {
 export function competencyScores(ministry: Ministry): Record<string, number> {
   const ids = COMPETENCIES.map((c) => c.id);
   const offsets = ids.map(
-    (id) => (COMPETENCY_OFFSETS[id] ?? 0) + (id === ministry.topGapCompetencyId ? -8 : 0),
+    (id) => (COMPETENCY_OFFSETS[id] ?? 0) - (id === ministry.topGapCompetencyId ? TOP_GAP_PENALTY : 0),
   );
   const values = normaliseReadiness(
     ministry.readiness,
@@ -219,32 +219,20 @@ export type ImpactRow = {
   entity: string;
   short: string;
   projects: number;
-  deployed: number;
+  /** Endorsed or approved and in service. */
+  live: number;
   hoursSavedPerMonth: number;
-  valueCreatedAedM: number;
   projectsThisPeriod: number;
 };
 
-/**
- * Share of projects that reach deployment, read from the live submission store
- * so a manager's or entity's decision this session moves the impact report.
- */
-export function deploymentRate(submissions: Submission[]): number {
-  if (submissions.length === 0) return 0;
-  const deployed = submissions.filter((s) => s.state === "deployed" || s.state === "endorsed").length;
-  return deployed / submissions.length;
-}
-
-export function impactRows({ ministries, period }: ReportScope, submissions: Submission[]): ImpactRow[] {
-  const rate = deploymentRate(submissions);
+export function impactRows({ ministries, period }: ReportScope): ImpactRow[] {
   return ministries.map((m) => ({
     ministryId: m.id,
     entity: m.name,
     short: m.shortName,
     projects: m.projectsSubmitted,
-    deployed: Math.round(m.projectsSubmitted * rate),
+    live: m.projectsLive,
     hoursSavedPerMonth: m.hoursSavedPerMonth,
-    valueCreatedAedM: Math.round(m.valueCreatedAedM * 10) / 10,
     projectsThisPeriod: scaled(m.projectsSubmitted, period.share),
   }));
 }
@@ -295,7 +283,7 @@ export function ladderRows(ministries: Ministry[]): LadderRow[] {
 
 export const REPORT_NOTES: Record<string, string> = {
   engagement:
-    "Coverage is active learners against the entity's targeted workforce. Learning hours assume 38 recorded hours per active learner per year, scaled to the selected period.",
+    "Coverage is active learners against the entity's targeted workforce.",
   competency:
     "Competency scores are the entity's readiness index reshaped by the national capability profile, with the entity's own priority gap weighted down. The weighted mean returns the readiness index.",
   assessment:
@@ -303,7 +291,7 @@ export const REPORT_NOTES: Record<string, string> = {
   certification:
     "Credentials split across the ladder in line with the national capability distribution. 'On register' counts rows in the live national credential registry, including any issued during this session.",
   impact:
-    "The deployment rate is read from the live workplace-project store, so decisions taken in the manager and entity portals during this session move this report.",
+    "Projects live are those endorsed by their entity or approved by FAHR. Hours returned are what live projects save each month, about 45 hours per project.",
 };
 
 /** Entities are the reporting unit; this is the national roll-up line. */
@@ -320,8 +308,9 @@ export function nationalLine(ministries: Ministry[]) {
       ? Math.round(ministries.reduce((a, m) => a + m.readiness * m.employees, 0) / employees)
       : 0,
     credentials: ministries.reduce((a, m) => a + m.credentialsIssued, 0),
+    twins: ministries.reduce((a, m) => a + m.twins, 0),
     projects: ministries.reduce((a, m) => a + m.projectsSubmitted, 0),
+    projectsLive: ministries.reduce((a, m) => a + m.projectsLive, 0),
     hoursSavedPerMonth: ministries.reduce((a, m) => a + m.hoursSavedPerMonth, 0),
-    valueCreatedAedM: Math.round(ministries.reduce((a, m) => a + m.valueCreatedAedM, 0) * 10) / 10,
   };
 }

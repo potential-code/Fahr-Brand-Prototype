@@ -42,7 +42,6 @@ import {
 } from "recharts";
 import {
   Download,
-  Printer,
   FileText,
   ArrowRight,
   Users,
@@ -73,7 +72,7 @@ import {
   credentialTotal,
 } from "@/lib/entityAdmin/selectors";
 import { COMPETENCIES } from "@/lib/learningData";
-import { downloadCsv, downloadCsvPack, printReport, type ExportSheet } from "@/lib/exportFile";
+import { downloadCsv, downloadCsvPack, type ExportSheet } from "@/lib/exportFile";
 import { ReportKpi, scoreTone, ReportPill } from "@/components/ministry/ReportShared";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { AGENTS } from "@/lib/constants";
@@ -211,7 +210,7 @@ export default function MinistryReports() {
       filename: "mohap-engagement",
       title: "Engagement report",
       notes: filterNotes,
-      headers: ["Department", "Employees", "Active learners", "Coverage %", "Active this week", "At risk", "Avg progress %"],
+      headers: ["Department", "Employees", "Active learners", "Coverage %", "Active in last 7 days", "Inactive 14+ days", "Avg progress %"],
       rows: engagement.map((r) => [r.department.name, r.employees, r.activeLearners, r.coverage, r.activeThisWeek, r.atRisk, r.averageProgress]),
     };
   }
@@ -293,18 +292,6 @@ export default function MinistryReports() {
     const name = downloadCsvPack("mohap-reporting-pack", allSheets(), `${ministry.name} — reporting pack`);
     toast({ title: "Reporting pack exported", description: `All six reports saved as ${name}.` });
   };
-  const handlePrint = () => {
-    printReport({
-      title: `${ministry.name} — ${activeTab.label} report`,
-      subtitle: "FAHR AI Learning & Development Platform",
-      notes: filterNotes,
-      sheets: [sheetForView(view)],
-    });
-    toast({
-      title: "Print view opened",
-      description: "Save as PDF from the print dialog.",
-    });
-  };
 
   const topGap = gaps[0];
 
@@ -318,9 +305,6 @@ export default function MinistryReports() {
           description="Engagement, completion, competency development, assessment outcomes and certification for the entity, with a capability-gap view. Filters flow through to every export."
           actions={
             <>
-              <Button variant="outline" onClick={handlePrint} data-testid="button-print-report">
-                <Printer className="w-4 h-4 mr-2" /> Print / PDF
-              </Button>
               <Button variant="outline" onClick={handleExportPack} data-testid="button-export-pack">
                 <Download className="w-4 h-4 mr-2" /> Export full pack
               </Button>
@@ -429,14 +413,15 @@ function EngagementReport({ rows }: { rows: ReturnType<typeof engagementRows> })
   const totalAtRisk = rows.reduce((s, r) => s + r.atRisk, 0);
   const avgCoverage = rows.length ? Math.round(rows.reduce((s, r) => s + r.coverage, 0) / rows.length) : 0;
   const chartData = rows.map((r) => ({ name: r.department.name.split(" ")[0], active: r.activeThisWeek, atRisk: r.atRisk }));
+  const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 
   return (
     <div className="space-y-6">
       <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StaggerItem><ReportKpi label="Active learners" value={totalActive} icon={Users} tone="text-primary" testId="kpi-active" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Active this week" value={totalWeek} icon={Activity} tone="text-secondary" testId="kpi-week" /></StaggerItem>
-        <StaggerItem><ReportKpi label="At risk of dropping off" value={totalAtRisk} icon={Target} tone="text-accent" testId="kpi-atrisk" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Avg department coverage" value={avgCoverage} suffix="%" icon={CheckCircle2} tone="text-[hsl(var(--chart-3))]" testId="kpi-coverage" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Active learners" value={totalActive} icon={Users} tone="text-primary" testId="kpi-active" caption="Enrolled and active since launch" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Active in last 7 days" value={totalWeek} icon={Activity} tone="text-secondary" testId="kpi-week" caption={`${pct(totalWeek, totalActive)}% of active learners`} /></StaggerItem>
+        <StaggerItem><ReportKpi label="Inactive 14+ days" value={totalAtRisk} icon={Target} tone="text-accent" testId="kpi-atrisk" caption={`${pct(totalAtRisk, totalActive)}% of active learners, at risk of dropping off`} /></StaggerItem>
+        <StaggerItem><ReportKpi label="Avg department coverage" value={avgCoverage} suffix="%" icon={CheckCircle2} tone="text-[hsl(var(--chart-3))]" testId="kpi-coverage" caption="Active learners as a share of each department" /></StaggerItem>
       </Stagger>
 
       <Card>
@@ -449,8 +434,8 @@ function EngagementReport({ rows }: { rows: ReturnType<typeof engagementRows> })
                 <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip cursor={{ fill: "transparent" }} />
-                <Bar dataKey="active" stackId="a" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} name="Active this week" />
-                <Bar dataKey="atRisk" stackId="a" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} name="At risk" />
+                <Bar dataKey="active" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Active in last 7 days" />
+                <Bar dataKey="atRisk" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} name="Inactive 14+ days" />
               </BarChart>
             </ResponsiveContainer>
           </ChartReveal>
@@ -471,8 +456,8 @@ function EngagementReport({ rows }: { rows: ReturnType<typeof engagementRows> })
                     <TableHead className="text-right">Employees</TableHead>
                     <TableHead className="text-right">Active learners</TableHead>
                     <TableHead className="text-right">Coverage</TableHead>
-                    <TableHead className="text-right">Active this week</TableHead>
-                    <TableHead className="text-right">At risk</TableHead>
+                    <TableHead className="text-right">Active in last 7 days</TableHead>
+                    <TableHead className="text-right">Inactive 14+ days</TableHead>
                     <TableHead className="text-right">Avg progress</TableHead>
                     <TableHead />
                   </TableRow>
@@ -518,10 +503,10 @@ function CompletionReport({ rows }: { rows: ReturnType<typeof completionRows> })
   return (
     <div className="space-y-6">
       <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StaggerItem><ReportKpi label="Learners enrolled" value={enrolled} icon={Users} tone="text-primary" testId="kpi-enrolled" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Completed" value={completed} icon={CheckCircle2} tone="text-secondary" testId="kpi-completed" /></StaggerItem>
-        <StaggerItem><ReportKpi label="In progress" value={inProgress} icon={Activity} tone="text-accent" testId="kpi-inprogress" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Overall completion" value={rate} suffix="%" icon={Target} tone="text-[hsl(var(--chart-3))]" testId="kpi-rate" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Learners enrolled" value={enrolled} icon={Users} tone="text-primary" testId="kpi-enrolled" caption="Across the cohorts in view" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Completed" value={completed} icon={CheckCircle2} tone="text-secondary" testId="kpi-completed" caption="Finished their pathway, to date" /></StaggerItem>
+        <StaggerItem><ReportKpi label="In progress" value={inProgress} icon={Activity} tone="text-accent" testId="kpi-inprogress" caption="Started, not yet finished" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Overall completion" value={rate} suffix="%" icon={Target} tone="text-[hsl(var(--chart-3))]" testId="kpi-rate" caption="Completed as a share of enrolled" /></StaggerItem>
       </Stagger>
 
       <Card>
@@ -596,16 +581,18 @@ function CompetencyReport({ rows }: { rows: ReturnType<typeof entityCompetencyGa
   const avgScore = rows.length ? Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length) : 0;
   const target = rows[0]?.target ?? 0;
   const atTarget = rows.filter((r) => r.gap === 0).length;
-  const learnersBelow = rows.reduce((s, r) => s + r.learnersBelow, 0);
+  // The widest single gap — summing across competencies would count a learner more than once.
+  const widest = [...rows].sort((a, b) => b.learnersBelow - a.learnersBelow)[0];
+  const learnersBelow = widest?.learnersBelow ?? 0;
   const chartData = rows.map((r) => ({ name: r.competency.short, score: r.score, target: r.target }));
 
   return (
     <div className="space-y-6">
       <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StaggerItem><ReportKpi label="Entity capability average" value={avgScore} suffix="%" icon={BarChart3} tone="text-primary" testId="kpi-avg" /></StaggerItem>
-        <StaggerItem><ReportKpi label="National target" value={target} suffix="%" icon={Target} tone="text-secondary" testId="kpi-target" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Competencies at target" value={atTarget} suffix={` / ${rows.length}`} icon={CheckCircle2} tone="text-[hsl(var(--chart-3))]" testId="kpi-attarget" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Learners below practitioner" value={learnersBelow} icon={Users} tone="text-accent" testId="kpi-below" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Entity capability average" value={avgScore} suffix="%" icon={BarChart3} tone="text-primary" testId="kpi-avg" caption="Mean across the five competencies, 0–100" /></StaggerItem>
+        <StaggerItem><ReportKpi label="National target" value={target} suffix="%" icon={Target} tone="text-secondary" testId="kpi-target" caption="Federal readiness target" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Competencies at target" value={atTarget} suffix={` / ${rows.length}`} icon={CheckCircle2} tone="text-[hsl(var(--chart-3))]" testId="kpi-attarget" caption="Competencies at or above target" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Learners below practitioner" value={learnersBelow} icon={Users} tone="text-accent" testId="kpi-below" caption={widest ? `Below Practitioner in ${widest.competency.short}, the widest gap` : "No competencies in view"} /></StaggerItem>
       </Stagger>
 
       <Card>
@@ -683,10 +670,10 @@ function AssessmentReport({ rows }: { rows: ReturnType<typeof assessmentRows> })
   return (
     <div className="space-y-6">
       <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StaggerItem><ReportKpi label="Learners assessed" value={assessed} icon={Target} tone="text-primary" testId="kpi-assessed" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Average score" value={avgScore} suffix="%" icon={BarChart3} tone="text-secondary" testId="kpi-avgscore" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Retakes needed" value={retakes} icon={Activity} tone="text-accent" testId="kpi-retakes" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Awaiting assessment" value={awaiting} icon={Users} tone="text-[hsl(var(--chart-3))]" testId="kpi-awaiting" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Learners assessed" value={assessed} icon={Target} tone="text-primary" testId="kpi-assessed" caption="Across the cohorts in view, scaled from rosters" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Average score" value={avgScore} suffix="%" icon={BarChart3} tone="text-secondary" testId="kpi-avgscore" caption="Mean of cohort averages" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Retakes needed" value={retakes} icon={Activity} tone="text-accent" testId="kpi-retakes" caption="Below the pass mark, to retake" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Awaiting assessment" value={awaiting} icon={Users} tone="text-[hsl(var(--chart-3))]" testId="kpi-awaiting" caption="Enrolled, not yet assessed" /></StaggerItem>
       </Stagger>
 
       <Card>
@@ -766,10 +753,10 @@ function CertificationReport({ rows, total }: { rows: ReturnType<typeof certific
   return (
     <div className="space-y-6">
       <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StaggerItem><ReportKpi label="Credentials issued" value={total} icon={Award} tone="text-primary" testId="kpi-credentials" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Capability levels" value={rows.length} icon={Layers} tone="text-secondary" testId="kpi-levels" /></StaggerItem>
-        <StaggerItem><ReportKpi label={`Most-earned: ${topLevel?.level.label ?? "—"}`} value={topLevel?.issued ?? 0} icon={Target} tone="text-accent" testId="kpi-toplevel" /></StaggerItem>
-        <StaggerItem><ReportKpi label="Top-level share" value={topLevel?.share ?? 0} suffix="%" icon={CheckCircle2} tone="text-[hsl(var(--chart-3))]" testId="kpi-topshare" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Credentials issued" value={total} icon={Award} tone="text-primary" testId="kpi-credentials" caption="Workplace-project credentials since launch" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Capability levels" value={rows.length} icon={Layers} tone="text-secondary" testId="kpi-levels" caption="Levels on the capability ladder" /></StaggerItem>
+        <StaggerItem><ReportKpi label={`Most-earned: ${topLevel?.level.label ?? "—"}`} value={topLevel?.issued ?? 0} icon={Target} tone="text-accent" testId="kpi-toplevel" caption="Credentials at the most-earned level" /></StaggerItem>
+        <StaggerItem><ReportKpi label="Top-level share" value={topLevel?.share ?? 0} suffix="%" icon={CheckCircle2} tone="text-[hsl(var(--chart-3))]" testId="kpi-topshare" caption="Share of credentials at that level" /></StaggerItem>
       </Stagger>
 
       <Card>

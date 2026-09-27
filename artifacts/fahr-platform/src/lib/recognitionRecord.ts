@@ -13,7 +13,7 @@
 
 import { COMPETENCIES, COURSES, COMPETENCY_BY_ID, SCORE_BANDS, courseLessons } from "@/lib/learningData";
 import { CAPABILITY_LEVELS, IMPACT_POINTS, type CapabilityLevel } from "@/lib/constants";
-import { POINT_RULES } from "@/lib/engagement";
+import { LEARNER_STANDING, SCOPE_TOTAL, pointsFor, topPercent } from "@/lib/engagement";
 import type { ParticipationSummary } from "@/lib/profileAnalysis";
 import type { AssessmentResult, CourseProgress } from "@/lib/LearnerProgressContext";
 import type { ProjectSubmission } from "@/lib/workplaceProject";
@@ -82,7 +82,8 @@ export type RecognitionRank = {
   federalTotal: number;
   /** Places gained across the federal leaderboard this quarter. */
   movement: number;
-  percentile: number;
+  /** "Top x%" federally, derived from rank ÷ federal total (rounded up, at least 1). */
+  topPercent: number;
 };
 
 export type RecognitionRecord = {
@@ -279,7 +280,7 @@ function buildPointsEntries(
     entries.push({
       id: "pts-project",
       label: "Workplace project passed evaluation",
-      points: POINT_RULES[1].points,
+      points: pointsFor("project"),
       when: "This week",
       source: "activity",
     });
@@ -295,7 +296,7 @@ function buildPointsEntries(
     entries.push({
       id: "pts-courses",
       label: `${participation.coursesCompleted} course${participation.coursesCompleted > 1 ? "s" : ""} completed`,
-      points: participation.coursesCompleted * POINT_RULES[3].points,
+      points: participation.coursesCompleted * pointsFor("course"),
       when: "Last 90 days",
       source: "activity",
     });
@@ -307,14 +308,14 @@ function buildPointsEntries(
   entries.push({
     id: "pts-session",
     label: "Instructor-led session attended",
-    points: POINT_RULES[2].points,
+    points: pointsFor("session"),
     when: "12 days ago",
     source: "record",
   });
   entries.push({
     id: "pts-community",
     label: "Community answers marked helpful",
-    points: 3 * POINT_RULES[0].points,
+    points: 3 * pointsFor("helpful"),
     when: "Last 30 days",
     source: "record",
   });
@@ -374,12 +375,12 @@ export function buildRecognitionRecord(input: {
   const points = IMPACT_POINTS;
 
   const rank: RecognitionRank = {
-    entity: 2,
-    entityTotal: 1240,
-    federal: 142,
-    federalTotal: 38400,
-    movement: 18,
-    percentile: 99,
+    entity: LEARNER_STANDING.entity,
+    entityTotal: SCOPE_TOTAL.entity,
+    federal: LEARNER_STANDING.federal,
+    federalTotal: SCOPE_TOTAL.federal,
+    movement: LEARNER_STANDING.federalMovement,
+    topPercent: topPercent(LEARNER_STANDING.federal, SCOPE_TOTAL.federal),
   };
 
   return {

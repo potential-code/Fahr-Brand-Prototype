@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSearch } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,9 +36,18 @@ import type { Submission, Escalation, ApprovalRecord } from "@/lib/federal/model
 import { ENTITY_ADMIN } from "@/lib/entityAdmin/seed";
 import { downloadCsvPack } from "@/lib/exportFile";
 import { ApprovalsQueueCard } from "@/components/ministry/ApprovalsQueueCard";
-import { ApprovalsTrail } from "@/components/ministry/ApprovalsTrail";
 import { ApprovalsLegend } from "@/components/ministry/ApprovalsLegend";
 import { ApprovalsDecisionDialog, type DecisionKind } from "@/components/ministry/ApprovalsDecisionDialog";
+
+type QueueTab = "awaiting" | "returned" | "escalated" | "endorsed";
+
+/** Which tab a project lives under, so a deep link can open the right one. */
+function tabForState(state: Submission["state"]): QueueTab {
+  if (state === "revision_requested" || state === "awaiting_manager") return "returned";
+  if (state === "escalated") return "escalated";
+  if (state === "endorsed" || state === "deployed") return "endorsed";
+  return "awaiting";
+}
 
 /** Month names as the seed writes them, for parsing "22 July 2026". */
 const MONTHS = [
@@ -71,17 +81,14 @@ export default function MinistryApprovals() {
   } = useFederalData();
 
   const ministry = MINISTRY_BY_ID[focus.ministryId];
+  const search = useSearch();
+  const deepLinkId = useMemo(() => new URLSearchParams(search).get("project"), [search]);
+  const [tab, setTab] = useState<QueueTab>("awaiting");
+  const [highlightId, setHighlightId] = useState<string | null>(null);
 
-  // Track ids acted on this session so the trail can highlight the newest, and
-  // so we can count session decisions honestly.
-  const [freshTrailIds, setFreshTrailIds] = useState<Set<string>>(new Set());
+  // Count session decisions honestly.
   const [sessionCounts, setSessionCounts] = useState({ endorsed: 0, returned: 0, escalated: 0 });
   const [dialog, setDialog] = useState<{ id: string; kind: DecisionKind } | null>(null);
-
-  // The size of the audit trail before this render's decision, so a newly
-  // recorded event can be flagged fresh once the store adds it.
-  const prevAuditIds = useRef<Set<string>>(new Set());
-  const pendingFresh = useRef(false);
 
   const entityMinistryId = focus.ministryId;
 
@@ -92,6 +99,26 @@ export default function MinistryApprovals() {
     () => submissions.filter((s) => s.ministryId === entityMinistryId),
     [submissions, entityMinistryId],
   );
+
+  // A notification deep link (?project=<id>) opens the project's tab and rings its card.
+  useEffect(() => {
+    if (!deepLinkId) return;
+    const target = entitySubmissions.find((s) => s.id === deepLinkId);
+    if (!target) return;
+    setTab(tabForState(target.state));
+    setHighlightId(target.id);
+    // Deliberately keyed on the link only: later decisions must not yank the tab around.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId]);
+
+  useEffect(() => {
+    if (!highlightId) return;
+    const frame = window.requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-testid="card-queue-${highlightId}"]`);
+      el?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [highlightId, tab]);
 
   const awaiting = entitySubmissions.filter((s) => s.state === QUEUE_STATE.ministry);
   const returned = entitySubmissions.filter(
@@ -113,20 +140,6 @@ export default function MinistryApprovals() {
     [auditEvents, entityMinistryId],
   );
 
-  // When a decision adds a new audit event, flag it fresh for the animation.
-  useEffect(() => {
-    if (pendingFresh.current) {
-      const newIds = trailEvents
-        .map((e) => e.id)
-        .filter((id) => !prevAuditIds.current.has(id));
-      if (newIds.length > 0) {
-        setFreshTrailIds((prev) => new Set([...prev, ...newIds]));
-        pendingFresh.current = false;
-      }
-    }
-    prevAuditIds.current = new Set(trailEvents.map((e) => e.id));
-  }, [trailEvents]);
-
   // Average days in queue for items awaiting an entity decision.
   const now = Date.now();
   const queueDays = awaiting
@@ -139,19 +152,33 @@ export default function MinistryApprovals() {
   const runDecision = (id: string, kind: DecisionKind, note: string) => {
     const submission = entitySubmissions.find((s) => s.id === id);
     const title = submission?.title ?? "the project";
-    pendingFresh.current = true;
+    const learner = submission ? getPerson(submission.personId) : undefined;
+    const learnerName = learner?.name ?? "the learner";
+    const managerName =
+      (learner?.managerId ? getPerson(learner.managerId)?.name : undefined) ??
+      (submission?.reviewer && submission.reviewer !== "Department manager" ? submission.reviewer : undefined) ??
+      "their line manager";
     if (kind === "endorse") {
       endorse(id, { by: ENTITY_ADMIN, note: note || undefined });
       setSessionCounts((c) => ({ ...c, endorsed: c.endorsed + 1 }));
-      toast({ title: "Endorsed", description: `"${title}" is endorsed for entity deployment.` });
+      toast({
+        title: "Endorsed — project is live",
+        description: `"${title}" is endorsed for entity deployment. ${learnerName} and ${managerName} have been notified.`,
+      });
     } else if (kind === "return") {
       returnToManager(id, { by: ENTITY_ADMIN, note });
       setSessionCounts((c) => ({ ...c, returned: c.returned + 1 }));
-      toast({ title: "Returned to manager", description: `"${title}" is back with the department manager.` });
-    } else {
+      toast({
+        title: "Returned to line manager",
+        description: `"${title}" is back with ${managerName}. ${managerName} and ${learnerName} have been notified.`,
+      });
+    } else if (kind === "escalate") {
       escalate(id, { by: ENTITY_ADMIN, note });
       setSessionCounts((c) => ({ ...c, escalated: c.escalated + 1 }));
-      toast({ title: "Escalated to FAHR", description: `"${title}" now sits in the FAHR queue.` });
+      toast({
+        title: "Escalated to FAHR",
+        description: `"${title}" now sits in the FAHR queue. The FAHR Programme Team, ${learnerName} and ${managerName} have been notified.`,
+      });
     }
     setDialog(null);
   };
@@ -166,7 +193,6 @@ export default function MinistryApprovals() {
         SUBMISSION_STATE_LABEL[s.state],
         s.impact,
         s.governanceStatus,
-        s.estimatedValueAed,
         s.hoursSavedPerMonth,
         s.submittedOn,
         manager ? `${manager.by} (${manager.on})` : "—",
@@ -181,7 +207,7 @@ export default function MinistryApprovals() {
           title: "Awaiting entity endorsement",
           headers: [
             "Project", "Learner", "Department", "State", "Impact", "Governance",
-            "Est. value (AED/yr)", "Hours saved/mo", "Submitted", "Department manager sign-off",
+            "Hours returned/mo", "Submitted", "Department manager sign-off",
           ],
           rows: queueRows,
           notes: [`${ministry.name} — generated for the entity approvals queue`],
@@ -199,10 +225,34 @@ export default function MinistryApprovals() {
   };
 
   const kpis = [
-    { label: "Awaiting decision", value: awaiting.length, icon: Inbox, color: "text-primary" },
-    { label: "Endorsed this session", value: sessionCounts.endorsed, icon: CheckCircle2, color: "text-green-600" },
-    { label: "Returned this session", value: sessionCounts.returned, icon: Undo2, color: "text-amber-600" },
-    { label: "Escalated this session", value: sessionCounts.escalated, icon: ArrowUpRight, color: "text-accent" },
+    {
+      label: "Awaiting decision",
+      value: awaiting.length,
+      icon: Inbox,
+      color: "text-primary",
+      caption: "Signed off by a line manager, now with this entity",
+    },
+    {
+      label: "Endorsed this session",
+      value: sessionCounts.endorsed,
+      icon: CheckCircle2,
+      color: "text-green-600",
+      caption: "Decisions you took since opening the platform",
+    },
+    {
+      label: "Returned this session",
+      value: sessionCounts.returned,
+      icon: Undo2,
+      color: "text-amber-600",
+      caption: "Sent back to the line manager",
+    },
+    {
+      label: "Escalated this session",
+      value: sessionCounts.escalated,
+      icon: ArrowUpRight,
+      color: "text-accent",
+      caption: "Sent to FAHR for a federal decision",
+    },
   ];
 
   const escalationStatusClass = (status: Escalation["status"]): string =>
@@ -219,7 +269,7 @@ export default function MinistryApprovals() {
           tone="primary"
           icon={<ClipboardCheck className="h-7 w-7 text-primary" />}
           title="Entity Approvals"
-          description="Projects that cleared department manager sign-off arrive here for an entity decision. Endorse, return or escalate to FAHR — every decision persists for the session and lands in the trail."
+          description="Projects that cleared line manager sign-off arrive here for an entity decision. Endorse, return or escalate to FAHR — every decision is recorded in the project's conversation."
           actions={
             <Button variant="outline" onClick={exportQueueAndTrail} data-testid="button-export-approvals">
               <Download className="mr-2 h-4 w-4" /> Export queue &amp; trail
@@ -239,6 +289,7 @@ export default function MinistryApprovals() {
                     <CountUp to={kpi.value} />
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/70">{kpi.caption}</p>
                 </CardContent>
               </StatCard>
             </StaggerItem>
@@ -251,14 +302,17 @@ export default function MinistryApprovals() {
                   {avgDaysInQueue === null ? "—" : <CountUp to={avgDaysInQueue} suffix="d" />}
                 </p>
                 <p className="text-xs text-muted-foreground">Avg days in queue</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/70">
+                  Since submission, for projects awaiting you now
+                </p>
               </CardContent>
             </StatCard>
           </StaggerItem>
         </Stagger>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_380px]">
+        <div>
           <div>
-            <Tabs defaultValue="awaiting">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as QueueTab)}>
               <TabsList className="flex w-full flex-wrap justify-start">
                 <TabsTrigger value="awaiting" data-testid="tab-awaiting">
                   Awaiting endorsement
@@ -287,8 +341,8 @@ export default function MinistryApprovals() {
                       </EmptyMedia>
                       <EmptyTitle>Queue is clear</EmptyTitle>
                       <EmptyDescription>
-                        No projects are waiting on an entity decision. The decision trail beside this list still
-                        shows everything taken this session.
+                        No projects are waiting on an entity decision. Decisions you take appear in each project's
+                        conversation.
                       </EmptyDescription>
                     </EmptyHeader>
                   </Empty>
@@ -312,6 +366,8 @@ export default function MinistryApprovals() {
                             departmentName={departmentName(s.departmentId)}
                             approvals={approvalsFor(s.id)}
                             onDecide={(kind) => setDialog({ id: s.id, kind })}
+                            highlighted={highlightId === s.id}
+                            defaultConversationOpen={highlightId === s.id}
                           />
                         </motion.div>
                       ))}
@@ -328,6 +384,7 @@ export default function MinistryApprovals() {
                   ownerName={ownerName}
                   departmentName={departmentName}
                   approvalsFor={approvalsFor}
+                  highlightId={highlightId}
                 />
               </TabsContent>
 
@@ -366,6 +423,7 @@ export default function MinistryApprovals() {
                     ownerName={ownerName}
                     departmentName={departmentName}
                     approvalsFor={approvalsFor}
+                    highlightId={highlightId}
                   />
                 </div>
               </TabsContent>
@@ -378,24 +436,12 @@ export default function MinistryApprovals() {
                   ownerName={ownerName}
                   departmentName={departmentName}
                   approvalsFor={approvalsFor}
+                  highlightId={highlightId}
                 />
               </TabsContent>
             </Tabs>
           </div>
 
-          <div>
-            <Card className="sticky top-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Decision trail</CardTitle>
-                <p className="text-xs text-muted-foreground">
-                  Every entity decision this session — including what your department managers signed off elsewhere.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <ApprovalsTrail events={trailEvents} freshIds={freshTrailIds} />
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </PageEnter>
 
@@ -418,7 +464,9 @@ function ReadOnlyList({
   ownerName,
   departmentName,
   approvalsFor,
+  highlightId,
 }: {
+  highlightId: string | null;
   items: Submission[];
   emptyTitle: string;
   emptyDescription: string;
@@ -448,6 +496,8 @@ function ReadOnlyList({
             ownerName={ownerName(s.personId)}
             departmentName={departmentName(s.departmentId)}
             approvals={approvalsFor(s.id)}
+            highlighted={highlightId === s.id}
+            defaultConversationOpen={highlightId === s.id}
           />
         </StaggerItem>
       ))}

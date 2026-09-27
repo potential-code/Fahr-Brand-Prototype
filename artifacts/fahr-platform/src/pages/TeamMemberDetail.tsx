@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
@@ -9,22 +9,39 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useFederalData } from "@/lib/FederalDataContext";
-import { LEVEL_BY_ID, SUBMISSION_STATE_LABEL } from "@/lib/federal";
+import { LEVEL_BY_ID } from "@/lib/federal";
 import { COMPETENCIES } from "@/lib/learningData";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { AGENTS } from "@/lib/constants";
-import { ArrowLeft, UserRound, BookOpen, ShieldCheck, FileText, Sparkles, Send, Target, AlertCircle, Clock, Award, BadgeCheck } from "lucide-react";
+import { ArrowLeft, UserRound, BookOpen, ShieldCheck, FileText, Sparkles, Send, Target, AlertCircle, Clock, BadgeCheck, MessageSquare } from "lucide-react";
 import { CertificationBadge, TeamStatusBadge } from "@/components/manager/TeamStatusBadge";
 import { teamRosterRow } from "@/lib/manager/selectors";
+import { SubmissionStateBadge } from "@/components/project/SubmissionStateBadge";
+import { ProjectJourney } from "@/components/project/ProjectJourney";
+import { ProjectConversation } from "@/components/project/ProjectConversation";
+import { DirectConversation } from "@/components/messages/DirectConversation";
+import { managerThreadHref } from "@/lib/federal/notifications";
 
 export default function TeamMemberDetail() {
   const { memberId } = useParams<{ memberId: string }>();
-  const { getPerson, submissions, credentials, auditEvents, approvalsFor } = useFederalData();
+  const { getPerson, submissions, credentials, auditEvents, approvalsFor, focus, notificationsFor, isNotificationRead, markNotificationRead } =
+    useFederalData();
   const [actionDialog, setActionDialog] = useState<{action: ManagerActionType, subject: any} | null>(null);
 
   const person = getPerson(memberId || "");
+
+  // Opening someone's page reads the messages they sent.
+  const managerNotifications = notificationsFor("manager");
+  useEffect(() => {
+    if (!memberId) return;
+    for (const n of managerNotifications) {
+      if (n.id.startsWith("n-mgr-dm-") && n.href === managerThreadHref(memberId) && !isNotificationRead(n.id)) {
+        markNotificationRead(n.id);
+      }
+    }
+  }, [memberId, managerNotifications, isNotificationRead, markNotificationRead]);
 
   const personProjects = useMemo(() => submissions.filter(s => s.personId === person?.id), [submissions, person]);
   const personCredentials = useMemo(() => credentials.filter(c => c.personId === person?.id), [credentials, person]);
@@ -131,25 +148,21 @@ export default function TeamMemberDetail() {
                 ) : (
                   <div className="space-y-4">
                     {personProjects.map(p => {
-                      const decisions = approvalsFor(p.id);
+                      const hasDecisions = approvalsFor(p.id).some((d) => d.decision !== "credential_issued");
                       return (
-                        <div key={p.id} className="rounded-lg border border-border p-4">
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="font-medium text-foreground">{p.title}</span>
-                            <Badge variant="outline">{SUBMISSION_STATE_LABEL[p.state]}</Badge>
+                        <div key={p.id} className="rounded-lg border border-border p-4 space-y-3" data-testid={`member-project-${p.id}`}>
+                          <div>
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="font-medium text-foreground">{p.title}</span>
+                              <SubmissionStateBadge submission={p} className="shrink-0" />
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">{p.impact} impact · Submitted {p.submittedOn}</p>
                           </div>
-                          <p className="mt-1 text-xs text-muted-foreground">{p.impact} impact · Submitted {p.submittedOn}</p>
-                          {decisions.length > 0 && (
+                          <ProjectJourney submission={p} variant="compact" />
+                          {hasDecisions && (
                             <>
-                              <Separator className="my-3" />
-                              <ul className="space-y-1.5 text-sm">
-                                {decisions.map(d => (
-                                  <li key={d.id} className="flex justify-between gap-3 text-xs">
-                                    <span className="capitalize text-muted-foreground">{d.role} · {d.decision.replace(/_/g, " ")}</span>
-                                    <span className="shrink-0 font-medium">{d.by}, {d.on}</span>
-                                  </li>
-                                ))}
-                              </ul>
+                              <Separator />
+                              <ProjectConversation submission={p} />
                             </>
                           )}
                         </div>
@@ -199,14 +212,27 @@ export default function TeamMemberDetail() {
                 <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Send Direct Message", subject: person })}>
                   <Send className="w-4 h-4 text-secondary" /> Send Direct Message
                 </Button>
-                <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Send Encouragement Message", subject: person })}>
-                  <Award className="w-4 h-4 text-[hsl(var(--chart-3))]" /> Send Recognition
-                </Button>
                 {person.status === 'at-risk' && (
                   <Button variant="default" className="w-full justify-start gap-3 h-12" onClick={() => setActionDialog({ action: "Schedule Intervention Meeting", subject: person })}>
                     <AlertCircle className="w-4 h-4" /> Schedule Intervention
                   </Button>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card data-testid="card-member-messages">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" /> Messages with {person.name.split(" ")[0]}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DirectConversation
+                  meId={focus.managerId}
+                  otherId={person.id}
+                  placeholder={`Message ${person.name.split(" ")[0]}…`}
+                  emptyNote="No messages yet."
+                />
               </CardContent>
             </Card>
 

@@ -224,15 +224,16 @@ export default function MinistryCohortDetail() {
     toast({ title: "Export ready", description: `Downloaded ${name}.` });
   };
 
+  const sampleNote = `of ${cohort.learners.toLocaleString()} enrolled, scaled from the roster`;
   const kpis = [
-    { label: "Enrolled", value: cohort.learners, icon: Users, tint: "bg-primary/10 text-primary", suffix: "" },
-    { label: "Completed", value: summary.completed, icon: CheckCircle2, tint: "bg-green-50 text-green-700", suffix: "" },
-    { label: "Avg. progress", value: cohort.progress, icon: Gauge, tint: "bg-accent/10 text-accent", suffix: "%" },
-    { label: "Avg. assessment", value: summary.averageScore, icon: Award, tint: "bg-blue-50 text-blue-700", suffix: "%" },
-    { label: "Passed", value: summary.passed, icon: CheckCircle2, tint: "bg-green-50 text-green-700", suffix: "" },
-    { label: "Retakes", value: summary.retakes, icon: Repeat, tint: "bg-amber-50 text-amber-700", suffix: "" },
-    { label: "Certified", value: summary.certified, icon: ShieldCheck, tint: "bg-primary/10 text-primary", suffix: "" },
-    { label: "At risk", value: summary.atRisk, icon: AlertTriangle, tint: "bg-red-50 text-red-700", suffix: "" },
+    { label: "Enrolled", value: cohort.learners, icon: Users, tint: "bg-primary/10 text-primary", suffix: "", caption: "Learners in this cohort" },
+    { label: "Completed", value: summary.completed, icon: CheckCircle2, tint: "bg-green-50 text-green-700", suffix: "", caption: `of ${cohort.learners.toLocaleString()}, from average progress` },
+    { label: "Avg. progress", value: cohort.progress, icon: Gauge, tint: "bg-accent/10 text-accent", suffix: "%", caption: "Pathway progress across the cohort" },
+    { label: "Avg. assessment", value: summary.averageScore, icon: Award, tint: "bg-blue-50 text-blue-700", suffix: "%", caption: `Mean score of ${summary.members.length} roster learners` },
+    { label: "Passed", value: summary.passed, icon: CheckCircle2, tint: "bg-green-50 text-green-700", suffix: "", caption: sampleNote },
+    { label: "Retakes", value: summary.retakes, icon: Repeat, tint: "bg-amber-50 text-amber-700", suffix: "", caption: sampleNote },
+    { label: "Certified", value: summary.certified, icon: ShieldCheck, tint: "bg-primary/10 text-primary", suffix: "", caption: sampleNote },
+    { label: "At risk", value: summary.atRisk, icon: AlertTriangle, tint: "bg-red-50 text-red-700", suffix: "", caption: sampleNote },
   ];
 
   const filtersActive = search.trim() !== "" || outcomeFilter !== ALL || certFilter !== ALL;
@@ -289,7 +290,7 @@ export default function MinistryCohortDetail() {
               <CohortStatusSelect value={cohort.status} onChange={handleStatus} testId="select-detail-status" />
             </div>
             <div className="flex flex-col gap-1 text-sm md:text-right">
-              <span className="text-muted-foreground">Ready to certify</span>
+              <span className="text-muted-foreground">Ready to certify · named roster</span>
               <span className="text-lg font-semibold text-accent">
                 <CountUp to={readyToCertify} /> learner{readyToCertify === 1 ? "" : "s"}
               </span>
@@ -310,6 +311,7 @@ export default function MinistryCohortDetail() {
                     <CountUp to={kpi.value} suffix={kpi.suffix} />
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                  <p className="text-[11px] leading-snug text-muted-foreground/70">{kpi.caption}</p>
                 </CardContent>
               </StatCard>
             </StaggerItem>
@@ -342,7 +344,9 @@ export default function MinistryCohortDetail() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Assessment outcomes</CardTitle>
-                <CardDescription>How the sample is tracking against the assessment.</CardDescription>
+                <CardDescription>
+                  Learners across the whole cohort of {cohort.learners.toLocaleString()}, scaled from the roster.
+                </CardDescription>
               </CardHeader>
               <CardContent className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">

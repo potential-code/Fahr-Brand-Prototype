@@ -13,8 +13,10 @@ type StepQuizProps = {
   onPass: (correct: number) => void;
   /** Copy shown above the score when the learner passes. */
   passNote?: string;
-  /** Fired on every submission, pass or fail, with the score. */
-  onAttempt?: (correct: number, total: number) => void;
+  /** Fired on every submission, pass or fail, with the score and the options picked. */
+  onAttempt?: (correct: number, total: number, answers: number[]) => void;
+  /** A finished attempt saved earlier; the quiz opens on its result instead of question one. */
+  savedAnswers?: number[];
   /** Shown instead of `passNote` when the attempt is below `passMark`. */
   failNote?: string;
 };
@@ -31,11 +33,14 @@ export function StepQuiz({
   passNote,
   onAttempt,
   failNote,
+  savedAnswers,
 }: StepQuizProps) {
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<number[]>([]);
+  const [answers, setAnswers] = useState<number[]>(() =>
+    savedAnswers && savedAnswers.length === questions.length ? savedAnswers : [],
+  );
   const [checked, setChecked] = useState(false);
 
   const question = questions[index];
@@ -77,32 +82,7 @@ export function StepQuiz({
             : failNote ?? "Review the explanations below, then run it again — repetition is how the capability sticks."}
         </p>
 
-        <ul className="mt-4 space-y-2.5">
-          {questions.map((q, i) => {
-            const right = answers[i] === q.correctIndex;
-            return (
-              <li key={q.id} className="flex items-start gap-2.5">
-                <span
-                  className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
-                    right ? "bg-primary" : "bg-destructive/15"
-                  }`}
-                >
-                  {right ? (
-                    <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                  ) : (
-                    <X className="h-2.5 w-2.5 text-destructive" />
-                  )}
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium leading-snug text-foreground">{q.question}</span>
-                  {!right && (
-                    <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{q.explanation}</span>
-                  )}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+        <QuizReview questions={questions} answers={answers} className="mt-4" />
 
         <div className="mt-5 flex flex-wrap gap-2">
           <Button variant="outline" onClick={restart} data-testid="button-retry-quiz">
@@ -221,7 +201,7 @@ export function StepQuiz({
                 advance();
               } else {
                 const correct = next.filter((a, i) => a === questions[i].correctIndex).length;
-                onAttempt?.(correct, questions.length);
+                onAttempt?.(correct, questions.length, next);
               }
             }}
             data-testid="button-next-question"
@@ -232,5 +212,51 @@ export function StepQuiz({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Each question with whether it was answered correctly, and the explanation
+ * for the ones that were not. Shared by the quiz result and the completed
+ * course, so a saved attempt reads the same wherever it is shown.
+ */
+export function QuizReview({
+  questions,
+  answers,
+  className = "",
+}: {
+  questions: QuizQuestion[];
+  answers: number[];
+  className?: string;
+}) {
+  return (
+    <ul className={`space-y-2.5 ${className}`} data-testid="quiz-review">
+      {questions.map((q, i) => {
+        const right = answers[i] === q.correctIndex;
+        return (
+          <li key={q.id} className="flex items-start gap-2.5">
+            <span
+              className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
+                right ? "bg-primary" : "bg-destructive/15"
+              }`}
+            >
+              {right ? (
+                <Check className="h-2.5 w-2.5 text-primary-foreground" />
+              ) : (
+                <X className="h-2.5 w-2.5 text-destructive" />
+              )}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-medium leading-snug text-foreground">{q.question}</span>
+              {!right && (
+                <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground">Answer: {q.options[q.correctIndex]}.</span> {q.explanation}
+                </span>
+              )}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

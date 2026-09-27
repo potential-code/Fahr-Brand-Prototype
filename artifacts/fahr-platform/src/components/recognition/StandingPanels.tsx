@@ -6,6 +6,7 @@ import { CountUp } from "@/components/CountUp";
 import { CAPABILITY_LEVELS } from "@/lib/constants";
 import { POINT_RULES } from "@/lib/engagement";
 import type { RecognitionRecord } from "@/lib/recognitionRecord";
+import { PointsLegend } from "@/components/recognition/PointsLegend";
 import { ArrowRight, Check, Hexagon, Star, Target, TrendingUp, Trophy, Users } from "lucide-react";
 
 /** Impact points, where they came from, and standing against colleagues. */
@@ -42,8 +43,9 @@ export function PointsAndRank({ record }: { record: RecognitionRecord }) {
               <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">
                 <CountUp to={stat.value} prefix={stat.prefix} />
               </p>
-              <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 {stat.label}
+                {stat.id === "total" && <PointsLegend className="-my-1" />}
               </p>
             </motion.div>
           ))}

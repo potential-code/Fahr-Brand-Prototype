@@ -239,7 +239,7 @@ describe("the four demo chips", () => {
     const [, , , fourthFallback] = suggestedQuestions(withOneTask, false);
     // Falls back to the first task rather than an unrelated generic line, so
     // the prompt stays inside what the twin was taught.
-    expect(fourthFallback.label).toBe("Draft a short brief for: Drafting campaign briefs");
+    expect(fourthFallback.label).toBe("Draft this week's version of: Drafting campaign briefs");
     const reply = answer(withOneTask, fourthFallback.prompt, false);
     // The point of chip 4 is to show the twin being useful — asserting only
     // `text.length > 0` would pass just as well for the out-of-scope refusal

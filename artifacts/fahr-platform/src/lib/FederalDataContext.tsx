@@ -17,9 +17,11 @@ import type {
   ApprovalRecord,
   AuditEvent,
   Credential,
+  DirectMessage,
   Escalation,
   Ministry,
   Person,
+  ProjectBrief,
   Submission,
   SubmissionState,
   TimelineEntry,
@@ -28,6 +30,7 @@ import {
   APPROVALS,
   AUDIT_EVENTS,
   CREDENTIALS,
+  DIRECT_MESSAGES,
   ESCALATIONS,
   FOCUS,
   MINISTRIES,
@@ -39,6 +42,8 @@ import { levelForScore, statusForSignals } from "@/lib/federal/selectors";
 
 /** Everything a role action can change during the session. */
 type MutableState = {
+  /** Workplace projects submitted during the session, keyed by id. */
+  created: Record<string, Submission>;
   submissions: Record<string, { state: SubmissionState; reviewer?: string; timeline: TimelineEntry[] }>;
   approvals: ApprovalRecord[];
   audit: AuditEvent[];
@@ -51,9 +56,12 @@ type MutableState = {
   /** ministryId -> entity administrator FAHR assigned this session. */
   entityAdmins: Record<string, string>;
   readNotificationIds: string[];
+  /** Messages managers sent their team this session. */
+  directMessages: DirectMessage[];
 };
 
 const EMPTY_STATE: MutableState = {
+  created: {},
   submissions: {},
   approvals: [],
   audit: [],
@@ -63,6 +71,7 @@ const EMPTY_STATE: MutableState = {
   quotas: {},
   entityAdmins: {},
   readNotificationIds: [],
+  directMessages: [],
 };
 
 const STORAGE_KEY = "fahr.federal.session.v1";
@@ -94,7 +103,24 @@ function readStored(): MutableState {
     const parsed: unknown = JSON.parse(raw);
     if (!isRecord(parsed)) return EMPTY_STATE;
 
-    const validIds = new Set(SUBMISSIONS.map((s) => s.id));
+    const created: Record<string, Submission> = {};
+    if (isRecord(parsed.created)) {
+      for (const [id, value] of Object.entries(parsed.created)) {
+        if (
+          isRecord(value) &&
+          value.id === id &&
+          typeof value.title === "string" &&
+          typeof value.personId === "string" &&
+          typeof value.ministryId === "string" &&
+          Array.isArray(value.timeline) &&
+          SUBMISSION_STATES.includes(value.state as SubmissionState)
+        ) {
+          created[id] = value as unknown as Submission;
+        }
+      }
+    }
+
+    const validIds = new Set([...SUBMISSIONS.map((s) => s.id), ...Object.keys(created)]);
     const submissions: MutableState["submissions"] = {};
     if (isRecord(parsed.submissions)) {
       for (const [id, value] of Object.entries(parsed.submissions)) {
@@ -143,6 +169,7 @@ function readStored(): MutableState {
     const asArray = <T,>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
 
     return {
+      created,
       escalationPatches,
       entityAdmins,
       submissions,
@@ -152,6 +179,16 @@ function readStored(): MutableState {
       escalations: asArray<Escalation>(parsed.escalations).filter((e) => isRecord(e) && typeof e.id === "string"),
       quotas,
       readNotificationIds: isStringArray(parsed.readNotificationIds) ? parsed.readNotificationIds : [],
+      directMessages: asArray<DirectMessage>(parsed.directMessages).filter(
+        (m) =>
+          isRecord(m) &&
+          typeof m.id === "string" &&
+          typeof m.fromId === "string" &&
+          typeof m.toId === "string" &&
+          typeof m.body === "string" &&
+          typeof m.on === "string" &&
+          typeof m.at === "string",
+      ),
     };
   } catch {
     return EMPTY_STATE;
@@ -180,6 +217,116 @@ const nextId = (prefix: string) => {
 
 export type DecisionOptions = { by?: string; note?: string };
 
+/** The one workplace project the demo learner builds and submits. */
+export const learnerProjectId = (learnerId: string) => `wp-${learnerId}`;
+
+/** A submission as it currently stands in `state` — session-created or seeded, with overrides. */
+function findSubmission(state: MutableState, submissionId: string): Submission | undefined {
+  const base = state.created[submissionId] ?? SUBMISSIONS.find((s) => s.id === submissionId);
+  if (!base) return undefined;
+  const override = state.submissions[submissionId];
+  return override ? { ...base, state: override.state, reviewer: override.reviewer ?? base.reviewer } : base;
+}
+
+type Decision = {
+  submissionId: string;
+  decision: ApprovalRecord["decision"];
+  role: ApprovalRecord["role"];
+  nextState: SubmissionState;
+  reviewer: string | undefined;
+  event: string;
+  options: DecisionOptions | undefined;
+  auditAction: string;
+  risk: AuditEvent["risk"];
+  auditStatus: string;
+  requiredStates?: SubmissionState[];
+};
+
+/** Returns `state` unchanged when the submission is unknown or not in a required state. */
+function applyDecision(state: MutableState, d: Decision): MutableState {
+  const submission = findSubmission(state, d.submissionId);
+  if (!submission) return state;
+  if (d.requiredStates && !d.requiredStates.includes(submission.state)) return state;
+  const by = d.options?.by ?? "Demo user";
+  const on = today();
+  const existing = state.submissions[d.submissionId];
+  return {
+    ...state,
+    submissions: {
+      ...state.submissions,
+      [d.submissionId]: {
+        state: d.nextState,
+        reviewer: d.reviewer,
+        timeline: [
+          ...(existing?.timeline ?? []),
+          { date: on, event: d.options?.note ? `${d.event} — ${d.options.note}` : d.event },
+        ],
+      },
+    },
+    approvals: [
+      ...state.approvals,
+      { id: nextId("a"), submissionId: d.submissionId, role: d.role, decision: d.decision, by, on, note: d.options?.note },
+    ],
+    audit: [
+      {
+        id: nextId("ae"),
+        time: "Just now",
+        actor: by,
+        agent: "Human decision",
+        action: `${d.auditAction}: ${submission.title}`,
+        risk: d.risk,
+        status: d.auditStatus,
+        ministryId: submission.ministryId,
+      },
+      ...state.audit,
+    ],
+  };
+}
+
+/** The credential a workplace project earns its owner once it goes live. One per project. */
+function withProjectCredential(state: MutableState, submission: Submission, by: string): MutableState {
+  if ([...state.credentials, ...CREDENTIALS].some((c) => c.submissionId === submission.id)) return state;
+  const person = PEOPLE.find((p) => p.id === submission.personId);
+  const personName = person?.name ?? "Federal employee";
+  const initials = personName
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  return {
+    ...state,
+    credentials: [
+      {
+        id: nextId("cr"),
+        personId: submission.personId,
+        personName,
+        title: `Workplace Project Validated: ${submission.title}`,
+        levelId: person?.levelId ?? "practitioner",
+        issuedOn: today(),
+        ministryId: submission.ministryId,
+        submissionId: submission.id,
+        verificationCode: `FAHR-${new Date().getFullYear()}-${initials}-${Math.floor(1000 + Math.random() * 9000)}`,
+      },
+      ...state.credentials,
+    ],
+    audit: [
+      {
+        id: nextId("ae"),
+        time: "Just now",
+        actor: by,
+        agent: "Human decision",
+        action: `Issued credential to ${personName}: Workplace Project Validated`,
+        risk: "Low" as const,
+        status: "Issued",
+        ministryId: submission.ministryId,
+      },
+      ...state.audit,
+    ],
+  };
+}
+
 /** An entity, learner-support agent or system raising an item with FAHR. */
 export type EscalationRequest = {
   ministryId: string;
@@ -201,6 +348,18 @@ export type EscalationTriage = {
   assignee?: string;
   priority?: Escalation["priority"];
   resolution?: string;
+};
+
+/** What the learner's workplace project brief turns into once submitted. */
+export type ProjectSubmissionInput = {
+  title: string;
+  description: string;
+  metrics: string;
+  hoursSavedPerMonth: number;
+  impact: Submission["impact"];
+  governanceStatus: Submission["governanceStatus"];
+  competencyIds: string[];
+  brief: ProjectBrief;
 };
 
 export type CredentialRequest = {
@@ -241,6 +400,12 @@ export type FederalDataValue = {
   /** Entity sends a project back to the department manager rather than endorsing it. */
   returnToManager: (submissionId: string, options?: DecisionOptions) => void;
   escalate: (submissionId: string, options?: DecisionOptions) => void;
+  /** The demo learner submits (or, once returned, resubmits) their workplace project. Returns its id. */
+  submitProject: (input: ProjectSubmissionInput, options?: DecisionOptions) => string;
+  /** FAHR approves an escalated project for federal rollout — it goes live. */
+  fahrApprove: (submissionId: string, options?: DecisionOptions) => void;
+  /** FAHR sends an escalated project back to the entity. */
+  fahrReturn: (submissionId: string, options?: DecisionOptions) => void;
   issueCredential: (request: CredentialRequest) => void;
   adjustQuota: (ministryId: string, quotaM: number, options?: DecisionOptions) => void;
   /** Raises a new federal escalation and returns its id. */
@@ -248,6 +413,10 @@ export type FederalDataValue = {
   triageEscalation: (escalationId: string, patch: EscalationTriage, options?: DecisionOptions) => void;
   assignEntityAdmin: (ministryId: string, adminName: string, options?: DecisionOptions) => void;
   recordAudit: (event: Omit<AuditEvent, "id" | "time"> & { time?: string }) => void;
+  /** Every direct message sent this session, oldest first. */
+  directMessages: DirectMessage[];
+  /** A manager messages one of their team; it lands in that person's inbox. */
+  sendDirectMessage: (toId: string, body: string, fromId?: string) => void;
 
   // Notifications.
   notificationsFor: (role: NotificationRole) => FederalNotification[];
@@ -315,7 +484,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
 
   const submissions = useMemo<Submission[]>(
     () =>
-      SUBMISSIONS.map((submission) => {
+      [...Object.values(state.created), ...SUBMISSIONS].map((submission) => {
         const override = state.submissions[submission.id];
         if (!override) return submission;
         return {
@@ -325,7 +494,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
           timeline: [...submission.timeline, ...override.timeline],
         };
       }),
-    [state.submissions],
+    [state.created, state.submissions],
   );
 
   const approvals = useMemo(() => [...APPROVALS, ...state.approvals], [state.approvals]);
@@ -349,6 +518,40 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
     [update],
   );
 
+  // Seeded conversations first, then whatever was written this session.
+  const allDirectMessages = useMemo(() => [...DIRECT_MESSAGES, ...state.directMessages], [state.directMessages]);
+
+  const sendDirectMessage = useCallback(
+    (toId: string, body: string, fromId: string = FOCUS.managerId) => {
+      const trimmed = body.trim();
+      if (!trimmed) return;
+      const to = PEOPLE.find((p) => p.id === toId);
+      const from = PEOPLE.find((p) => p.id === fromId);
+      update((prev) => ({
+        ...prev,
+        directMessages: [
+          ...prev.directMessages,
+          { id: nextId("dm"), fromId, toId, body: trimmed, on: today(), at: new Date().toISOString() },
+        ],
+        audit: [
+          {
+            id: nextId("ae"),
+            time: "Just now",
+            actor: from?.name ?? "Department Manager",
+            agent: "Human decision",
+            action: `Sent a direct message to ${to?.name ?? "a team member"}`,
+            risk: "Low",
+            status: "Completed",
+            ministryId: to?.ministryId,
+            detail: trimmed,
+          },
+          ...prev.audit,
+        ],
+      }));
+    },
+    [update],
+  );
+
   /** Moves a submission along the chain and records the decision and audit trail. */
   const decide = useCallback(
     (
@@ -364,48 +567,27 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       auditStatus: string,
       /** States the submission must currently be in for the decision to apply — makes decisions idempotent. */
       requiredStates?: SubmissionState[],
-    ) => {
-      const submission = SUBMISSIONS.find((s) => s.id === submissionId);
-      if (!submission) return;
-      const by = options?.by ?? "Demo user";
-      const on = today();
+      /** Further changes that only apply when the decision itself does. */
+      andThen?: (next: MutableState, submission: Submission) => MutableState,
+    ) =>
       update((prev) => {
-        const existing = prev.submissions[submissionId];
-        const currentState = existing?.state ?? submission.state;
-        if (requiredStates && !requiredStates.includes(currentState)) return prev;
-        return {
-          ...prev,
-          submissions: {
-            ...prev.submissions,
-            [submissionId]: {
-              state: nextState,
-              reviewer,
-              timeline: [
-                ...(existing?.timeline ?? []),
-                { date: on, event: options?.note ? `${event} — ${options.note}` : event },
-              ],
-            },
-          },
-          approvals: [
-            ...prev.approvals,
-            { id: nextId("a"), submissionId, role, decision, by, on, note: options?.note },
-          ],
-          audit: [
-            {
-              id: nextId("ae"),
-              time: "Just now",
-              actor: by,
-              agent: "Human decision",
-              action: `${auditAction}: ${submission.title}`,
-              risk,
-              status: auditStatus,
-              ministryId: submission.ministryId,
-            },
-            ...prev.audit,
-          ],
-        };
-      });
-    },
+        const next = applyDecision(prev, {
+          submissionId,
+          decision,
+          role,
+          nextState,
+          reviewer,
+          event,
+          options,
+          auditAction,
+          risk,
+          auditStatus,
+          requiredStates,
+        });
+        if (next === prev || !andThen) return next;
+        const submission = findSubmission(next, submissionId);
+        return submission ? andThen(next, submission) : next;
+      }),
     [update],
   );
 
@@ -459,6 +641,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "Low",
         "Approved",
         ["awaiting_entity"],
+        (next, submission) => withProjectCredential(next, submission, options?.by ?? "Entity Admin"),
       ),
     [decide],
   );
@@ -482,8 +665,7 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
   );
 
   const escalate = useCallback(
-    (submissionId: string, options?: DecisionOptions) => {
-      const submission = SUBMISSIONS.find((s) => s.id === submissionId);
+    (submissionId: string, options?: DecisionOptions) =>
       decide(
         submissionId,
         "escalated",
@@ -496,30 +678,160 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         "Medium",
         "Open",
         ["awaiting_entity"],
-      );
-      if (!submission) return;
+        (next, submission) => {
+          // A project FAHR returned and the entity escalates again reopens the same record.
+          const existing = [...next.escalations, ...ESCALATIONS].find((e) => e.submissionId === submissionId);
+          if (existing) {
+            return {
+              ...next,
+              escalationPatches: {
+                ...next.escalationPatches,
+                [existing.id]: {
+                  ...next.escalationPatches[existing.id],
+                  status: "Open",
+                  resolution: undefined,
+                  resolvedOn: undefined,
+                  ...(options?.note ? { detail: options.note } : {}),
+                },
+              },
+            };
+          }
+          return {
+            ...next,
+            escalations: [
+              {
+                id: nextId("es"),
+                ministryId: submission.ministryId,
+                subject: submission.title,
+                kind: "Approval",
+                raisedOn: today(),
+                raisedBy: options?.by ?? "Entity Admin",
+                status: "Open",
+                priority: submission.impact === "High" ? "High" : "Standard",
+                detail: options?.note ?? "Entity referred this project for a federal decision.",
+                submissionId,
+                personId: submission.personId,
+              },
+              ...next.escalations,
+            ],
+          };
+        },
+      ),
+    [decide],
+  );
+
+  const submitProject = useCallback(
+    (input: ProjectSubmissionInput, options?: DecisionOptions) => {
+      const id = learnerProjectId(FOCUS.learnerId);
+      const learner = PEOPLE.find((p) => p.id === FOCUS.learnerId);
+      const manager = PEOPLE.find((p) => p.id === FOCUS.managerId);
+      const by = options?.by ?? learner?.name ?? "Learner";
       update((prev) => {
-        if (prev.escalations.some((e) => e.submissionId === submissionId)) return prev;
-        return {
-        ...prev,
-        escalations: [
-          {
-            id: nextId("es"),
-            ministryId: submission.ministryId,
-            subject: submission.title,
-            kind: "Approval",
-            raisedOn: today(),
-            raisedBy: options?.by ?? "Entity Admin",
-            status: "Open",
-            detail: options?.note ?? "Entity referred this project for a federal decision.",
-            submissionId,
-          },
-          ...prev.escalations,
-        ],
+        const current = findSubmission(prev, id);
+        const resubmitting = current?.state === "revision_requested";
+        // Once in review the project is locked; only a returned project can come back.
+        if (current && !resubmitting) return prev;
+        const project: Submission = {
+          ...(current ?? {
+            id,
+            personId: FOCUS.learnerId,
+            ministryId: FOCUS.ministryId,
+            departmentId: FOCUS.departmentId,
+            cohortId: learner?.cohortId,
+            submittedOn: today(),
+            timeline: [],
+          }),
+          ...input,
+          state: "awaiting_manager",
+          reviewer: manager?.name,
         };
+        const withProject: MutableState = { ...prev, created: { ...prev.created, [id]: project } };
+        return applyDecision(withProject, {
+          submissionId: id,
+          decision: resubmitting ? "resubmitted" : "submitted",
+          role: "learner",
+          nextState: "awaiting_manager",
+          reviewer: manager?.name,
+          event: resubmitting
+            ? "Revised and resubmitted for department manager sign-off"
+            : "Submitted for department manager sign-off",
+          options: { by, note: options?.note },
+          auditAction: resubmitting ? "Resubmitted workplace project" : "Submitted workplace project",
+          risk: "Low",
+          auditStatus: resubmitting ? "Resubmitted" : "Submitted",
+          requiredStates: current ? ["revision_requested"] : undefined,
+        });
       });
+      return id;
     },
-    [decide, update],
+    [update],
+  );
+
+  const fahrApprove = useCallback(
+    (submissionId: string, options?: DecisionOptions) =>
+      decide(
+        submissionId,
+        "approved_live",
+        "fahr",
+        "deployed",
+        undefined,
+        "FAHR approved for federal rollout — project is live",
+        options,
+        "Approved workplace project for federal rollout",
+        "Low",
+        "Approved",
+        ["escalated"],
+        (next, submission) => {
+          const by = options?.by ?? "FAHR Programme Team";
+          const linked = [...next.escalations, ...ESCALATIONS].filter(
+            (e) => e.submissionId === submissionId,
+          );
+          const escalationPatches = { ...next.escalationPatches };
+          for (const escalation of linked) {
+            escalationPatches[escalation.id] = {
+              ...escalationPatches[escalation.id],
+              status: "Resolved",
+              resolution: options?.note ?? "Approved for federal rollout.",
+              resolvedOn: today(),
+            };
+          }
+          return withProjectCredential({ ...next, escalationPatches }, submission, by);
+        },
+      ),
+    [decide],
+  );
+
+  const fahrReturn = useCallback(
+    (submissionId: string, options?: DecisionOptions) =>
+      decide(
+        submissionId,
+        "returned_to_entity",
+        "fahr",
+        "awaiting_entity",
+        "Entity Admin",
+        "FAHR returned the project to the entity",
+        options,
+        "Returned workplace project to the entity",
+        "Medium",
+        "Returned to entity",
+        ["escalated"],
+        (next) => {
+          const linked = [...next.escalations, ...ESCALATIONS].filter(
+            (e) => e.submissionId === submissionId,
+          );
+          const escalationPatches = { ...next.escalationPatches };
+          for (const escalation of linked) {
+            escalationPatches[escalation.id] = {
+              ...escalationPatches[escalation.id],
+              status: "Resolved",
+              resolution: options?.note ? `Returned to entity — ${options.note}` : "Returned to entity.",
+              resolvedOn: today(),
+            };
+          }
+          return { ...next, escalationPatches };
+        },
+      ),
+    [decide],
   );
 
   const issueCredential = useCallback(
@@ -741,8 +1053,10 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
         team: people.filter((p) => p.managerId === FOCUS.managerId),
         approvals,
         live,
+        directMessages: state.directMessages,
+        people: PEOPLE,
       }),
-    [submissions, escalations, people, approvals, live],
+    [submissions, escalations, people, approvals, live, state.directMessages],
   );
 
   const isNotificationRead = useCallback(
@@ -800,12 +1114,17 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       endorse,
       returnToManager,
       escalate,
+      submitProject,
+      fahrApprove,
+      fahrReturn,
       issueCredential,
       adjustQuota,
       raiseEscalation,
       triageEscalation,
       assignEntityAdmin,
       recordAudit,
+      directMessages: allDirectMessages,
+      sendDirectMessage,
       notificationsFor,
       isNotificationRead,
       unreadCountFor,
@@ -831,12 +1150,17 @@ export function FederalDataProvider({ children }: { children: React.ReactNode })
       endorse,
       returnToManager,
       escalate,
+      submitProject,
+      fahrApprove,
+      fahrReturn,
       issueCredential,
       adjustQuota,
       raiseEscalation,
       triageEscalation,
       assignEntityAdmin,
       recordAudit,
+      allDirectMessages,
+      sendDirectMessage,
       notificationsFor,
       isNotificationRead,
       unreadCountFor,

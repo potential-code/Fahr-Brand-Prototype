@@ -118,6 +118,7 @@ export default function TeamRecognition() {
               value={recognition.credentials.length}
               icon={ShieldCheck}
               testId="kpi-team-credentials"
+              caption="Workplace-project credentials held by direct reports"
             />
           </StaggerItem>
           <StaggerItem as="div">
@@ -126,23 +127,25 @@ export default function TeamRecognition() {
               value={recognition.badgesEarned}
               icon={Medal}
               testId="kpi-team-badges"
+              caption="Badge types earned by at least one direct report"
             />
           </StaggerItem>
           <StaggerItem as="div">
             <ReportKpi
-              label="Hours saved / month"
+              label="Hours returned / month"
               value={impact.hoursPerMonth}
               icon={Clock}
               testId="kpi-team-hours"
+              caption="From validated team projects"
             />
           </StaggerItem>
           <StaggerItem as="div">
             <ReportKpi
-              label="Est. annual value"
-              value={impact.valueAed}
-              prefix="AED "
+              label="Working days returned / year"
+              value={impact.workingDaysReturned}
               icon={TrendingUp}
-              testId="kpi-team-value"
+              testId="kpi-team-days"
+              caption="Hours a month × 12, at 7.5 h a working day"
             />
           </StaggerItem>
         </Stagger>

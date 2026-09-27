@@ -1,13 +1,22 @@
 import React from "react";
-import { RotateCcw } from "lucide-react";
+import { PencilLine, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useFederalData } from "@/lib/FederalDataContext";
 
 /**
  * What the department manager sent back, shown to the learner on their own
  * workplace project. Returning a project always carries comments, so this is
- * the learner's side of that exchange — verbatim, not summarised.
+ * the learner's side of that exchange — verbatim, not summarised — with the
+ * one action it asks for.
  */
-export function ManagerRevisionNotice({ className = "" }: { className?: string }) {
+export function ManagerRevisionNotice({
+  className = "",
+  onRevise,
+}: {
+  className?: string;
+  /** Shown as "Revise now" while the learner is not already revising. */
+  onRevise?: () => void;
+}) {
   const { submissions, approvals, focus } = useFederalData();
 
   const returned = submissions.filter(
@@ -27,12 +36,13 @@ export function ManagerRevisionNotice({ className = "" }: { className?: string }
             className="rounded-xl border border-accent/40 bg-accent/5 p-5"
             data-testid={`notice-revision-${submission.id}`}
           >
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-foreground">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
                 <RotateCcw className="h-4 w-4" />
               </span>
-              <div className="min-w-0 space-y-2">
+              <div className="min-w-0 flex-1 space-y-2">
                 <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">Action required</p>
                   <p className="text-sm font-semibold text-foreground">
                     Revision requested on &ldquo;{submission.title}&rdquo;
                   </p>
@@ -50,6 +60,11 @@ export function ManagerRevisionNotice({ className = "" }: { className?: string }
                   Address the comments and resubmit — it returns to the same sign-off queue.
                 </p>
               </div>
+              {onRevise && (
+                <Button className="shrink-0 gap-2" onClick={onRevise} data-testid="button-revise-now">
+                  <PencilLine className="h-4 w-4" /> Revise now
+                </Button>
+              )}
             </div>
           </div>
         );

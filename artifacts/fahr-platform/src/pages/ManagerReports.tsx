@@ -36,7 +36,6 @@ import {
   CheckCircle2,
   Download,
   Gauge,
-  Printer,
   Sparkles,
   Target,
   TrendingUp,
@@ -64,7 +63,7 @@ import {
   teamImpact,
   teamRoster,
 } from "@/lib/manager/selectors";
-import { downloadCsvPack, printReport, type ExportSheet } from "@/lib/exportFile";
+import { downloadCsvPack, type ExportSheet } from "@/lib/exportFile";
 
 const COMPETENCY_COLOURS = [
   "hsl(var(--primary))",
@@ -327,15 +326,10 @@ export default function ManagerReports() {
       filename: "team-applied-impact",
       title: "Applied impact by project category",
       notes: [
-        `${impact.projectsValidated} validated projects returning ${impact.hoursPerMonth} hours a month (AED ${impact.valueAed.toLocaleString()} estimated annual value).`,
+        `${impact.projectsValidated} validated projects returning ${impact.hoursPerMonth} hours a month (${impact.workingDaysReturned} working days a year).`,
       ],
-      headers: ["Project category", "Projects", "Hours saved / month", "Estimated value (AED)"],
-      rows: impact.categories.map((row) => [
-        row.competency.label,
-        row.projects,
-        row.hoursSavedPerMonth,
-        row.valueAed,
-      ]),
+      headers: ["Project category", "Projects", "Hours returned / month"],
+      rows: impact.categories.map((row) => [row.competency.label, row.projects, row.hoursSavedPerMonth]),
     };
 
     return [
@@ -362,16 +356,6 @@ export default function ManagerReports() {
     });
   };
 
-  const handlePrint = () => {
-    printReport({
-      title: `${benchmark?.department.name ?? "Team"} — team capability report`,
-      subtitle: `${manager?.name ?? "Department manager"} · ${ministry.name}`,
-      notes,
-      sheets,
-    });
-    toast({ title: "Print view opened", description: "Save as PDF from the print dialog." });
-  };
-
   return (
     <Layout role="manager">
       <PageEnter className="mx-auto w-full max-w-7xl space-y-6 pb-12">
@@ -382,9 +366,6 @@ export default function ManagerReports() {
           description="Competency gaps, engagement, competency development, assessment outcomes, certification and applied impact for your direct reports — benchmarked against your department and entity."
           actions={
             <>
-              <Button variant="outline" onClick={handlePrint} data-testid="button-print-report">
-                <Printer className="me-2 h-4 w-4" /> Print / PDF
-              </Button>
               <Button onClick={handleExport} data-testid="button-export-report">
                 <Download className="me-2 h-4 w-4" /> Export report data
               </Button>
@@ -423,9 +404,9 @@ export default function ManagerReports() {
             <p>
               {impact.projectsValidated} validated Workplace{" "}
               {impact.projectsValidated === 1 ? "Project returns" : "Projects return"}{" "}
-              <span className="font-semibold text-primary">{impact.hoursPerMonth} hours</span> a month —{" "}
-              <span className="font-semibold text-primary">AED {impact.valueAed.toLocaleString()}</span> of estimated
-              annual value, or {impact.workingDaysReturned} working days returned a year.
+              <span className="font-semibold text-primary">{impact.hoursPerMonth} hours</span> a month, or{" "}
+              <span className="font-semibold text-primary">{impact.workingDaysReturned} working days</span> returned a
+              year.
             </p>
           </div>
         </AIAnalysisPanel>
@@ -438,6 +419,7 @@ export default function ManagerReports() {
               suffix="%"
               icon={Activity}
               testId="kpi-avg-progress"
+              caption="Average pathway progress across direct reports, to date"
             />
           </StaggerItem>
           <StaggerItem as="div">
@@ -446,23 +428,25 @@ export default function ManagerReports() {
               value={benchmark?.teamReadiness ?? 0}
               icon={Gauge}
               testId="kpi-team-readiness"
+              caption="Average assessed capability of direct reports, 0–100"
             />
           </StaggerItem>
           <StaggerItem as="div">
             <ReportKpi
-              label="Hours saved / month"
+              label="Hours returned / month"
               value={impact.hoursPerMonth}
               icon={TrendingUp}
               testId="kpi-hours-saved"
+              caption="From validated team projects"
             />
           </StaggerItem>
           <StaggerItem as="div">
             <ReportKpi
-              label="Est. annual value"
-              value={impact.valueAed}
-              prefix="AED "
+              label="Working days returned / year"
+              value={impact.workingDaysReturned}
               icon={Sparkles}
-              testId="kpi-value-created"
+              testId="kpi-working-days"
+              caption="Hours a month × 12, at 7.5 h a working day"
             />
           </StaggerItem>
         </Stagger>
@@ -765,7 +749,7 @@ export default function ManagerReports() {
                       <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} />
                       <YAxis fontSize={12} tickLine={false} axisLine={false} />
                       <Tooltip cursor={{ fill: "hsl(var(--muted)/0.5)" }} />
-                      <Bar dataKey="hours" name="Hours saved / month" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="hours" name="Hours returned / month" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartReveal>
@@ -776,7 +760,6 @@ export default function ManagerReports() {
                     <TableHead>Category</TableHead>
                     <TableHead className="text-end">Projects</TableHead>
                     <TableHead className="text-end">Hours / month</TableHead>
-                    <TableHead className="text-end">Value (AED)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -785,7 +768,6 @@ export default function ManagerReports() {
                       <TableCell className="font-medium">{row.competency.label}</TableCell>
                       <TableCell className="text-end tabular-nums">{row.projects}</TableCell>
                       <TableCell className="text-end tabular-nums">{row.hoursSavedPerMonth}</TableCell>
-                      <TableCell className="text-end tabular-nums">{row.valueAed.toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

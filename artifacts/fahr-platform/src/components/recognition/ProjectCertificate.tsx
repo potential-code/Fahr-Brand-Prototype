@@ -23,6 +23,8 @@ type CertificateProps = {
   issuedOn: string;
   verifyId: string;
   reviewer: string;
+  /** Submitted but not yet approved: the face says so, and names no approver or date. */
+  provisional?: boolean;
 };
 
 /**
@@ -39,6 +41,7 @@ function CertificateFace({
   issuedOn,
   verifyId,
   reviewer,
+  provisional = false,
 }: CertificateProps) {
   return (
     <div
@@ -50,6 +53,18 @@ function CertificateFace({
       <span aria-hidden="true" className="absolute end-3 top-3 h-5 w-5 border-e-2 border-t-2 border-primary/40 sm:h-7 sm:w-7" />
       <span aria-hidden="true" className="absolute bottom-3 start-3 h-5 w-5 border-b-2 border-s-2 border-primary/40 sm:h-7 sm:w-7" />
       <span aria-hidden="true" className="absolute bottom-3 end-3 h-5 w-5 border-b-2 border-e-2 border-primary/40 sm:h-7 sm:w-7" />
+
+      {provisional && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+          data-testid="certificate-provisional-watermark"
+        >
+          <span className="-rotate-12 select-none rounded-lg border-2 border-accent/30 px-6 py-2 text-3xl font-bold uppercase tracking-[0.3em] text-accent/25 sm:text-5xl">
+            Provisional
+          </span>
+        </span>
+      )}
 
       <div className="flex h-full flex-col items-center justify-between text-center">
         <div>
@@ -101,12 +116,16 @@ function CertificateFace({
             <div>
               <ShieldCheck className="mx-auto h-4 w-4 text-primary sm:h-5 sm:w-5" aria-hidden="true" />
               <p className="mt-0.5 text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">
-                Issued {issuedOn}
+                {provisional ? "Issued on approval" : `Issued ${issuedOn}`}
               </p>
             </div>
             <div>
-              <p className="text-[9px] font-semibold leading-tight text-foreground sm:text-sm">{reviewer}</p>
-              <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">Reviewed and approved by</p>
+              <p className="text-[9px] font-semibold leading-tight text-foreground sm:text-sm">
+                {provisional ? "Line manager and entity" : reviewer}
+              </p>
+              <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">
+                {provisional ? "Awaiting approval by" : "Reviewed and approved by"}
+              </p>
             </div>
           </div>
           <p className="mt-2 font-mono text-[8px] text-muted-foreground sm:mt-3 sm:text-[10px]" data-testid="text-certificate-verify-id">

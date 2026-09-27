@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { useToast } from "@/hooks/use-toast";
 import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
-import { LEVEL_BY_ID, SUBMISSION_STATE_LABEL, competencyLabel, filterSubmissions, type LearnerStatus, type Person } from "@/lib/federal";
+import { LEVEL_BY_ID, competencyLabel, filterSubmissions, type LearnerStatus, type Person } from "@/lib/federal";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from "recharts";
 import { Users, TrendingUp, AlertCircle, Send, CheckCircle2, BrainCircuit, Target, Activity, Shield, ChevronRight, UserCircle, ClipboardCheck, RotateCcw, Award } from "lucide-react";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
@@ -20,6 +20,10 @@ import { ManagerActionDialogs, type ManagerActionType } from "@/components/manag
 import { RevisionRequestDialog, type RevisionTarget } from "@/components/manager/RevisionRequestDialog";
 import { TeamStatusBadge } from "@/components/manager/TeamStatusBadge";
 import { TeamBenchmarkCard } from "@/components/manager/TeamBenchmark";
+import { ReturnContext } from "@/components/manager/ReturnContext";
+import { SubmissionStateBadge } from "@/components/project/SubmissionStateBadge";
+import { ProjectSummary } from "@/components/project/ProjectBrief";
+import { ProjectJourney } from "@/components/project/ProjectJourney";
 import { teamBenchmark, teamCompetencyMatrix, teamImpact, teamRecognition, teamRoster } from "@/lib/manager/selectors";
 
 const LEVEL_FILL = [
@@ -47,9 +51,7 @@ export default function ManagerDashboard() {
     live,
     signOff,
     requestRevision,
-    approvalsFor,
     getPerson,
-    issueCredential
   } = useFederalData();
   
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -132,22 +134,14 @@ export default function ManagerDashboard() {
     return items;
   }, [team, avgProgress]);
 
+  // Sign-off hands the project to the entity admin. The credential is issued
+  // by the store when the project goes live, not here.
   const handleSignOff = (submissionId: string, title: string, personId: string) => {
     const owner = getPerson(personId);
     signOff(submissionId, { by: manager?.name ?? "Department Manager" });
-    if (owner) {
-      issueCredential({
-        personId,
-        personName: owner.name,
-        title: "Workplace Project Validated: " + title,
-        levelId: "practitioner",
-        submissionId,
-        by: manager?.name ?? "Department Manager"
-      });
-    }
     toast({
       title: "Signed off",
-      description: `"${title}" now sits with the entity admin for endorsement. Credential issued.`,
+      description: `"${title}" is now with the entity admin for endorsement. ${owner?.name ?? "The learner"} has been notified.`,
     });
   };
 
@@ -158,7 +152,7 @@ export default function ManagerDashboard() {
     });
     toast({
       title: "Sent to learner",
-      description: `"${target.title}" has gone back to ${target.learnerName} with your comments.`,
+      description: `"${target.title}" has gone back to ${target.learnerName} with your comments. They have been notified and will see it in their Messages.`,
     });
   };
 
@@ -189,6 +183,7 @@ export default function ManagerDashboard() {
               </div>
               <p className="text-3xl font-bold text-foreground" data-testid="text-team-size">{team.length}</p>
               <p className="text-sm text-muted-foreground mt-1">Direct Reports enrolled</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">People reporting to you on a pathway</p>
             </CardContent>
           </StatCard>
           <StatCard className="h-full shadow-sm">
@@ -199,6 +194,7 @@ export default function ManagerDashboard() {
               </div>
               <p className="text-3xl font-bold text-foreground" data-testid="text-avg-progress">{avgProgress}%</p>
               <p className="text-sm text-muted-foreground mt-1">Avg. Pathway Completion</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">Average pathway progress across direct reports, to date</p>
             </CardContent>
           </StatCard>
           <StatCard className="h-full shadow-sm">
@@ -208,6 +204,7 @@ export default function ManagerDashboard() {
               </div>
               <p className="text-3xl font-bold text-foreground">{practitionersOrAbove}</p>
               <p className="text-sm text-muted-foreground mt-1">Practitioners or above</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">Direct reports at Level 3 or higher, of {team.length}</p>
             </CardContent>
           </StatCard>
           <StatCard className="h-full shadow-sm">
@@ -217,6 +214,7 @@ export default function ManagerDashboard() {
               </div>
               <p className="text-3xl font-bold text-foreground">{teamCredentials}</p>
               <p className="text-sm text-muted-foreground mt-1">Verified Credentials Earned</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">Workplace-project credentials held by direct reports</p>
             </CardContent>
           </StatCard>
         </div>
@@ -285,9 +283,7 @@ export default function ManagerDashboard() {
                         {teamSubmissions.slice(0, 3).map((s) => (
                           <li key={s.id} className="flex items-center justify-between gap-3 text-sm">
                             <span className="font-medium text-foreground truncate">{s.title}</span>
-                            <Badge variant="outline" className="shrink-0 font-normal">
-                              {SUBMISSION_STATE_LABEL[s.state]}
-                            </Badge>
+                            <SubmissionStateBadge submission={s} className="shrink-0 font-normal" />
                           </li>
                         ))}
                       </ul>
@@ -305,12 +301,21 @@ export default function ManagerDashboard() {
                               <p className="text-xs text-muted-foreground mt-0.5">
                                 {owner?.name ?? "Team member"} · submitted {s.submittedOn}
                               </p>
-                              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{s.metrics}</p>
+                              <ProjectSummary
+                                submission={s}
+                                className="mt-2"
+                                onOpen={() => setLocation(`/manager/validations?project=${s.id}`)}
+                              />
                             </div>
-                            <Badge variant="outline" className="shrink-0 font-normal">
-                              {s.impact} impact
-                            </Badge>
+                            <div className="flex shrink-0 flex-col items-end gap-1.5">
+                              <SubmissionStateBadge submission={s} className="font-normal" />
+                              <Badge variant="outline" className="font-normal">
+                                {s.impact} impact
+                              </Badge>
+                            </div>
                           </div>
+                          <ReturnContext submission={s} />
+                          <ProjectJourney submission={s} variant="compact" />
                           <div className="flex flex-wrap gap-2">
                             <Button
                               size="sm"
@@ -422,7 +427,7 @@ export default function ManagerDashboard() {
                       <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-hours">
                         {impact.hoursPerMonth}
                       </p>
-                      <p className="text-[11px] text-muted-foreground">Hours saved / month</p>
+                      <p className="text-[11px] text-muted-foreground">Hours returned / month</p>
                     </div>
                     <div {...STAT_SURFACE_ATTRS} className={`rounded-lg border p-3 ${STAT_SURFACE_CLASS}`}>
                       <p className="text-2xl font-bold tabular-nums text-foreground" data-testid="text-teaser-credentials">

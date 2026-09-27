@@ -226,8 +226,6 @@ export type Integration = {
   category: IntegrationCategory;
   /** What the connection is for on this platform. */
   purpose: string;
-  /** Proposal clause the integration answers. */
-  reference: string;
   status: IntegrationStatus;
   lastSync: string;
   direction: "Inbound" | "Outbound" | "Bi-directional";
@@ -247,7 +245,6 @@ export const INTEGRATIONS: Integration[] = [
     vendor: "Federal digital identity",
     category: "Identity",
     purpose: "National single sign-on for every federal employee entering the platform.",
-    reference: "§7.3 Identity · TECH-02",
     status: "Connected",
     lastSync: "Today, 07:40",
     direction: "Inbound",
@@ -262,7 +259,6 @@ export const INTEGRATIONS: Integration[] = [
     category: "Content",
     purpose:
       "Brings Coursera courses into the federal content library so the Content Agent can draw on them when it generates a learner's pathway.",
-    reference: "§4.8 Catalogue",
     status: "Connected",
     lastSync: "Today, 04:20",
     direction: "Inbound",
@@ -353,7 +349,11 @@ export type Announcement = {
   kind: AnnouncementKind;
   channels: AnnouncementChannel[];
   audience: AnnouncementAudience;
-  /** Recipients the audience resolved to when it was sent. */
+  /**
+   * Recipients the audience resolved to when it was sent, using the same rule
+   * as the composer's estimate (2 admins per entity, 1 manager per 45 staff,
+   * active learners by capability level).
+   */
   recipients: number;
   status: "Sent" | "Scheduled" | "Draft";
   sentOn: string;
@@ -373,12 +373,12 @@ export const ANNOUNCEMENTS: Announcement[] = [
     kind: "Campaign",
     channels: ["In-app", "Email"],
     audience: { entityIds: [], roleLabels: ["Entity Admin", "Department Manager"], levelIds: [] },
-    recipients: 1840,
+    recipients: 1806,
     status: "Sent",
     sentOn: "21 July 2026",
     sentBy: "Hind Al Owais",
-    opened: 1412,
-    acted: 386,
+    opened: 1386,
+    acted: 379,
   },
   {
     id: "an2",
@@ -387,12 +387,12 @@ export const ANNOUNCEMENTS: Announcement[] = [
     kind: "Announcement",
     channels: ["In-app", "Email", "Microsoft Teams"],
     audience: { entityIds: [], roleLabels: ["Entity Admin", "FAHR Governance Officer"], levelIds: [] },
-    recipients: 46,
+    recipients: 29,
     status: "Sent",
     sentOn: "2 July 2026",
     sentBy: "Sultan Al Rashdi",
-    opened: 44,
-    acted: 31,
+    opened: 27,
+    acted: 19,
   },
   {
     id: "an3",
@@ -401,12 +401,12 @@ export const ANNOUNCEMENTS: Announcement[] = [
     kind: "Announcement",
     channels: ["In-app"],
     audience: { entityIds: ["mohap", "moe"], roleLabels: ["Federal Employee"], levelIds: ["practitioner", "advanced"] },
-    recipients: 6120,
+    recipients: 6075,
     status: "Sent",
     sentOn: "18 July 2026",
     sentBy: "Maitha Al Suwaidi",
-    opened: 3980,
-    acted: 742,
+    opened: 3940,
+    acted: 736,
   },
   {
     id: "an4",
@@ -415,7 +415,7 @@ export const ANNOUNCEMENTS: Announcement[] = [
     kind: "Campaign",
     channels: ["Email"],
     audience: { entityIds: [], roleLabels: ["Entity Admin"], levelIds: [] },
-    recipients: 14,
+    recipients: 28,
     status: "Scheduled",
     sentOn: "1 September 2026",
     sentBy: "Hind Al Owais",
@@ -658,8 +658,6 @@ export type ReportType = {
   id: ReportTypeId;
   label: string;
   description: string;
-  /** Proposal clause the report answers. */
-  reference: string;
   /** Column set, for the export header and the report description. */
   measures: string[];
 };
@@ -668,37 +666,32 @@ export const REPORT_TYPES: ReportType[] = [
   {
     id: "engagement",
     label: "Engagement",
-    description: "Who is learning, how much of the workforce is covered and how active they are.",
-    reference: "FR-04 · §4.9",
-    measures: ["Targeted workforce", "Active learners", "Coverage", "Learning hours", "Pathway completion"],
+    description: "Who is learning and how much of the targeted workforce is covered, by entity.",
+    measures: ["Targeted workforce", "Active learners", "Coverage", "AI readiness"],
   },
   {
     id: "competency",
     label: "Competency development",
     description: "Movement along the capability ladder and where the national gaps are.",
-    reference: "FR-04 · §4.4",
     measures: ["Average capability", "Learners in development", "Entities reporting gap", "Trend"],
   },
   {
     id: "assessment",
     label: "Assessment outcomes",
     description: "Baseline and re-assessment results, and how many reach Practitioner.",
-    reference: "FR-04 · §4.6",
     measures: ["Assessments completed", "Average baseline", "At Practitioner or above", "Re-assessments"],
   },
   {
     id: "certification",
     label: "Certification",
     description: "Credentials issued nationally, by entity and capability level.",
-    reference: "FR-04 · §4.6",
     measures: ["Credentials issued", "Advanced", "Champion", "Issued this period"],
   },
   {
     id: "impact",
     label: "Project impact",
-    description: "Workplace projects delivered and the value and hours they returned.",
-    reference: "FR-04 · §4.5",
-    measures: ["Projects submitted", "Deployed", "Hours saved / month", "Est. value (AED M)"],
+    description: "Workplace projects submitted, how many are live, and the hours they return each month.",
+    measures: ["Projects submitted", "Projects live", "Hours returned / month", "Projects this period"],
   },
 ];
 
@@ -753,7 +746,10 @@ export type CourseraCourse = {
   syllabus: string[];
   /** Cover image path, relative to the app's base URL. */
   cover: string;
-  /** Coursera learner rating out of 5, and learners enrolled worldwide. */
+  /**
+   * Coursera learner rating out of 5, and federal learners enrolled through the
+   * platform's Coursera for Government seat licence since launch.
+   */
   rating: number;
   enrolled: number;
 };
@@ -770,7 +766,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["What AI is — and is not", "Building AI projects", "AI in your organisation", "AI and society"],
     cover: "brand/landing/stakeholder-entity.jpg",
     rating: 4.8,
-    enrolled: 1540000,
+    enrolled: 12400,
   },
   {
     id: "crs-prompt-eng",
@@ -783,7 +779,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["Prompt patterns", "Persona and context", "Few-shot examples", "Evaluating outputs"],
     cover: "brand/landing/hero-bg.jpg",
     rating: 4.8,
-    enrolled: 612000,
+    enrolled: 6850,
   },
   {
     id: "crs-data-analysis",
@@ -796,7 +792,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["Framing an analytical question", "Cleaning data with an assistant", "Reading the result critically", "Presenting a decision"],
     cover: "brand/landing/stakeholder-fahr.jpg",
     rating: 4.7,
-    enrolled: 238000,
+    enrolled: 2310,
   },
   {
     id: "crs-agentic",
@@ -809,7 +805,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["Agents and tools", "Planning and memory", "Human checkpoints", "Measuring outcomes"],
     cover: "brand/landing/ecosystem-agents.jpg",
     rating: 4.7,
-    enrolled: 97000,
+    enrolled: 940,
   },
   {
     id: "crs-ai-ethics",
@@ -822,7 +818,7 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["Accountability", "Bias and fairness", "Personal data", "Governance in practice"],
     cover: "brand/landing/stakeholder-leadership.jpg",
     rating: 4.6,
-    enrolled: 154000,
+    enrolled: 3180,
   },
   {
     id: "crs-ml-foundations",
@@ -835,6 +831,6 @@ export const COURSERA_CATALOGUE: CourseraCourse[] = [
     syllabus: ["How models learn", "Data you need", "Commissioning an AI project", "Reading results honestly"],
     cover: "brand/landing/cta-band.jpg",
     rating: 4.6,
-    enrolled: 181000,
+    enrolled: 1620,
   },
 ];

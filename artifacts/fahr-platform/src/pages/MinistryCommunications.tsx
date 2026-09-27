@@ -162,14 +162,23 @@ export default function MinistryCommunications() {
     const reached = sent.reduce((a, c) => a + c.recipients, 0);
     const withRate = sent.filter((c) => typeof c.openRate === "number");
     const avgOpen = withRate.length === 0 ? 0 : Math.round(withRate.reduce((a, c) => a + (c.openRate ?? 0), 0) / withRate.length);
-    return { sent: sent.length, scheduled: scheduled.length, reached, avgOpen };
+    return { sent: sent.length, scheduled: scheduled.length, reached, avgOpen, opened: withRate.length };
   }, [communications]);
 
   const kpis: Kpi[] = [
-    { label: "Sent this quarter", value: kpiFigures.sent, icon: Send, color: "text-green-600", testId: "kpi-sent" },
-    { label: "Scheduled", value: kpiFigures.scheduled, icon: CalendarClock, color: "text-blue-600", testId: "kpi-scheduled" },
-    { label: "Recipients reached", value: kpiFigures.reached, icon: Users2, color: "text-primary", testId: "kpi-reached" },
-    { label: "Average open rate", value: kpiFigures.avgOpen, suffix: "%", icon: Mail, color: "text-accent", testId: "kpi-open-rate" },
+    { label: "Sent", value: kpiFigures.sent, icon: Send, color: "text-green-600", testId: "kpi-sent", hint: "Announcements and reminders since launch" },
+    { label: "Scheduled", value: kpiFigures.scheduled, icon: CalendarClock, color: "text-blue-600", testId: "kpi-scheduled", hint: "Queued to send" },
+    { label: "Recipients reached", value: kpiFigures.reached, icon: Users2, color: "text-primary", testId: "kpi-reached", hint: "Summed across sent messages" },
+    {
+      label: "Average open rate",
+      value: kpiFigures.avgOpen,
+      suffix: "%",
+      icon: Mail,
+      color: "text-accent",
+      testId: "kpi-open-rate",
+      placeholder: kpiFigures.opened === 0 ? "—" : undefined,
+      hint: kpiFigures.opened === 0 ? "No open data yet" : `Across ${kpiFigures.opened} sent message${kpiFigures.opened === 1 ? "" : "s"} with tracking`,
+    },
   ];
 
   const resolvedAudience = audienceByKey[form.audienceKey];

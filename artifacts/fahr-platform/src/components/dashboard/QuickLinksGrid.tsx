@@ -13,8 +13,12 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import { useMemo } from "react";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
+import { useDigitalTwin } from "@/lib/DigitalTwinContext";
 import { earnedBadgeCount } from "@/lib/recognitionRecord";
+import { LEARNER_STANDING } from "@/lib/engagement";
+import { buildAdaptiveItem, buildPathway, derivePathwayStatuses } from "@/lib/pathway";
 
 type QuickLink = {
   href: string;
@@ -29,8 +33,27 @@ type QuickLink = {
  * works as the hub rather than a dead end.
  */
 export function QuickLinksGrid() {
-  const { result } = useLearnerProgress();
+  const { result, answers, adaptiveUnlocked, completedActivityIds, getCoursePercent } = useLearnerProgress();
+  const { readiness: twinReadiness, isLive: twinLive } = useDigitalTwin();
   const reduceMotion = useReducedMotion();
+
+  // Pathway completion, counted the same way the pathway page counts it: the
+  // share of its steps whose status is "completed".
+  const pathwayPercent = useMemo(() => {
+    if (!result) return null;
+    const base = buildPathway(result, answers);
+    // The adaptive module lands after the simulation, exactly as on the pathway page.
+    const at = base.findIndex((i) => i.format === "simulation");
+    const items = adaptiveUnlocked
+      ? at === -1
+        ? [...base, buildAdaptiveItem(result)]
+        : [...base.slice(0, at + 1), buildAdaptiveItem(result), ...base.slice(at + 1)]
+      : base;
+    const percents: Record<string, number> = {};
+    for (const item of items) if (item.courseId) percents[item.courseId] = getCoursePercent(item.courseId);
+    const done = derivePathwayStatuses(items, percents, completedActivityIds).filter((s) => s === "completed").length;
+    return items.length ? Math.round((done / items.length) * 100) : 0;
+  }, [result, answers, adaptiveUnlocked, completedActivityIds, getCoursePercent]);
 
   // Derived from the same `earnedBadgeCount` every other "badges" number on
   // the platform reads, so this tile can never disagree with the Recognition
@@ -43,7 +66,7 @@ export function QuickLinksGrid() {
       label: "Learning Pathway",
       description: "Your personalised blocks",
       icon: Target,
-      status: "48%",
+      status: pathwayPercent === null ? "Locked" : `${pathwayPercent}%`,
     },
     {
       href: "/learner/profile",
@@ -57,12 +80,12 @@ export function QuickLinksGrid() {
       label: "Digital Twin Lab",
       description: "Train your AI assistant",
       icon: Bot,
-      status: "70%",
+      status: twinLive ? "Live" : twinReadiness > 0 ? `${twinReadiness}%` : "Not started",
     },
     {
       href: "/learner/lab/project",
       label: "Workplace Project",
-      description: "Campaign Brief Generator",
+      description: "Weekly performance report",
       icon: Rocket,
       status: "In progress",
     },
@@ -85,7 +108,7 @@ export function QuickLinksGrid() {
       label: "Community",
       description: "Peers, events and leaderboard",
       icon: Users,
-      status: "Rank 2",
+      status: `Rank ${LEARNER_STANDING.entity}`,
     },
     {
       href: result ? "/learner/assessment/report" : "/learner/assessment",

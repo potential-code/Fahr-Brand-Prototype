@@ -34,7 +34,7 @@ describe("StepQuiz attempt reporting", () => {
     fireEvent.click(screen.getByTestId("button-check-answer"));
     fireEvent.click(screen.getByTestId("button-next-question"));
 
-    expect(onAttempt).toHaveBeenCalledWith(0, 1);
+    expect(onAttempt).toHaveBeenCalledWith(0, 1, [0]);
     expect(screen.getByText("Not yet.")).toBeTruthy();
   });
 });

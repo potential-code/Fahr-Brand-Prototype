@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PointsLegend } from "@/components/recognition/PointsLegend";
 import { LEADERBOARDS, SCOPE_CAPTION, SCOPE_LABEL, type LeaderboardScope } from "@/lib/engagement";
 import { ArrowRight, Award, Minus, Trophy, TrendingDown, TrendingUp } from "lucide-react";
 
@@ -39,6 +40,7 @@ export function LeaderboardPanel() {
         <div className="border-b border-border p-5">
           <h2 className="inline-flex items-center gap-2 text-base font-bold text-foreground">
             <Trophy className="h-4.5 w-4.5 text-primary" /> Impact leaderboard
+            <PointsLegend />
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">Ranked by verified capability and evaluated outcomes.</p>
 

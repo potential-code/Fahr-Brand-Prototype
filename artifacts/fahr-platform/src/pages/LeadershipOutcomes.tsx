@@ -4,26 +4,55 @@ import { RecognitionBand } from "@/components/recognition/RecognitionSurface";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
 import { useFederalData } from "@/lib/FederalDataContext";
-import { FEDERAL, NATIONAL_TARGET } from "@/lib/federal";
+import { FEDERAL, METRICS, NATIONAL_TARGET, workingDaysPerYear } from "@/lib/federal";
 import { PageEnter, Stagger, StaggerItem, CountUp, ChartReveal } from "@/components/motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { Rocket, Clock, Coins, Award } from "lucide-react";
+import { Rocket, Clock, Award } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { AGENTS } from "@/lib/constants";
+import { useLiveProjects } from "@/components/leadership/LiveProjects";
 
 export default function LeadershipOutcomes() {
   const { ministries } = useFederalData();
+  // Projects that went live in this session sit on top of the static national record.
+  const { session } = useLiveProjects();
+  const hasSession = session.count > 0;
 
-  const kpis = [
-    { label: "Deployed Projects", value: FEDERAL.projectsSubmitted, icon: Rocket },
-    { label: "Monthly Hours Saved", value: FEDERAL.hoursSavedPerMonth, icon: Clock },
-    { label: "Annual Value Created", value: FEDERAL.valueCreatedAedM, prefix: "AED ", suffix: "M", decimals: 1, icon: Coins },
-    { label: "Credentials Issued", value: FEDERAL.credentialsIssued, icon: Award },
+  const kpis: {
+    label: string;
+    value: number;
+    icon: typeof Rocket;
+    prefix?: string;
+    suffix?: string;
+    decimals?: number;
+    caption: string;
+    delta?: string;
+  }[] = [
+    {
+      label: METRICS.projectsLive.label,
+      value: FEDERAL.projectsLive + session.count,
+      icon: Rocket,
+      caption: `of ${FEDERAL.projectsSubmitted.toLocaleString()} submitted · ${METRICS.projectsLive.caption.toLowerCase()}`,
+      delta: hasSession ? `+${session.count} this session` : undefined,
+    },
+    {
+      label: METRICS.hoursSaved.label,
+      value: FEDERAL.hoursSavedPerMonth + session.hoursSaved,
+      icon: Clock,
+      caption: METRICS.hoursSaved.caption,
+      delta: hasSession ? `+${session.hoursSaved.toLocaleString()} h this session` : undefined,
+    },
+    {
+      label: METRICS.credentials.label,
+      value: FEDERAL.credentialsIssued,
+      icon: Award,
+      caption: METRICS.credentials.caption,
+    },
   ];
 
-  const topValueEntities = useMemo(() => {
-    return [...ministries].sort((a, b) => b.valueCreatedAedM - a.valueCreatedAedM).slice(0, 5);
+  const topHoursEntities = useMemo(() => {
+    return [...ministries].sort((a, b) => b.hoursSavedPerMonth - a.hoursSavedPerMonth).slice(0, 5);
   }, [ministries]);
 
   return (
@@ -36,7 +65,7 @@ export default function LeadershipOutcomes() {
           description="Measurable impact driven by the federal AI capability programme."
         />
 
-        <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Stagger className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {kpis.map((kpi, i) => (
             <StaggerItem key={i}>
               <StatCard className="h-full">
@@ -46,6 +75,15 @@ export default function LeadershipOutcomes() {
                     <CountUp to={kpi.value} decimals={kpi.decimals ?? 0} prefix={kpi.prefix} suffix={kpi.suffix} />
                   </p>
                   <p className="text-xs text-muted-foreground mt-1.5">{kpi.label}</p>
+                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">{kpi.caption}</p>
+                  {kpi.delta && (
+                    <span
+                      className="mt-2 inline-flex items-center rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent"
+                      data-testid={`kpi-delta-${i}`}
+                    >
+                      {kpi.delta}
+                    </span>
+                  )}
                 </CardContent>
               </StatCard>
             </StaggerItem>
@@ -55,9 +93,9 @@ export default function LeadershipOutcomes() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AIAnalysisPanel
             agent={AGENTS.analytics}
-            title="Est. Value Created by Entity"
+            title="Hours Returned by Entity"
             steps={[
-              "Evaluating deployed project ROI models",
+              "Evaluating live project impact estimates",
               "Aggregating entity-level impact metrics",
               "Isolating top contributors"
             ]}
@@ -65,18 +103,21 @@ export default function LeadershipOutcomes() {
           >
           <Card className="h-full border-0 shadow-none bg-transparent">
             <CardHeader className="px-0 pt-0">
-              <CardDescription>Top 5 contributors to the AED {FEDERAL.valueCreatedAedM}M national total</CardDescription>
+              <CardDescription>
+                Top 5 entities by hours returned a month, of {FEDERAL.hoursSavedPerMonth.toLocaleString()} nationally from{" "}
+                {FEDERAL.projectsLive.toLocaleString()} live projects
+              </CardDescription>
             </CardHeader>
             <CardContent className="px-0 pb-0 h-[300px]">
               <ChartReveal className="h-full" direction="wipe">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topValueEntities} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart data={topHoursEntities} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="hsl(var(--border))" />
                     <XAxis type="number" hide />
                     <YAxis dataKey="shortName" type="category" axisLine={false} tickLine={false} width={120} fontSize={12} stroke="hsl(var(--foreground))" />
                     <Tooltip 
                       cursor={{ fill: 'hsl(var(--muted)/0.5)' }} 
-                      formatter={(v: number) => [`AED ${v.toFixed(1)}M`, "Value Created"]}
+                      formatter={(v: number) => [`${v.toLocaleString()} h`, "Hours / month"]}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
@@ -84,8 +125,8 @@ export default function LeadershipOutcomes() {
                         boxShadow: 'var(--shadow-md)'
                       }} 
                     />
-                    <Bar dataKey="valueCreatedAedM" radius={[0, 4, 4, 0]} barSize={20}>
-                      {topValueEntities.map((entry, index) => (
+                    <Bar dataKey="hoursSavedPerMonth" radius={[0, 4, 4, 0]} barSize={20}>
+                      {topHoursEntities.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={index === 0 ? "hsl(var(--primary))" : "hsl(var(--secondary))"} />
                       ))}
                     </Bar>
@@ -144,13 +185,13 @@ export default function LeadershipOutcomes() {
               steps={[
                 "Auditing deployed project outcomes",
                 "Aggregating monthly capacity recapture",
-                "Modelling annualised economic value"
+                "Converting hours returned to working days"
               ]}
               className="bg-primary/5 border-primary/20"
             >
               <div className="text-sm space-y-3">
-                <p>The deployed {FEDERAL.projectsSubmitted.toLocaleString()} projects are currently returning an estimated <strong>AED {FEDERAL.valueCreatedAedM}M</strong> in annualised value.</p>
-                <p>Process automation alone has recaptured <strong>{FEDERAL.hoursSavedPerMonth.toLocaleString()} hours</strong> of capacity per month across the federal workforce, primarily concentrated in policy analysis and customer service delivery.</p>
+                <p>{FEDERAL.projectsLive.toLocaleString()} of {FEDERAL.projectsSubmitted.toLocaleString()} submitted projects are live, returning an estimated <strong>{FEDERAL.hoursSavedPerMonth.toLocaleString()} hours a month</strong> — about {workingDaysPerYear(FEDERAL.hoursSavedPerMonth).toLocaleString()} working days a year.</p>
+                <p>Most of that time comes back in policy analysis and customer service delivery, where early projects automate drafting and triage.</p>
               </div>
             </AIAnalysisPanel>
           </div>

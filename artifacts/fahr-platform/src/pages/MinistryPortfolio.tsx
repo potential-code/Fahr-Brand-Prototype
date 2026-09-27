@@ -1,11 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { RecognitionBand } from "@/components/recognition/RecognitionSurface";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
-import { TIMELINE_PADDING, TimelineNode, TimelineRail } from "@/components/TimelineRail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +11,14 @@ import {
   User,
   ArrowRight,
   Activity,
-  Calendar,
+  MessagesSquare,
   CheckCircle2,
   ArrowUpRight,
   Undo2,
   Megaphone,
   Download,
   ExternalLink,
+  FileText,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
@@ -34,14 +33,22 @@ import { useFederalData } from "@/lib/FederalDataContext";
 import {
   DEPARTMENT_BY_ID,
   MINISTRY_BY_ID,
+  METRICS,
   SUBMISSION_STATE_LABEL,
   competencyLabel,
+  workingDaysPerYear,
 } from "@/lib/federal";
+import { useLiveProjects } from "@/components/leadership/LiveProjects";
 import type { Submission } from "@/lib/federal/model";
 import { ENTITY_ADMIN } from "@/lib/entityAdmin/seed";
 import { downloadCsv } from "@/lib/exportFile";
 import { AIAnalysisInline } from "@/components/ai/AIAnalysis";
 import { AGENTS } from "@/lib/constants";
+import { ProjectJourney } from "@/components/project/ProjectJourney";
+import { ProjectConversation } from "@/components/project/ProjectConversation";
+import { ProjectBriefView, ProjectImpactStrip } from "@/components/project/ProjectBrief";
+import { SubmissionStateBadge } from "@/components/project/SubmissionStateBadge";
+import { ApprovalsDecisionDialog, type DecisionKind } from "@/components/ministry/ApprovalsDecisionDialog";
 
 const impactBadge = (impact: Submission["impact"]): string =>
   impact === "High"
@@ -50,28 +57,23 @@ const impactBadge = (impact: Submission["impact"]): string =>
       ? "bg-primary/10 text-primary border-primary/20"
       : "bg-muted text-muted-foreground";
 
-const stateBadge = (state: Submission["state"]): string => {
-  if (state === "deployed" || state === "endorsed") return "bg-green-50 text-green-700 border-green-200";
-  if (state === "escalated") return "bg-primary/10 text-primary border-primary/20";
-  if (state === "revision_requested" || state === "awaiting_manager")
-    return "bg-amber-50 text-amber-700 border-amber-200";
-  return "bg-muted text-muted-foreground";
-};
-
 export default function MinistryPortfolio() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const {
     focus,
     submissions,
+    credentials,
     getPerson,
-    approvalsFor,
     endorse,
     escalate,
     returnToManager,
     issueCredential,
   } = useFederalData();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [dialog, setDialog] = useState<{ id: string; kind: Extract<DecisionKind, "return" | "escalate"> } | null>(
+    null,
+  );
 
   const ministry = MINISTRY_BY_ID[focus.ministryId];
   const projects = useMemo(
@@ -79,40 +81,68 @@ export default function MinistryPortfolio() {
     [submissions, focus.ministryId],
   );
   const selectedProject = selectedId ? projects.find((s) => s.id === selectedId) ?? null : null;
-  const decisions = selectedProject ? approvalsFor(selectedProject.id) : [];
+  const selectedCredential = selectedProject
+    ? credentials.find((c) => c.submissionId === selectedProject.id)
+    : undefined;
 
   const ownerName = (personId: string) => getPerson(personId)?.name ?? "Entity team";
   const departmentName = (departmentId: string) => DEPARTMENT_BY_ID[departmentId]?.name ?? departmentId;
 
+  const { fresh } = useLiveProjects();
   const kpis = useMemo(() => {
-    const deployed = projects.filter((p) => p.state === "deployed").length;
-    const endorsed = projects.filter((p) => p.state === "endorsed").length;
+    // The entity record since launch, plus anything that went live in this session.
+    const freshHere = fresh.filter((p) => p.submission.ministryId === focus.ministryId);
+    const sessionHours = freshHere.reduce((sum, p) => sum + p.submission.hoursSavedPerMonth, 0);
     const awaiting = projects.filter(
       (p) => p.state === "awaiting_entity" || p.state === "awaiting_manager",
     ).length;
-    const value = projects.reduce((sum, p) => sum + p.estimatedValueAed, 0);
-    return { total: projects.length, deployed, endorsed, awaiting, value };
-  }, [projects]);
+    const hoursPerMonth = ministry.hoursSavedPerMonth + sessionHours;
+    return {
+      submitted: Math.max(ministry.projectsSubmitted, projects.length),
+      live: ministry.projectsLive + freshHere.length,
+      awaiting,
+      hoursPerMonth,
+      workingDays: workingDaysPerYear(hoursPerMonth),
+    };
+  }, [projects, fresh, focus.ministryId, ministry]);
 
-  const handleEndorse = (submissionId: string, title: string) => {
-    endorse(submissionId, { by: ENTITY_ADMIN });
-    toast({ title: "Endorsed", description: `"${title}" is endorsed for entity deployment.` });
+  /** The learner and their line manager, named for the "who was notified" toasts. */
+  const notifiedNames = (submission: Submission) => {
+    const learner = getPerson(submission.personId);
+    const manager =
+      (learner?.managerId ? getPerson(learner.managerId)?.name : undefined) ??
+      (submission.reviewer && submission.reviewer !== "Department manager" ? submission.reviewer : undefined) ??
+      "their line manager";
+    return { learner: learner?.name ?? "the learner", manager };
   };
 
-  const handleEscalate = (submissionId: string, title: string) => {
-    escalate(submissionId, {
-      by: ENTITY_ADMIN,
-      note: "Federal-scale impact — requesting FAHR review.",
+  const handleEndorse = (submission: Submission) => {
+    const { learner, manager } = notifiedNames(submission);
+    endorse(submission.id, { by: ENTITY_ADMIN });
+    toast({
+      title: "Endorsed — project is live",
+      description: `"${submission.title}" is endorsed for entity deployment. ${learner} and ${manager} have been notified.`,
     });
-    toast({ title: "Escalated to FAHR", description: `"${title}" now appears in the FAHR escalations queue.` });
   };
 
-  const handleReturn = (submissionId: string, title: string) => {
-    returnToManager(submissionId, {
-      by: ENTITY_ADMIN,
-      note: "Returned for the department manager to strengthen the evidence with the learner.",
-    });
-    toast({ title: "Returned to manager", description: `"${title}" is back with the department manager.` });
+  const runDecision = (submissionId: string, kind: "return" | "escalate", note: string) => {
+    const submission = projects.find((p) => p.id === submissionId);
+    setDialog(null);
+    if (!submission) return;
+    const { learner, manager } = notifiedNames(submission);
+    if (kind === "escalate") {
+      escalate(submissionId, { by: ENTITY_ADMIN, note });
+      toast({
+        title: "Escalated to FAHR",
+        description: `"${submission.title}" now sits in the FAHR queue. The FAHR Programme Team, ${learner} and ${manager} have been notified.`,
+      });
+    } else {
+      returnToManager(submissionId, { by: ENTITY_ADMIN, note });
+      toast({
+        title: "Returned to line manager",
+        description: `"${submission.title}" is back with ${manager}. ${manager} and ${learner} have been notified.`,
+      });
+    }
   };
 
   const exportPortfolio = () => {
@@ -121,7 +151,7 @@ export default function MinistryPortfolio() {
       title: `${ministry.name} — Workplace Project Portfolio`,
       headers: [
         "Project", "Owner", "Department", "State", "Impact", "Governance",
-        "Est. value (AED/yr)", "Hours saved/mo", "Reviewer",
+        "Hours returned/mo", "Reviewer",
       ],
       rows: projects.map((p) => [
         p.title,
@@ -130,7 +160,6 @@ export default function MinistryPortfolio() {
         SUBMISSION_STATE_LABEL[p.state],
         p.impact,
         p.governanceStatus,
-        p.estimatedValueAed,
         p.hoursSavedPerMonth,
         p.reviewer ?? "Unassigned",
       ]),
@@ -164,49 +193,62 @@ export default function MinistryPortfolio() {
         />
 
         <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-          <StaggerItem as="div">
-            <StatCard className="h-full">
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold"><CountUp to={kpis.total} /></p>
-                <p className="text-xs text-muted-foreground">Projects</p>
-              </CardContent>
-            </StatCard>
-          </StaggerItem>
-          <StaggerItem as="div">
-            <StatCard className="h-full">
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-green-600"><CountUp to={kpis.deployed} /></p>
-                <p className="text-xs text-muted-foreground">Deployed</p>
-              </CardContent>
-            </StatCard>
-          </StaggerItem>
-          <StaggerItem as="div">
-            <StatCard className="h-full">
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-primary"><CountUp to={kpis.endorsed} /></p>
-                <p className="text-xs text-muted-foreground">Endorsed</p>
-              </CardContent>
-            </StatCard>
-          </StaggerItem>
-          <StaggerItem as="div">
-            <StatCard className="h-full">
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-amber-600"><CountUp to={kpis.awaiting} /></p>
-                <p className="text-xs text-muted-foreground">Awaiting a decision</p>
-              </CardContent>
-            </StatCard>
-          </StaggerItem>
-          <StaggerItem as="div">
-            <StatCard className="h-full">
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-accent">
-                  <CountUp to={Math.round(kpis.value / 1000)} prefix="AED " suffix="k" />
-                </p>
-                <p className="text-xs text-muted-foreground">Est. annual value</p>
-              </CardContent>
-            </StatCard>
-          </StaggerItem>
+          {[
+            {
+              key: "submitted",
+              value: kpis.submitted,
+              label: METRICS.projectsSubmitted.label,
+              caption: METRICS.projectsSubmitted.caption,
+              tone: "",
+            },
+            {
+              key: "live",
+              value: kpis.live,
+              label: METRICS.projectsLive.label,
+              caption: METRICS.projectsLive.caption,
+              tone: "text-green-600",
+            },
+            {
+              key: "awaiting",
+              value: kpis.awaiting,
+              label: "Awaiting a decision",
+              caption: "With a line manager or this entity now",
+              tone: "text-amber-600",
+            },
+            {
+              key: "hours",
+              value: kpis.hoursPerMonth,
+              label: METRICS.hoursSaved.label,
+              caption: METRICS.hoursSaved.caption,
+              tone: "text-accent",
+            },
+            {
+              key: "days",
+              value: kpis.workingDays,
+              label: "Working days returned / year",
+              caption: "Hours a month × 12, at 7.5 h a working day",
+              tone: "text-primary",
+            },
+          ].map((kpi) => (
+            <StaggerItem as="div" key={kpi.key}>
+              <StatCard className="h-full" data-testid={`kpi-portfolio-${kpi.key}`}>
+                <CardContent className="p-4 text-center">
+                  <p className={`text-2xl font-bold ${kpi.tone}`}>
+                    <CountUp to={kpi.value} />
+                  </p>
+                  <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/70">{kpi.caption}</p>
+                </CardContent>
+              </StatCard>
+            </StaggerItem>
+          ))}
         </Stagger>
+
+        {projects.length < kpis.submitted && (
+          <p className="text-xs text-muted-foreground" data-testid="text-portfolio-shown">
+            Showing {projects.length} recent of {kpis.submitted.toLocaleString()} projects submitted since launch
+          </p>
+        )}
 
         <Stagger className="grid grid-cols-1 gap-4">
           {projects.map((proj) => (
@@ -264,7 +306,7 @@ export default function MinistryPortfolio() {
         </Stagger>
 
         <Sheet open={!!selectedProject} onOpenChange={(open) => !open && setSelectedId(null)}>
-          <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+          <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
             {selectedProject && (
               <PanelEnter className="space-y-8 py-6">
                 <SheetHeader className="space-y-4 text-left">
@@ -272,13 +314,15 @@ export default function MinistryPortfolio() {
                     <Badge variant="outline" className={`text-xs ${impactBadge(selectedProject.impact)}`}>
                       {selectedProject.impact} impact
                     </Badge>
-                    <Badge variant="outline" className={`text-xs ${stateBadge(selectedProject.state)}`}>
-                      {SUBMISSION_STATE_LABEL[selectedProject.state]}
-                    </Badge>
+                    <SubmissionStateBadge submission={selectedProject} className="text-xs" />
                   </div>
                   <SheetTitle className="text-2xl">{selectedProject.title}</SheetTitle>
-                  <SheetDescription className="text-base">{selectedProject.description}</SheetDescription>
+                  <SheetDescription>
+                    Submitted by {ownerName(selectedProject.personId)} on {selectedProject.submittedOn}
+                  </SheetDescription>
                 </SheetHeader>
+
+                <ProjectJourney submission={selectedProject} variant="full" />
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="space-y-1">
@@ -312,6 +356,13 @@ export default function MinistryPortfolio() {
                   </div>
                 </div>
 
+                <div className="space-y-3" data-testid="portfolio-learner-brief">
+                  <h4 className="flex items-center gap-2 font-semibold">
+                    <FileText className="h-5 w-5 text-primary" /> Learner's brief
+                  </h4>
+                  <ProjectBriefView submission={selectedProject} showImpact={false} />
+                </div>
+
                 <div className="space-y-3">
                   <h4 className="flex items-center gap-2 font-semibold">
                     <Activity className="h-5 w-5 text-primary" /> Impact Evidence
@@ -322,72 +373,35 @@ export default function MinistryPortfolio() {
                     steps={["Analysing project metrics", "Verifying federal application", "Extracting impact figures"]}
                     runKey={selectedProject.id}
                   >
-                    <div className="space-y-2 rounded-lg border border-border bg-muted p-4 text-sm">
-                      <p>{selectedProject.metrics}</p>
+                    <div className="space-y-3">
+                      <ProjectImpactStrip submission={selectedProject} />
                       <p className="text-xs text-muted-foreground">
-                        Estimated annual value AED {selectedProject.estimatedValueAed.toLocaleString()} ·{" "}
-                        {selectedProject.hoursSavedPerMonth} hours saved per month · Competencies evidenced:{" "}
-                        {selectedProject.competencyIds.map(competencyLabel).join(", ")}
+                        Competencies evidenced: {selectedProject.competencyIds.map(competencyLabel).join(", ")}
                       </p>
                     </div>
                   </AIAnalysisInline>
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="flex items-center gap-2 font-semibold">
-                    <Calendar className="h-5 w-5 text-primary" /> Project Timeline
-                  </h4>
-                  <div className={`relative space-y-4 ${TIMELINE_PADDING}`}>
-                    <TimelineRail inset="inset-y-2" />
-                    {selectedProject.timeline.map((event, idx) => (
-                      <div key={`${event.date}-${idx}`} className="relative">
-                        <TimelineNode top="top-1" testId={`project-timeline-node-${idx}`} />
-                        <p className="mb-1 text-xs text-muted-foreground">{event.date}</p>
-                        <p className="text-sm font-medium">{event.event}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-semibold">Decision Trail</h4>
-                    <Link href="/ministry/approvals">
+                    <h4 className="flex items-center gap-2 font-semibold">
+                      <MessagesSquare className="h-5 w-5 text-primary" /> Conversation
+                    </h4>
+                    <Link href={`/ministry/approvals?project=${selectedProject.id}`}>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-auto p-0 text-xs text-primary hover:underline"
                         data-testid={`link-approvals-${selectedProject.id}`}
                       >
-                        Full trail <ArrowRight className="ml-1 h-3 w-3" />
+                        Open in approvals <ArrowRight className="ml-1 h-3 w-3" />
                       </Button>
                     </Link>
                   </div>
-                  {decisions.length > 0 ? (
-                    <ul className="space-y-2 text-sm">
-                      <AnimatePresence initial={false}>
-                        {decisions.map((decision) => (
-                          <motion.li
-                            key={decision.id}
-                            layout
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="flex justify-between gap-3 rounded-md border border-border p-2"
-                          >
-                            <span className="capitalize text-muted-foreground">
-                              {decision.role} · {decision.decision.replace(/_/g, " ")}
-                              {decision.note && <span className="not-italic text-foreground/70"> — {decision.note}</span>}
-                            </span>
-                            <span className="shrink-0 font-medium">
-                              {decision.by}, {decision.on}
-                            </span>
-                          </motion.li>
-                        ))}
-                      </AnimatePresence>
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No decisions recorded on this project yet.</p>
-                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Every decision and note on this project, from the learner's submission onward.
+                  </p>
+                  <ProjectConversation submission={selectedProject} />
                 </div>
 
                 <div className="flex flex-col gap-3 border-t border-border pt-6">
@@ -395,7 +409,7 @@ export default function MinistryPortfolio() {
                     <>
                       <Button
                         data-testid={`button-endorse-${selectedProject.id}`}
-                        onClick={() => handleEndorse(selectedProject.id, selectedProject.title)}
+                        onClick={() => handleEndorse(selectedProject)}
                       >
                         <CheckCircle2 className="mr-2 h-4 w-4" /> Endorse Project
                       </Button>
@@ -404,7 +418,7 @@ export default function MinistryPortfolio() {
                           variant="outline"
                           className="flex-1 gap-2"
                           data-testid={`button-return-${selectedProject.id}`}
-                          onClick={() => handleReturn(selectedProject.id, selectedProject.title)}
+                          onClick={() => setDialog({ id: selectedProject.id, kind: "return" })}
                         >
                           <Undo2 className="h-4 w-4" /> Return to manager
                         </Button>
@@ -412,7 +426,7 @@ export default function MinistryPortfolio() {
                           variant="outline"
                           className="flex-1 gap-2"
                           data-testid={`button-escalate-${selectedProject.id}`}
-                          onClick={() => handleEscalate(selectedProject.id, selectedProject.title)}
+                          onClick={() => setDialog({ id: selectedProject.id, kind: "escalate" })}
                         >
                           <ArrowUpRight className="h-4 w-4" /> Escalate to FAHR
                         </Button>
@@ -421,15 +435,35 @@ export default function MinistryPortfolio() {
                   )}
                   {selectedProject.state === "awaiting_manager" && (
                     <p className="text-sm text-muted-foreground">
-                      Waiting on the department manager's sign-off before this entity can endorse it.
+                      Waiting on the line manager's sign-off before this entity can endorse it.
                     </p>
                   )}
                   {selectedProject.state === "revision_requested" && (
                     <p className="text-sm text-muted-foreground">
-                      Returned for revision — with the department manager and learner until it is resubmitted.
+                      Returned for revision — with the line manager and learner until it is resubmitted.
                     </p>
                   )}
-                  {selectedProject.state === "endorsed" && (
+                  {selectedProject.state === "escalated" && (
+                    <p className="text-sm text-muted-foreground" data-testid={`text-fahr-waiting-${selectedProject.id}`}>
+                      Escalated — waiting for a FAHR decision. FAHR will approve it for federal rollout or return it
+                      here.
+                    </p>
+                  )}
+                  {selectedCredential ? (
+                    <div
+                      className="flex items-start gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800"
+                      data-testid={`credential-issued-${selectedProject.id}`}
+                    >
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                      <div>
+                        <p className="font-medium">Credential issued</p>
+                        <p className="text-xs">
+                          {selectedCredential.title} · issued {selectedCredential.issuedOn} ·{" "}
+                          {selectedCredential.verificationCode}
+                        </p>
+                      </div>
+                    </div>
+                  ) : selectedProject.state === "endorsed" && (
                     <Button
                       className="w-full gap-2"
                       data-testid={`button-credential-${selectedProject.id}`}
@@ -466,6 +500,13 @@ export default function MinistryPortfolio() {
           </SheetContent>
         </Sheet>
       </PageEnter>
+
+      <ApprovalsDecisionDialog
+        kind={dialog?.kind ?? null}
+        projectTitle={dialog ? projects.find((p) => p.id === dialog.id)?.title ?? "" : ""}
+        onCancel={() => setDialog(null)}
+        onConfirm={(note) => dialog && runDecision(dialog.id, dialog.kind, note)}
+      />
     </Layout>
   );
 }

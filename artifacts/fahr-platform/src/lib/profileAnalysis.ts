@@ -16,13 +16,13 @@ import {
   COURSES,
   COURSE_BY_ID,
   bandForScore,
-  courseLessons,
   SCORE_BANDS,
   type Competency,
   type Course,
 } from "@/lib/learningData";
 import { CAPABILITY_LEVELS, IMPACT_POINTS, LEARNER_PROFILE, type CapabilityLevel } from "@/lib/constants";
 import { targetFor } from "@/lib/recommendations";
+import { earnedBadgeCount } from "@/lib/recognitionRecord";
 import type { AssessmentResult, CourseProgress } from "@/lib/LearnerProgressContext";
 
 // ---------------------------------------------------------------------------
@@ -65,18 +65,6 @@ export type AdvisorSignal = {
   weight: SignalWeight;
 };
 
-export type CredentialState = "earned" | "in-progress" | "locked";
-
-export type ProfileCredential = {
-  id: string;
-  title: string;
-  issuer: string;
-  caption: string;
-  state: CredentialState;
-  /** 0-100, only meaningful while in progress. */
-  percent: number;
-};
-
 export type NextCapability = {
   id: string;
   competency: Competency;
@@ -103,7 +91,6 @@ export type ProfileAnalysis = {
   assessments: AssessmentRecord[];
   signals: AdvisorSignal[];
   conclusion: string;
-  credentials: ProfileCredential[];
   nextCapabilities: NextCapability[];
   participation: ParticipationSummary;
 };
@@ -296,43 +283,9 @@ export function buildProfileAnalysis(
     },
   ];
 
-  // --- credentials ----------------------------------------------------------
-  const credentials: ProfileCredential[] = [
-    {
-      id: "level",
-      title: `${level.label} — federal AI capability ladder`,
-      issuer: "FAHR AI Academy",
-      caption: `Awarded on ${result.completedOn} from your baseline assessment`,
-      state: "earned",
-      percent: 100,
-    },
-    ...COURSES.map<ProfileCredential>((course) => {
-      const progress = courseProgress[course.id];
-      const lessonTotal = courseLessons(course).length;
-      const done = progress?.completedLessonIds.length ?? 0;
-      const percent = lessonTotal ? Math.round((done / lessonTotal) * 100) : 0;
-      const state: CredentialState = progress?.finalDone
-        ? "earned"
-        : done > 0
-          ? "in-progress"
-          : "locked";
-      return {
-        id: course.id,
-        title: `${course.title} certificate`,
-        issuer: "FAHR AI Academy",
-        caption:
-          state === "earned"
-            ? "Verified credential on Recognition"
-            : state === "in-progress"
-              ? `${done} of ${lessonTotal} lessons complete`
-              : "Unlocks when you finish the course",
-        state,
-        percent,
-      };
-    }),
-  ];
-
-  const earnedCount = credentials.filter((c) => c.state === "earned").length;
+  // Badges are per competency, at Practitioner — the same rule Recognition
+  // uses. Courses never issue a credential on their own.
+  const earnedCount = earnedBadgeCount(result);
 
   // --- advisor signals (proposal 5.2) --------------------------------------
   const mostActive =
@@ -395,8 +348,8 @@ export function buildProfileAnalysis(
     {
       id: "achievements",
       label: "Previous achievements",
-      value: `${earnedCount} credential${earnedCount === 1 ? "" : "s"} · ${participation.impactPoints.toLocaleString("en-US")} impact points`,
-      detail: "Earned credentials raise the starting difficulty of recommended practice and assessments.",
+      value: `${earnedCount} of ${COMPETENCIES.length} competency badges · ${participation.impactPoints.toLocaleString("en-US")} impact points`,
+      detail: "Earned badges raise the starting difficulty of recommended practice and assessments.",
       weight: "low",
     },
   ];
@@ -458,7 +411,6 @@ export function buildProfileAnalysis(
     assessments,
     signals,
     conclusion,
-    credentials,
     nextCapabilities,
     participation,
   };

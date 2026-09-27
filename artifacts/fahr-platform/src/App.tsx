@@ -19,6 +19,7 @@ import Community from "@/pages/Community";
 import ManagerDashboard from "@/pages/ManagerDashboard";
 import TeamMembers from "@/pages/TeamMembers";
 import TeamMemberDetail from "@/pages/TeamMemberDetail";
+import ManagerMessages from "@/pages/ManagerMessages";
 import ManagerValidations from "@/pages/ManagerValidations";
 import ManagerReports from "@/pages/ManagerReports";
 import TeamRecognition from "@/pages/TeamRecognition";
@@ -33,6 +34,7 @@ import PersonalisedLearningPathway from "@/pages/PersonalisedLearningPathway";
 import AgenticAILabTwin from "@/pages/AgenticAILabTwin";
 import AgenticAILabProject from "@/pages/AgenticAILabProject";
 import AgenticAIEvaluation from "@/pages/AgenticAIEvaluation";
+import LearnerMessages from "@/pages/LearnerMessages";
 import RecognitionAndImpact from "@/pages/RecognitionAndImpact";
 import WorkshopsAndEvents from "@/pages/WorkshopsAndEvents";
 
@@ -126,6 +128,7 @@ function Router() {
       <Route path="/learner/mission" component={PersonalisedLearningPathway} />
       <Route path="/learner/lab/twin" component={AgenticAILabTwin} />
       <Route path="/learner/lab/project" component={AgenticAILabProject} />
+      <Route path="/learner/messages" component={LearnerMessages} />
       <Route path="/learner/evaluation" component={AgenticAIEvaluation} />
       <Route path="/learner/recognition" component={RecognitionAndImpact} />
       <Route path="/learner/events" component={WorkshopsAndEvents} />
@@ -134,6 +137,7 @@ function Router() {
       <Route path="/manager" component={ManagerDashboard} />
       <Route path="/manager/team" component={TeamMembers} />
       <Route path="/manager/team/:memberId" component={TeamMemberDetail} />
+      <Route path="/manager/messages" component={ManagerMessages} />
       <Route path="/manager/validations" component={ManagerValidations} />
       <Route path="/manager/reports" component={ManagerReports} />
       <Route path="/manager/recognition" component={TeamRecognition} />

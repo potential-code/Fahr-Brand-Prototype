@@ -21,10 +21,13 @@ export type Ministry = {
   /** AI readiness index, 0-100. */
   readiness: number;
   twins: number;
+  /** Workplace projects submitted since launch. */
   projectsSubmitted: number;
-  /** Estimated annual value created, in millions of AED. */
-  valueCreatedAedM: number;
+  /** Of those, projects endorsed or approved and now in service. */
+  projectsLive: number;
+  /** Hours returned a month by live projects — about 45 per project. */
   hoursSavedPerMonth: number;
+  /** Workplace-project credentials issued since launch. */
   credentialsIssued: number;
   /** Biggest capability gap — a competency id from the framework. */
   topGapCompetencyId: string;
@@ -107,6 +110,30 @@ export type SubmissionImpact = "High" | "Medium" | "Low";
 
 export type TimelineEntry = { date: string; event: string };
 
+/**
+ * The learner's workplace-project answers, stage by stage, exactly as they
+ * submitted them. Every reviewer reads the same brief the learner wrote.
+ * Present on projects submitted through the platform; seeded history has only
+ * the summary description and metrics.
+ */
+export type ProjectBrief = {
+  challenge: string;
+  solution: string;
+  /** Who reviews the assistant's output before it is used. */
+  humanCheckpoint: string;
+  outcomes: string[];
+  measures: string[];
+  sensitivity: "public" | "internal" | "personal";
+  /** AI-assisted outputs are labelled as such. */
+  disclosure: boolean;
+  hoursPerWeek: number;
+  peopleAffected: number;
+  /** Share of the task the assistant carries, 0-100. */
+  automationPct: number;
+  /** Governance check results at submission. */
+  policies: { policy: string; status: "pass" | "warn"; detail: string }[];
+};
+
 export type Submission = {
   id: string;
   title: string;
@@ -121,29 +148,45 @@ export type Submission = {
   reviewer?: string;
   description: string;
   metrics: string;
-  estimatedValueAed: number;
   hoursSavedPerMonth: number;
   competencyIds: string[];
   submittedOn: string;
   timeline: TimelineEntry[];
+  brief?: ProjectBrief;
 };
 
 export type ApprovalDecision =
+  | "submitted"
+  | "resubmitted"
   | "signed_off"
   | "revision_requested"
   | "endorsed"
   | "escalated"
+  | "approved_live"
+  | "returned_to_entity"
   | "credential_issued";
 
 export type ApprovalRecord = {
   id: string;
   submissionId: string;
   /** Role that took the decision. */
-  role: "manager" | "ministry" | "fahr";
+  role: "learner" | "manager" | "ministry" | "fahr";
   decision: ApprovalDecision;
   by: string;
   on: string;
   note?: string;
+};
+
+/** A message a manager sends a team member outside any project conversation. */
+export type DirectMessage = {
+  id: string;
+  fromId: string;
+  toId: string;
+  body: string;
+  /** Formatted like every other date in the model, e.g. "27 September 2026". */
+  on: string;
+  /** ISO timestamp, for ordering and "time ago". */
+  at: string;
 };
 
 export type AuditRisk = "Low" | "Medium" | "High";
@@ -236,8 +279,6 @@ export type ContentItem = {
   cover?: string;
   /** Impact points a learner earns for each unit completed. */
   pointsPerUnit?: number;
-  /** Whether finishing the course issues a certificate. */
-  certificate?: boolean;
   /** Learners enrolled so far. */
   learners?: number;
   /** Average learner rating out of 5. */

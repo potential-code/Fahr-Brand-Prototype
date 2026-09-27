@@ -5,7 +5,8 @@
 // replies, votes, likes and read flags are real interactions on mock seed data.
 
 import { COMPETENCY_BY_ID, type Competency } from "@/lib/learningData";
-import { LEARNER_PROFILE } from "@/lib/constants";
+import { IMPACT_POINTS, LEARNER_PROFILE } from "@/lib/constants";
+import { FEDERAL, MINISTRY_BY_ID } from "@/lib/federal/selectors";
 
 // ---------------------------------------------------------------------------
 // Announcements
@@ -350,10 +351,38 @@ export const SCOPE_LABEL: Record<LeaderboardScope, string> = {
   cohort: "My cohort",
 };
 
+/**
+ * How many people each leaderboard ranks. Entity and federal read the same
+ * active-learner figures the ministry and FAHR dashboards show, so a rank on a
+ * learner screen always sits inside a denominator the rest of the platform agrees with.
+ */
+export const SCOPE_TOTAL: Record<LeaderboardScope, number> = {
+  entity: MINISTRY_BY_ID.mohap.activeLearners,
+  federal: FEDERAL.activeLearners,
+  cohort: 42,
+};
+
+/** The signed-in learner's standing — the one place these ranks are written down. */
+export const LEARNER_STANDING = {
+  entity: 2,
+  federal: 142,
+  cohort: 1,
+  /** Places gained across the federal leaderboard this quarter. */
+  federalMovement: 18,
+} as const;
+
+/** "Top x%" for a rank within a population, rounded up and never below 1%. */
+export function topPercent(rank: number, total: number): number {
+  if (total <= 0) return 100;
+  return Math.min(100, Math.max(1, Math.ceil((rank / total) * 100)));
+}
+
+const participants = (n: number) => `${n.toLocaleString("en-US")} participants`;
+
 export const SCOPE_CAPTION: Record<LeaderboardScope, string> = {
-  entity: "Ministry of Health and Prevention · 1,240 participants",
-  federal: "All federal entities · 38,400 participants",
-  cohort: "Agentic AI Practitioner cohort 2026-B · 42 participants",
+  entity: `Ministry of Health and Prevention · ${participants(SCOPE_TOTAL.entity)}`,
+  federal: `All federal entities · ${participants(SCOPE_TOTAL.federal)}`,
+  cohort: `Agentic AI Practitioner cohort 2026-B · ${participants(SCOPE_TOTAL.cohort)}`,
 };
 
 export type LeaderboardRow = {
@@ -370,7 +399,7 @@ export type LeaderboardRow = {
 export const LEADERBOARDS: Record<LeaderboardScope, LeaderboardRow[]> = {
   entity: [
     { rank: 1, name: "Saeed Al Dhaheri", initials: "SD", detail: "Innovation Lead", points: 14500, movement: 0 },
-    { rank: 2, name: LEARNER_PROFILE.name, initials: "AM", detail: LEARNER_PROFILE.role, points: 13200, movement: 3, isCurrentUser: true },
+    { rank: LEARNER_STANDING.entity, name: LEARNER_PROFILE.name, initials: "AM", detail: LEARNER_PROFILE.role, points: IMPACT_POINTS, movement: 3, isCurrentUser: true },
     { rank: 3, name: "Mariam Al Suwaidi", initials: "MS", detail: "Head of Insight", points: 12850, movement: -1 },
     { rank: 4, name: "Majed Al Futtaim", initials: "MF", detail: "Data Scientist", points: 11400, movement: 1 },
     { rank: 5, name: "Noura Al Ameri", initials: "NA", detail: "HR Business Partner", points: 10900, movement: -2 },
@@ -380,10 +409,10 @@ export const LEADERBOARDS: Record<LeaderboardScope, LeaderboardRow[]> = {
     { rank: 2, name: "Fatima Al Jaber", initials: "FJ", detail: "Ministry of Economy", points: 27200, movement: 2 },
     { rank: 3, name: "Khalaf Al Habtoor", initials: "KH", detail: "FAHR", points: 26850, movement: -1 },
     { rank: 4, name: "Salama Al Zaabi", initials: "SZ", detail: "Ministry of Education", points: 25100, movement: 4 },
-    { rank: 142, name: LEARNER_PROFILE.name, initials: "AM", detail: "Ministry of Health and Prevention", points: 13200, movement: 18, isCurrentUser: true },
+    { rank: LEARNER_STANDING.federal, name: LEARNER_PROFILE.name, initials: "AM", detail: "Ministry of Health and Prevention", points: IMPACT_POINTS, movement: LEARNER_STANDING.federalMovement, isCurrentUser: true },
   ],
   cohort: [
-    { rank: 1, name: LEARNER_PROFILE.name, initials: "AM", detail: "Ministry of Health and Prevention", points: 13200, movement: 2, isCurrentUser: true },
+    { rank: LEARNER_STANDING.cohort, name: LEARNER_PROFILE.name, initials: "AM", detail: "Ministry of Health and Prevention", points: IMPACT_POINTS, movement: 2, isCurrentUser: true },
     { rank: 2, name: "Khalid Al Marri", initials: "KM", detail: "Ministry of Interior", points: 12740, movement: -1 },
     { rank: 3, name: "Reem Al Hosani", initials: "RH", detail: "Ministry of Justice", points: 11980, movement: 0 },
     { rank: 4, name: "Yousef Al Nuaimi", initials: "YN", detail: "Federal Tax Authority", points: 10420, movement: 1 },
@@ -393,12 +422,19 @@ export const LEADERBOARDS: Record<LeaderboardScope, LeaderboardRow[]> = {
 
 /** How community points are earned — shown so the leaderboard is not a black box. */
 export const POINT_RULES = [
-  { label: "Answer marked helpful by a colleague", points: 150 },
-  { label: "Workplace project passes evaluation", points: 1200 },
-  { label: "Attend an instructor-led session", points: 200 },
-  { label: "Complete a course in your pathway", points: 400 },
-  { label: "Start a discussion others reply to", points: 80 },
-];
+  { id: "helpful", label: "Answer marked helpful by a colleague", points: 150 },
+  { id: "project", label: "Workplace project passes evaluation", points: 1200 },
+  { id: "session", label: "Attend an instructor-led session", points: 200 },
+  { id: "course", label: "Complete a course in your pathway", points: 400 },
+  { id: "discussion", label: "Start a discussion others reply to", points: 80 },
+] as const;
+
+export type PointRuleId = (typeof POINT_RULES)[number]["id"];
+
+/** Points for one rule, by id — so no screen hard-codes a value from the table. */
+export function pointsFor(id: PointRuleId): number {
+  return POINT_RULES.find((r) => r.id === id)?.points ?? 0;
+}
 
 export function competencyFor(id: string): Competency | null {
   return COMPETENCY_BY_ID[id] ?? null;

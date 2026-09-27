@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowLeft,
@@ -556,18 +555,6 @@ function CourseSettings({ item, onChange }: { item: ContentItem; onChange: (p: P
           data-testid="input-settings-points"
         />
       </Field>
-
-      <label className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3">
-        <span>
-          <span className="block text-sm font-medium text-foreground">Enable certificate</span>
-          <span className="block text-xs text-muted-foreground">Issued when a learner finishes the course.</span>
-        </span>
-        <Switch
-          checked={item.certificate ?? false}
-          onCheckedChange={(checked) => onChange({ certificate: checked })}
-          data-testid="switch-settings-certificate"
-        />
-      </label>
     </aside>
   );
 }

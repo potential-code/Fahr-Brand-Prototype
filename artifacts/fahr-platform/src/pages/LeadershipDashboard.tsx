@@ -10,15 +10,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
-import { TrendingUp, Users, Award, DollarSign, Shield, Building2, Bot, AlertTriangle } from "lucide-react";
+import { TrendingUp, Users, Award, Clock, Shield, Building2, Bot, AlertTriangle } from "lucide-react";
 import { AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
-import { printReport } from "@/lib/exportFile";
 import { PageEnter, Stagger, StaggerItem, CountUp, ChartReveal } from "@/components/motion";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
+import { LiveProjectsCard, useLiveProjects } from "@/components/leadership/LiveProjects";
 import {
   CAPABILITY_BANDS,
   FEDERAL,
+  METRICS,
   NATIONAL_TARGET,
   ON_TRACK_READINESS,
   READINESS_TRAJECTORY,
@@ -53,6 +54,8 @@ export default function LeadershipDashboard() {
   const [grouping, setGrouping] = useState("entity");
   const [showTarget, setShowTarget] = useState(true);
 
+  const { session } = useLiveProjects();
+  const hoursPerMonth = FEDERAL.hoursSavedPerMonth + session.hoursSaved;
   const champions = CAPABILITY_BANDS.find((b) => b.level.id === "champion")?.count ?? 0;
   const gaps = useMemo(() => nationalGaps(), []);
 
@@ -61,51 +64,55 @@ export default function LeadershipDashboard() {
     : 100;
 
   const latest = READINESS_TRAJECTORY[READINESS_TRAJECTORY.length - 1];
-  const previous = READINESS_TRAJECTORY[READINESS_TRAJECTORY.length - 2];
-  const quarterChange = latest.readiness - previous.readiness;
 
-  const strategicKPIs = [
+  const strategicKPIs: {
+    label: string;
+    value: number;
+    icon: typeof TrendingUp;
+    subtitle: string;
+    prefix?: string;
+    suffix?: string;
+    decimals?: number;
+    change?: string;
+  }[] = [
     {
       label: "National AI Readiness",
       value: FEDERAL.readiness,
       suffix: "%",
-      change: `${quarterChange >= 0 ? "+" : ""}${quarterChange}pts QoQ`,
+      subtitle: `${METRICS.readiness.caption} · ${latest.quarter}`,
       icon: TrendingUp,
     },
     {
       label: "Workforce Coverage",
       value: FEDERAL.coverage,
       suffix: "%",
-      subtitle: `${FEDERAL.activeLearners.toLocaleString()} of ${FEDERAL.employees.toLocaleString()}`,
+      subtitle: `${FEDERAL.activeLearners.toLocaleString()} active learners of ${FEDERAL.employees.toLocaleString()} targeted`,
       icon: Users,
     },
     {
       label: "Capability Champions",
       value: champions,
-      subtitle: "Level 5 achievers",
+      subtitle: `Level 5 · of ${FEDERAL.activeLearners.toLocaleString()} learners`,
       icon: Award,
     },
     {
-      label: "Est. Annual Value",
-      value: FEDERAL.valueCreatedAedM,
-      prefix: "AED ",
-      suffix: "M",
-      subtitle: "Delivered outcomes",
-      decimals: 1,
-      icon: DollarSign,
+      label: METRICS.hoursSaved.label,
+      value: hoursPerMonth,
+      subtitle: `${METRICS.hoursSaved.caption} · ${FEDERAL.projectsLive + session.count} live`,
+      icon: Clock,
     },
     {
       label: "Ministries On Track",
       value: FEDERAL.ministriesOnTrack,
       suffix: `/${FEDERAL.ministriesTotal}`,
-      subtitle: `>=${ON_TRACK_READINESS}% readiness`,
+      subtitle: METRICS.onTrack.caption,
       icon: Building2,
     },
     {
       label: "Responsible AI Compliance",
       value: compliance,
       suffix: "%",
-      subtitle: "Framework adherence",
+      subtitle: `Compliant, of ${submissions.length} reviewed projects`,
       icon: Shield,
     },
   ];
@@ -143,44 +150,6 @@ export default function LeadershipDashboard() {
     ? Math.round((strongest.reduce((a, m) => a + m.credentialsIssued, 0) / Math.max(FEDERAL.credentialsIssued, 1)) * 100)
     : 0;
 
-  const handlePrintBrief = () => {
-    printReport({
-      title: "Federal Executive Brief",
-      subtitle: `National AI Readiness & Strategic Outcomes — ${latest.quarter}`,
-      meta: [
-        `Target: ${NATIONAL_TARGET.readiness}% by ${NATIONAL_TARGET.by}`,
-        `Entities in scope: ${FEDERAL.ministriesTotal}`,
-        `Workforce coverage: ${FEDERAL.coverage}%`
-      ],
-      sections: [
-        {
-          heading: "Strategic Priorities",
-          facts: [
-            { label: "National Readiness", value: `${FEDERAL.readiness}%` },
-            { label: "Active Learners", value: FEDERAL.activeLearners.toLocaleString() },
-            { label: "Capability Champions", value: champions.toLocaleString() },
-            { label: "Value Created", value: `AED ${FEDERAL.valueCreatedAedM}M` }
-          ]
-        },
-        {
-          heading: "National Capability Gaps",
-          table: {
-            headers: ["Capability Gap", "Affected Ministries", "Trend"],
-            rows: gaps.map(g => [g.competency.label, String(g.ministries), g.trend.charAt(0).toUpperCase() + g.trend.slice(1)])
-          }
-        },
-        {
-          heading: "Top Performing Entities",
-          table: {
-            headers: ["Entity", "Readiness", "Value Created"],
-            rows: strongest.map(m => [m.name, `${m.readiness}%`, `AED ${m.valueCreatedAedM}M`])
-          }
-        }
-      ],
-      footnote: "Generated from the live federal platform session."
-    });
-  };
-
   return (
     <Layout role="leadership">
       <PageEnter className="space-y-8 pb-12">
@@ -188,11 +157,6 @@ export default function LeadershipDashboard() {
           bordered
           title="National Workforce Readiness"
           description="Federal Leadership Consolidated View"
-          actions={
-            <Button variant="outline" onClick={handlePrintBrief}>
-              Download Executive Brief
-            </Button>
-          }
         />
 
         <Stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -222,6 +186,8 @@ export default function LeadershipDashboard() {
             </StaggerItem>
           ))}
         </Stagger>
+
+        <LiveProjectsCard />
 
         {/* Global Filters */}
         <div className="flex flex-wrap items-center gap-6 bg-muted/30 p-4 rounded-xl border border-border">

@@ -130,11 +130,13 @@ export default function MinistryEvents() {
     const completed = groups.completed;
     let attended = 0;
     let registered = 0;
+    let counted = 0;
     for (const e of completed) {
       const att = eventAttendance(e);
       if (att) {
         attended += att.attended;
         registered += e.registered;
+        counted += 1;
       }
     }
     return {
@@ -143,14 +145,27 @@ export default function MinistryEvents() {
       seatsFilled,
       fillRate: seatsOffered === 0 ? 0 : Math.round((seatsFilled / seatsOffered) * 100),
       attendanceRate: registered === 0 ? 0 : Math.round((attended / registered) * 100),
+      completedSessions: counted,
     };
   }, [groups]);
 
   const kpis: Kpi[] = [
-    { label: "Upcoming sessions", value: kpiFigures.upcoming, icon: CalendarDays, color: "text-primary", testId: "kpi-upcoming" },
+    { label: "Upcoming sessions", value: kpiFigures.upcoming, icon: CalendarDays, color: "text-primary", testId: "kpi-upcoming", hint: "Scheduled and open for registration" },
     { label: "Seats offered", value: kpiFigures.seatsOffered, icon: Users2, color: "text-secondary", testId: "kpi-seats-offered", hint: "across upcoming sessions" },
-    { label: "Seats filled", value: kpiFigures.seatsFilled, suffix: ` · ${kpiFigures.fillRate}%`, icon: UserCheck, color: "text-accent", testId: "kpi-seats-filled" },
-    { label: "Attendance rate", value: kpiFigures.attendanceRate, suffix: "%", icon: CalendarClock, color: "text-green-600", testId: "kpi-attendance", hint: "completed sessions" },
+    { label: "Seats filled", value: kpiFigures.seatsFilled, suffix: ` · ${kpiFigures.fillRate}%`, icon: UserCheck, color: "text-accent", testId: "kpi-seats-filled", hint: "Registrations for upcoming sessions" },
+    {
+      label: "Attendance rate",
+      value: kpiFigures.attendanceRate,
+      suffix: "%",
+      icon: CalendarClock,
+      color: "text-green-600",
+      testId: "kpi-attendance",
+      placeholder: kpiFigures.completedSessions === 0 ? "—" : undefined,
+      hint:
+        kpiFigures.completedSessions === 0
+          ? "No completed sessions yet"
+          : `from ${kpiFigures.completedSessions} completed session${kpiFigures.completedSessions === 1 ? "" : "s"}`,
+    },
   ];
 
   const resetForm = () =>

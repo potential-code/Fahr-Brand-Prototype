@@ -41,7 +41,6 @@ import {
   ArrowRight,
   Search,
   Download,
-  Printer,
   UserCog,
   Inbox,
 } from "lucide-react";
@@ -50,6 +49,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFederalData } from "@/lib/FederalDataContext";
 import {
   FEDERAL,
+  METRICS,
   ON_TRACK_READINESS,
   competencyLabel,
   departmentsOf,
@@ -68,7 +68,7 @@ import {
   Stagger,
   StaggerItem,
 } from "@/components/motion";
-import { downloadCsv, printReport } from "@/lib/exportFile";
+import { downloadCsv } from "@/lib/exportFile";
 
 type SortKey = "readiness" | "coverage" | "quota";
 type RiskFilter = "all" | "Low" | "Medium" | "High";
@@ -114,28 +114,28 @@ export default function FAHREntities() {
       icon: Building2,
       node: <CountUp to={FEDERAL.ministriesTotal} />,
       testid: "kpi-entities-live",
-      hint: `${FEDERAL.ministriesOnTrack} on track at ${ON_TRACK_READINESS}%+`,
+      hint: `On the programme since launch; ${FEDERAL.ministriesOnTrack} at or above ${ON_TRACK_READINESS} AI readiness`,
     },
     {
-      label: "Workforce covered",
+      label: METRICS.coverage.label,
       icon: Users,
-      node: <CountUp to={FEDERAL.employees} />,
+      node: <CountUp to={FEDERAL.coverage} suffix="%" />,
       testid: "kpi-workforce",
-      hint: `${FEDERAL.coverage}% active on the programme`,
+      hint: `${FEDERAL.activeLearners.toLocaleString()} active learners of ${FEDERAL.employees.toLocaleString()} targeted`,
     },
     {
-      label: "Weighted national readiness",
+      label: METRICS.readiness.label,
       icon: Gauge,
       node: <CountUp to={FEDERAL.readiness} suffix="%" />,
       testid: "kpi-readiness",
-      hint: "Employee-weighted across all entities",
+      hint: "Average assessed capability, weighted by each entity's workforce",
     },
     {
       label: "Entities at risk",
       icon: AlertTriangle,
       node: <CountUp to={entitiesAtRisk} />,
       testid: "kpi-at-risk",
-      hint: `Below ${ON_TRACK_READINESS}% readiness`,
+      hint: `Below ${ON_TRACK_READINESS} AI readiness today`,
     },
   ];
 
@@ -220,7 +220,7 @@ export default function FAHREntities() {
         "Targeted workforce",
         "Active learners",
         "Coverage %",
-        "Readiness",
+        "AI readiness",
         "Risk band",
         "Tokens used (M)",
         "Token quota (M)",
@@ -242,56 +242,6 @@ export default function FAHREntities() {
       ]),
     });
     toast({ title: "Entity table exported", description: `Saved ${name}.` });
-  };
-
-  const handlePrintPack = () => {
-    printReport({
-      title: "Entity administration pack",
-      subtitle: "Federal AI Learning Programme — entity readiness, coverage and quota",
-      meta: [
-        `Entities: ${filtered.length} of ${FEDERAL.ministriesTotal}`,
-        `Risk filter: ${riskFilter === "all" ? "All bands" : riskFilter}`,
-        query.trim() ? `Search: "${query.trim()}"` : "Search: none",
-      ],
-      sections: [
-        {
-          heading: "National position",
-          facts: [
-            { label: "Weighted readiness", value: `${FEDERAL.readiness}%` },
-            { label: "Workforce covered", value: FEDERAL.employees.toLocaleString() },
-            { label: "Active learners", value: FEDERAL.activeLearners.toLocaleString() },
-            { label: "Entities at risk", value: String(entitiesAtRisk) },
-          ],
-        },
-        {
-          heading: "Entities",
-          table: {
-            headers: [
-              "Entity",
-              "Workforce",
-              "Learners",
-              "Coverage %",
-              "Readiness",
-              "Risk",
-              "Quota (used/allocated M)",
-              "Administrator",
-            ],
-            numericColumns: [1, 2, 3, 4],
-            rows: filtered.map((m) => [
-              m.name,
-              m.employees.toLocaleString(),
-              m.activeLearners.toLocaleString(),
-              `${coverageOf(m)}%`,
-              `${m.readiness}%`,
-              riskForReadiness(m.readiness),
-              `${m.tokensUsedM}M / ${m.tokenQuotaM}M`,
-              m.entityAdmin,
-            ]),
-          },
-        },
-      ],
-    });
-    toast({ title: "Pack ready", description: "The entity administration pack has opened for printing." });
   };
 
   const SortHead = ({ label, k }: { label: string; k: SortKey }) => (
@@ -321,9 +271,6 @@ export default function FAHREntities() {
             <>
               <Button variant="outline" onClick={handleExportCsv} className="gap-2" data-testid="button-export-csv">
                 <Download className="h-4 w-4" /> Export CSV
-              </Button>
-              <Button variant="outline" onClick={handlePrintPack} className="gap-2" data-testid="button-print-pack">
-                <Printer className="h-4 w-4" /> Administration pack
               </Button>
             </>
           }
@@ -356,7 +303,7 @@ export default function FAHREntities() {
               <div>
                 <CardTitle className="text-lg">Entities on the programme</CardTitle>
                 <CardDescription>
-                  Sort by readiness, coverage or quota utilisation. Click a row to open the entity.
+                  Sort by AI readiness, coverage or AI allowance used. Click a row to open the entity.
                 </CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -402,9 +349,9 @@ export default function FAHREntities() {
                       <TableHead className="text-right">Workforce</TableHead>
                       <TableHead className="text-right">Learners</TableHead>
                       <TableHead><SortHead label="Coverage" k="coverage" /></TableHead>
-                      <TableHead><SortHead label="Readiness" k="readiness" /></TableHead>
+                      <TableHead><SortHead label="AI readiness" k="readiness" /></TableHead>
                       <TableHead>Risk</TableHead>
-                      <TableHead><SortHead label="Quota" k="quota" /></TableHead>
+                      <TableHead><SortHead label="AI allowance used" k="quota" /></TableHead>
                       <TableHead>Administrator</TableHead>
                       <TableHead className="w-8" />
                     </TableRow>
@@ -445,10 +392,11 @@ export default function FAHREntities() {
                             <Badge variant="outline" className={riskPillClass(risk)}>{risk}</Badge>
                           </TableCell>
                           <TableCell onClick={() => openEntity(m)}>
-                            <div className="flex items-center gap-2">
-                              <span className="w-24 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
-                                {m.tokensUsedM}M / {m.tokenQuotaM}M
-                              </span>
+                            <div
+                              className="flex items-center gap-2"
+                              title={`${m.tokensUsedM}M of ${m.tokenQuotaM}M tokens this period`}
+                            >
+                              <span className="w-9 text-sm font-medium tabular-nums">{utilisation}%</span>
                               <Progress
                                 value={Math.min(100, utilisation)}
                                 className={`h-1.5 w-16 ${
@@ -490,12 +438,12 @@ export default function FAHREntities() {
                 {/* Rollup figures */}
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: "Readiness", value: `${selected.readiness}%` },
-                    { label: "Coverage", value: `${rollup.coverage}%` },
+                    { label: METRICS.readiness.label, value: `${selected.readiness}%` },
+                    { label: METRICS.coverage.label, value: `${rollup.coverage}%` },
                     { label: "Departments at risk", value: String(rollup.departmentsAtRisk) },
                     { label: "Active learners", value: selected.activeLearners.toLocaleString() },
-                    { label: "Projects", value: selected.projectsSubmitted.toLocaleString() },
-                    { label: "Quota use", value: `${rollup.tokenUtilisation}%` },
+                    { label: METRICS.projectsSubmitted.label, value: selected.projectsSubmitted.toLocaleString() },
+                    { label: "AI allowance used", value: `${rollup.tokenUtilisation}%` },
                   ].map((f) => (
                     <div key={f.label} className="rounded-md border border-border p-3">
                       <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{f.label}</p>
@@ -527,8 +475,8 @@ export default function FAHREntities() {
                   </div>
                   <div className="pt-1">
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Consumption</span>
-                      <span>{selected.tokensUsedM}M used of {selected.tokenQuotaM}M</span>
+                      <span>{liveQuotaUtilisation}% of AI allowance used this period</span>
+                      <span>{selected.tokensUsedM}M of {selected.tokenQuotaM}M tokens</span>
                     </div>
                     <Progress
                       value={Math.min(100, liveQuotaUtilisation)}

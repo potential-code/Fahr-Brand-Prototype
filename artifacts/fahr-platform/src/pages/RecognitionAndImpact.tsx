@@ -1,4 +1,9 @@
 import { useMemo } from "react";
+import { useLocation } from "wouter";
+import { Clock, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useFederalData } from "@/lib/FederalDataContext";
+import { isLive, ROLE_LABEL } from "@/lib/federal/journey";
 import { Layout } from "@/components/Layout";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { RecognitionHero } from "@/components/recognition/RecognitionHero";
@@ -10,7 +15,6 @@ import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
 import { summariseParticipation } from "@/lib/profileAnalysis";
 import { buildRecognitionRecord, competencyBadges, verifyId } from "@/lib/recognitionRecord";
-import { buildRecommendations } from "@/lib/recommendations";
 import { demoSubmission, evaluateSubmission } from "@/lib/workplaceProject";
 import { LEARNER_PROFILE } from "@/lib/constants";
 
@@ -22,8 +26,10 @@ import { LEARNER_PROFILE } from "@/lib/constants";
  * screen can never claim credit for something that did not happen.
  */
 export default function RecognitionAndImpact() {
-  const { result, answers, courseProgress, getCoursePercent } = useLearnerProgress();
-  const { submission } = useWorkplaceProject();
+  const { result, courseProgress, getCoursePercent } = useLearnerProgress();
+  const [, setLocation] = useLocation();
+  const { submission, project } = useWorkplaceProject();
+  const { approvalsFor } = useFederalData();
   const { profile: twin } = useDigitalTwin();
 
   const participation = useMemo(
@@ -31,13 +37,18 @@ export default function RecognitionAndImpact() {
     [courseProgress, getCoursePercent],
   );
 
-  const plan = useMemo(() => (result ? buildRecommendations(result, answers) : null), [result, answers]);
 
   // Evaluates what the learner submitted this session; falls back to the same
   // worked example Project Evaluation shows when nothing was submitted (or
   // the draft was reopened and the submission cleared), so the two screens
   // can never disagree about whether a certificate exists.
-  const evaluated = useMemo(() => submission ?? demoSubmission(plan?.project ?? null), [submission, plan]);
+  const own = project ? submission : null;
+  const evaluated = useMemo(() => own ?? demoSubmission(), [own]);
+  // A submitted project earns nothing until the human chain has approved it.
+  const inReview = project !== undefined && !isLive(project.state);
+  const approver = project
+    ? approvalsFor(project.id).filter((a) => a.decision === "approved_live" || a.decision === "endorsed").at(-1)
+    : undefined;
 
   const record = useMemo(
     () =>
@@ -46,7 +57,7 @@ export default function RecognitionAndImpact() {
         participation,
         courseProgress,
         percentFor: getCoursePercent,
-        submission: evaluated,
+        submission: inReview ? null : evaluated,
       }),
     [result, participation, courseProgress, getCoursePercent, evaluated],
   );
@@ -69,14 +80,37 @@ export default function RecognitionAndImpact() {
 
         {/* The headline artefact of the screen — present as soon as the project
             is approved, so it is never scrolled to. */}
+        {inReview && project && (
+          <div
+            className="flex flex-col gap-3 rounded-xl border border-accent/30 bg-accent/[0.05] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+            data-testid="certificate-provisional"
+          >
+            <p className="flex items-center gap-2 text-sm text-foreground">
+              <Clock className="h-4 w-4 shrink-0 text-accent" />
+              Provisional certificate. It becomes final once your line manager and entity approve &ldquo;{project.title}&rdquo;.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-2"
+              onClick={() => setLocation(`/learner/messages?project=${project.id}`)}
+            >
+              <MessageSquare className="h-3.5 w-3.5" /> Follow approval
+            </Button>
+          </div>
+        )}
+
         <ProjectCertificate
           learnerName={LEARNER_PROFILE.name}
-          projectTitle={evaluated.draft.title}
+          projectTitle={project?.title ?? evaluated.draft.title}
           dimensions={evaluation.dimensions.map((d) => d.label)}
           score={evaluation.overall}
-          issuedOn={record.verifiedOn}
+          issuedOn={approver?.on ?? record.verifiedOn}
           verifyId={certificateVerifyId}
-          reviewer="Fatima Al Suwaidi, Ministry Innovation Lead"
+          provisional={inReview}
+          reviewer={
+            approver ? `${approver.by}, ${ROLE_LABEL[approver.role]}` : "Fatima Al Suwaidi, Ministry Innovation Lead"
+          }
         />
 
         <ScrollReveal>

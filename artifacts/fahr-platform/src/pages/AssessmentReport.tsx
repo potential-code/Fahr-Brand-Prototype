@@ -4,19 +4,14 @@ import { motion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   ArrowRight,
   Sparkles,
   Target,
   RotateCcw,
-  Clock,
-  Layers,
-  BookOpen,
-  Quote,
 } from "lucide-react";
-import { COMPETENCIES, COMPETENCY_BY_ID, COURSE_BY_ID } from "@/lib/learningData";
+import { COMPETENCIES, COMPETENCY_BY_ID } from "@/lib/learningData";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { buildRecommendations } from "@/lib/recommendations";
 import { AGENTS } from "@/lib/constants";
@@ -79,14 +74,12 @@ function ReportSection({
   agent,
   title,
   description,
-  aside,
   children,
 }: {
   id: string;
   agent: string;
   title: string;
   description: string;
-  aside?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -97,7 +90,6 @@ function ReportSection({
           <h2 className="mt-1.5 text-xl font-bold text-foreground">{title}</h2>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{description}</p>
         </div>
-        {aside && <div className="shrink-0">{aside}</div>}
       </div>
       <div className="mt-6">{children}</div>
     </section>
@@ -106,13 +98,13 @@ function ReportSection({
 
 /**
  * The Capability Agent report. Deliberately short: where the learner stands,
- * what is strong, what is weak, the three priorities and the courses that close
- * them — then one action into the pathway. Practice, coaching and resources
- * live on the pathway and events screens, where the learner acts on them.
+ * what is strong, what is weak and the three priorities — then one action into
+ * the pathway. Courses, practice, coaching and resources live on the pathway
+ * and events screens, where the learner acts on them.
  */
 export default function AssessmentReport() {
   const [, setLocation] = useLocation();
-  const { result, answers, resetAssessment, getCoursePercent } = useLearnerProgress();
+  const { result, answers, resetAssessment } = useLearnerProgress();
 
   // The report has no meaning without a completed assessment.
   useEffect(() => {
@@ -128,7 +120,6 @@ export default function AssessmentReport() {
 
   const topStrength = COMPETENCY_BY_ID[result.strengths[0]];
   const topGap = COMPETENCY_BY_ID[result.gaps[0]];
-  const recommended = result.recommendedCourseIds.map((id) => COURSE_BY_ID[id]).filter(Boolean);
 
   const handleRetake = () => {
     resetAssessment();
@@ -248,91 +239,10 @@ export default function AssessmentReport() {
                       </div>
                     </div>
 
-                    {p.evidence && (
-                      <div className="mt-4 flex items-start gap-2 rounded-lg bg-muted/60 p-3">
-                        <Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                        <p className="text-xs leading-relaxed text-muted-foreground">{p.evidence}</p>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               </motion.div>
             ))}
-          </div>
-        </ReportSection>
-
-        {/* 5. Recommended courses */}
-        <ReportSection
-          id="courses"
-          agent={AGENTS.content}
-          title="Your recommended courses"
-          description="Selected for your role, seniority and the priorities above, and already sequenced into your Personalised Learning Pathway."
-          aside={
-            <Badge variant="secondary" className="rounded-full">
-              {recommended.length} courses · matched to your profile
-            </Badge>
-          }
-        >
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {recommended.map((course, i) => {
-              const percent = getCoursePercent(course.id);
-              return (
-                <motion.div
-                  key={course.id}
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 * i }}
-                >
-                  <Card className="flex h-full flex-col overflow-hidden border-card-border transition-shadow hover:shadow-lg">
-                    <div className="relative h-40 shrink-0 overflow-hidden bg-muted">
-                      <img
-                        src={`${BASE}${course.image}`}
-                        alt=""
-                        aria-hidden="true"
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <Badge className="absolute left-3 top-3 rounded-full bg-white text-foreground hover:bg-white">
-                        {course.category}
-                      </Badge>
-                      {i === 0 && <Badge className="absolute right-3 top-3 rounded-full">Start here</Badge>}
-                    </div>
-
-                    <CardContent className="flex flex-1 flex-col p-5">
-                      <h3 className="text-base font-semibold leading-snug text-foreground">{course.title}</h3>
-                      <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{course.summary}</p>
-
-                      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5" /> {course.duration}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Layers className="h-3.5 w-3.5" /> {course.moduleCount} modules
-                        </span>
-                      </div>
-
-                      {percent > 0 && (
-                        <div className="mt-3">
-                          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                            <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
-                          </div>
-                          <p className="mt-1.5 text-xs text-muted-foreground">{percent}% complete</p>
-                        </div>
-                      )}
-
-                      <Button
-                        className="mt-5 w-full"
-                        onClick={() => setLocation(`/learner/course/${course.id}`)}
-                        data-testid={`button-start-course-${course.id}`}
-                      >
-                        <BookOpen className="me-2 h-4 w-4" />
-                        {percent > 0 ? "Continue course" : "Start course"}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
           </div>
         </ReportSection>
 

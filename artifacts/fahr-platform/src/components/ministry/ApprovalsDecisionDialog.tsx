@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Undo2, ArrowUpRight } from "lucide-react";
+import { CheckCircle2, Undo2, ArrowUpRight, Rocket, CornerUpLeft } from "lucide-react";
 
-export type DecisionKind = "endorse" | "return" | "escalate";
+/** Entity decisions, plus the two FAHR takes on an escalated project. */
+export type DecisionKind = "endorse" | "return" | "escalate" | "approve_live" | "return_entity";
 
 const CONFIG: Record<
   DecisionKind,
@@ -49,6 +50,27 @@ const CONFIG: Record<
     icon: ArrowUpRight,
     tone: "text-accent",
     confirmLabel: "Escalate to FAHR",
+  },
+  approve_live: {
+    title: "Approve for federal rollout",
+    verb: "Approve",
+    description:
+      "The project goes live across the federal programme and the learner's credential is issued. The learner, line manager, entity and leadership are notified. A note is optional.",
+    noteRequired: false,
+    placeholder: "Optional note — conditions on the rollout, or what made the case.",
+    icon: Rocket,
+    tone: "text-primary",
+    confirmLabel: "Approve for federal rollout",
+  },
+  return_entity: {
+    title: "Return to the entity",
+    verb: "Return",
+    description: "The project goes back to the entity admin, who can endorse it, return it or escalate again. Tell them why.",
+    noteRequired: true,
+    placeholder: "Required — what the entity needs to resolve before FAHR can decide.",
+    icon: CornerUpLeft,
+    tone: "text-accent",
+    confirmLabel: "Return to entity",
   },
 };
 

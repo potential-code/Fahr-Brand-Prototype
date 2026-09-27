@@ -13,7 +13,6 @@
 // Front-end mock content only — no backend.
 
 import {
-  ASSESSMENT_QUESTIONS,
   COMPETENCY_BY_ID,
   type Competency,
 } from "@/lib/learningData";
@@ -290,8 +289,6 @@ export type Priority = {
   score: number;
   target: number;
   headline: string;
-  /** Quotes the learner's own weakest answer in this competency where available. */
-  evidence: string | null;
 };
 
 export type CoachingSession = {
@@ -348,33 +345,6 @@ function formatDate(daysFromNow: number): string {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
 
-function shorten(text: string, max = 96): string {
-  const clean = text.replace(/^"|"$/g, "").trim();
-  return clean.length <= max ? clean : `${clean.slice(0, max - 1).trimEnd()}…`;
-}
-
-/**
- * The weakest answer the learner gave inside a competency, quoted back so the
- * priority is visibly theirs rather than a generic recommendation.
- */
-function weakestAnswer(competencyId: string, answers: Record<string, number>): string | null {
-  const questions = ASSESSMENT_QUESTIONS.filter((q) => q.competencyId === competencyId);
-  let worst: { scenario: string; label: string; score: number } | null = null;
-
-  for (const q of questions) {
-    const idx = answers[q.id];
-    if (idx === undefined) continue;
-    const option = q.options[idx];
-    if (!option) continue;
-    if (!worst || option.score < worst.score) {
-      worst = { scenario: q.scenario, label: option.label, score: option.score };
-    }
-  }
-
-  if (!worst || worst.score >= 3) return null;
-  return `On "${worst.scenario}" you chose "${shorten(worst.label)}"`;
-}
-
 /** The realistic next target for a competency: +25 points, rounded to a clean 5. */
 export function targetFor(score: number): number {
   return Math.min(100, Math.round((score + 25) / 5) * 5);
@@ -388,11 +358,11 @@ function headlineFor(competency: Competency, score: number): string {
 
 /**
  * Builds the full recommendation set for a completed assessment.
- * `answers` is optional — without it the priorities simply lose their quoted evidence line.
+ * `answers` is accepted for call-site compatibility; the plan is derived from the scored result.
  */
 export function buildRecommendations(
   result: AssessmentResult,
-  answers: Record<string, number> = {},
+  _answers: Record<string, number> = {},
 ): Recommendations {
   const gapIds = result.gaps;
   const strengthId = result.strengths[0];
@@ -407,7 +377,6 @@ export function buildRecommendations(
       score,
       target: targetFor(score),
       headline: headlineFor(competency, score),
-      evidence: weakestAnswer(id, answers),
     };
   });
 

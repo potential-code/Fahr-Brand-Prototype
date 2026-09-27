@@ -2,67 +2,8 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CAPABILITY_LEVELS } from "@/lib/constants";
-import type { AssessmentRecord } from "@/lib/profileAnalysis";
 import type { CapabilityLevel } from "@/lib/constants";
-import { Check, History, Layers } from "lucide-react";
-
-/** Every capability checkpoint on the learner's record, newest first. */
-export function AssessmentHistory({ records }: { records: AssessmentRecord[] }) {
-  return (
-    <Card className="border-card-border" data-testid="card-assessment-history">
-      <CardContent className="p-6">
-        <h2 className="inline-flex items-center gap-2 text-base font-semibold text-foreground">
-          <History className="h-4 w-4 text-primary" /> Assessment history
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Each checkpoint that has updated this profile.
-        </p>
-
-        <ol className="relative mt-6 space-y-6 ps-1">
-          <span
-            className="absolute bottom-3 left-[7px] top-3 w-px bg-border"
-            aria-hidden="true"
-          />
-          {records.map((record, i) => (
-            <motion.li
-              key={record.id}
-              initial={{ opacity: 0, x: -8 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.35, delay: 0.08 * i }}
-              className="relative flex gap-4 ps-6"
-              data-testid={`row-assessment-${record.id}`}
-            >
-              <span
-                className={`absolute left-0 top-1.5 h-[15px] w-[15px] rounded-full border-2 ${
-                  record.current ? "border-primary bg-primary" : "border-border bg-card"
-                }`}
-                aria-hidden="true"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">{record.label}</p>
-                  {record.current && <Badge className="rounded-full text-[10px]">Latest</Badge>}
-                </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">{record.date}</p>
-              </div>
-              <div className="shrink-0 text-right">
-                <p
-                  className={`text-lg font-bold tabular-nums ${
-                    record.current ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  {record.score}%
-                </p>
-                <p className="text-xs text-muted-foreground">{record.levelLabel}</p>
-              </div>
-            </motion.li>
-          ))}
-        </ol>
-      </CardContent>
-    </Card>
-  );
-}
+import { Check, Layers } from "lucide-react";
 
 /** The learner's position on the shared five-step federal capability ladder. */
 export function CapabilityLadderTrack({

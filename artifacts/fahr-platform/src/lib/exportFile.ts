@@ -65,7 +65,7 @@ export function stampedFilename(base: string, extension: string): string {
 /** Triggers a browser download of `contents`. Returns the filename written. */
 export function downloadTextFile(filename: string, contents: string, mimeType: string): string {
   if (typeof document === "undefined") return filename;
-  // The BOM keeps Arabic entity names and AED figures readable in Excel.
+  // The BOM keeps Arabic entity names readable in Excel.
   const blob = new Blob([`\uFEFF${contents}`], { type: `${mimeType};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

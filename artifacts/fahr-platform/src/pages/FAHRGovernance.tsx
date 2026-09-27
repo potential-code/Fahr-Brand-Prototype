@@ -24,7 +24,6 @@ import {
   Activity,
   Cpu,
   Download,
-  Printer,
   Search,
   X,
 } from "lucide-react";
@@ -34,7 +33,7 @@ import { useFederalData } from "@/lib/FederalDataContext";
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { MINISTRY_BY_ID, type AuditEvent } from "@/lib/federal";
 import { CountUp, ChartReveal, MOTION, PageEnter, PanelEnter, Stagger, StaggerItem } from "@/components/motion";
-import { downloadCsv, printReport } from "@/lib/exportFile";
+import { downloadCsv } from "@/lib/exportFile";
 
 /** Entities whose quotas the federal team monitors most closely. */
 const MONITORED_ENTITY_COUNT = 5;
@@ -108,6 +107,9 @@ export default function FAHRGovernance() {
     }),
     [ministries],
   );
+  const federalAllowanceUsed = federalQuota.allocated
+    ? Math.round((federalQuota.used / federalQuota.allocated) * 100)
+    : 0;
 
   // ------------------------------------------------------------------
   // Guardrails and policy versions
@@ -192,27 +194,6 @@ export default function FAHRGovernance() {
     toast({ title: "Audit log exported", description: `${auditRows.length} entries written to ${filename}.` });
   };
 
-  const printAuditLog = () => {
-    printReport({
-      title: "Federal AI governance audit log",
-      subtitle: `${auditRows.length} of ${auditEvents.length} entries`,
-      meta: filterSummary,
-      sections: [
-        {
-          heading: "Federal token allocation",
-          facts: [
-            { label: "Allocated", value: `${federalQuota.allocated}M` },
-            { label: "Used", value: `${federalQuota.used}M` },
-            { label: "Entities monitored", value: String(ministries.length) },
-          ],
-        },
-        { heading: "Audit entries", table: { headers: auditHeaders, rows: auditRows } },
-      ],
-      footnote:
-        "Entries include activity from this session across the learner, manager, entity and federal views.",
-    });
-  };
-
   return (
     <Layout role="fahr">
       <PageEnter className="space-y-6 pb-12">
@@ -220,24 +201,25 @@ export default function FAHRGovernance() {
           tone="primary"
           title="Governance and infrastructure"
           description="Federal token quotas, and a record of what every person and agent did on the platform."
-          actions={
-            <>
-              <Button variant="outline" className="gap-2" onClick={printAuditLog} data-testid="button-print-audit">
-                <Printer className="w-4 h-4" /> Print governance pack
-              </Button>
-            </>
-          }
         />
 
         <Stagger className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            { label: "Audit entries this period", value: auditEvents.length },
-            { label: "Entities monitored", value: ministries.length },
             {
-              label: "Federal tokens used",
-              value: federalQuota.used,
-              decimals: 1,
-              suffix: `M of ${federalQuota.allocated}M`,
+              label: "Audit entries on record",
+              value: auditEvents.length,
+              caption: "Every logged person and agent action, including this session",
+            },
+            {
+              label: "Entities monitored",
+              value: ministries.length,
+              caption: `All entities on the programme; the ${MONITORED_ENTITY_COUNT} closest to their allowance are shown below`,
+            },
+            {
+              label: "AI allowance used",
+              value: federalAllowanceUsed,
+              suffix: "%",
+              caption: `${federalQuota.used}M of ${federalQuota.allocated}M tokens this month, all entities`,
             },
           ].map((kpi) => (
             <StaggerItem key={kpi.label}>
@@ -245,8 +227,9 @@ export default function FAHRGovernance() {
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                   <p className="text-2xl font-bold">
-                    <CountUp to={kpi.value} decimals={kpi.decimals ?? 0} suffix={kpi.suffix} />
+                    <CountUp to={kpi.value} suffix={kpi.suffix} />
                   </p>
+                  <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{kpi.caption}</p>
                 </CardContent>
               </StatCard>
             </StaggerItem>
@@ -258,9 +241,12 @@ export default function FAHRGovernance() {
             <CardHeader className="flex flex-row items-start justify-between pb-2 border-b border-border/50">
               <div className="space-y-1">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Cpu className="w-5 h-5 text-primary" /> Token consumption (millions)
+                  <Cpu className="w-5 h-5 text-primary" /> AI allowance used, by entity
                 </CardTitle>
-                <CardDescription>Monthly LLM quota by entity — edit a quota to reallocate it.</CardDescription>
+                <CardDescription>
+                  Share of each entity's monthly AI allowance used so far; the chart shows millions of tokens. Edit a
+                  quota to reallocate it.
+                </CardDescription>
               </div>
               <Badge variant="outline" className="bg-primary/5">
                 Live monitoring
@@ -289,8 +275,9 @@ export default function FAHRGovernance() {
                       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                         <span className="font-medium">{entity.entity}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">
-                            {entity.used}M / {entity.quota}M
+                          <span className="font-medium tabular-nums">{entity.percentage}% used</span>
+                          <span className="text-xs text-muted-foreground">
+                            {entity.used}M of {entity.quota}M tokens
                           </span>
                           {entity.status !== "Normal" && (
                             <Badge
@@ -333,7 +320,7 @@ export default function FAHRGovernance() {
 
               <p className="text-xs text-muted-foreground">
                 Quota requests from entities arrive in the{" "}
-                <Link href="/fahr/escalations" className="text-primary underline-offset-4 hover:underline">
+                <Link href="/fahr/escalations?tab=queue" className="text-primary underline-offset-4 hover:underline">
                   escalation queue
                 </Link>
                 , where approving a request applies the quota here.
@@ -357,9 +344,6 @@ export default function FAHRGovernance() {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="gap-2" onClick={exportAuditCsv} data-testid="button-export-audit">
                   <Download className="w-4 h-4" /> Export CSV
-                </Button>
-                <Button variant="secondary" size="sm" className="gap-2" onClick={printAuditLog}>
-                  <Printer className="w-4 h-4" /> Print
                 </Button>
               </div>
             </div>

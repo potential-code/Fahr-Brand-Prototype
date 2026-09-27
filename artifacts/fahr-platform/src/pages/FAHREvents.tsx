@@ -160,10 +160,30 @@ export default function FAHREvents() {
 
         <Stagger className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Events scheduled", value: learningSessions.length, testid: "kpi-events-total" },
-            { label: "Targeted to an audience", value: targeted, testid: "kpi-events-targeted" },
-            { label: "Seats offered", value: seatsOffered, testid: "kpi-events-seats" },
-            { label: "Seats taken", value: seatsTaken, testid: "kpi-events-taken" },
+            {
+              label: "Events scheduled",
+              caption: "On the learner listing now",
+              value: learningSessions.length,
+              testid: "kpi-events-total",
+            },
+            {
+              label: "Targeted to an audience",
+              caption: `${targeted} of ${learningSessions.length} limited to one entity, level or gap`,
+              value: targeted,
+              testid: "kpi-events-targeted",
+            },
+            {
+              label: "Seats offered",
+              caption: `Across the ${learningSessions.length} scheduled event${learningSessions.length === 1 ? "" : "s"}`,
+              value: seatsOffered,
+              testid: "kpi-events-seats",
+            },
+            {
+              label: "Seats taken",
+              caption: `${seatsOffered ? Math.round((seatsTaken / seatsOffered) * 100) : 0}% of seats, from ${learningSessions.length} scheduled event${learningSessions.length === 1 ? "" : "s"}`,
+              value: seatsTaken,
+              testid: "kpi-events-taken",
+            },
           ].map((kpi) => (
             <StaggerItem key={kpi.label}>
               <StatCard className="h-full">
@@ -172,6 +192,7 @@ export default function FAHREvents() {
                   <p className="text-2xl font-bold" data-testid={kpi.testid}>
                     <CountUp to={kpi.value} />
                   </p>
+                  <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{kpi.caption}</p>
                 </CardContent>
               </StatCard>
             </StaggerItem>

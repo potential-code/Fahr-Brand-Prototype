@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -35,9 +36,14 @@ import {
   Clock,
   Search,
   FileDown,
-  Printer,
   ArrowUpRight,
   User,
+  Rocket,
+  CornerUpLeft,
+  Quote,
+  Landmark,
+  ListChecks,
+  ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFederalData } from "@/lib/FederalDataContext";
@@ -50,7 +56,18 @@ import {
   type Escalation,
 } from "@/lib/federal";
 import { CountUp, PageEnter, PanelEnter, Stagger, StaggerItem } from "@/components/motion";
-import { downloadCsv, printReport } from "@/lib/exportFile";
+import { downloadCsv } from "@/lib/exportFile";
+import type { ApprovalRecord, Submission } from "@/lib/federal/model";
+import { ProjectJourney } from "@/components/project/ProjectJourney";
+import { ProjectConversation } from "@/components/project/ProjectConversation";
+import { ProjectBriefView, ProjectSummary } from "@/components/project/ProjectBrief";
+import { SubmissionStateBadge } from "@/components/project/SubmissionStateBadge";
+import { ApprovalsDecisionDialog } from "@/components/ministry/ApprovalsDecisionDialog";
+
+const FAHR_ACTOR = "FAHR Programme Team";
+
+type TopTab = "queue" | "projects";
+type ProjectDecision = "approve_live" | "return_entity";
 
 const STATUS_TABS: (Escalation["status"] | "All")[] = ["All", "Open", "In progress", "Resolved"];
 const KIND_FILTERS: (Escalation["kind"] | "All")[] = ["All", "Approval", "Quota", "Support"];
@@ -89,12 +106,86 @@ export default function FAHREscalations() {
   const {
     escalations,
     ministries,
+    submissions,
+    approvals,
     getSubmission,
     getPerson,
     approvalsFor,
     triageEscalation,
     adjustQuota,
+    fahrApprove,
+    fahrReturn,
   } = useFederalData();
+
+  // --- Project decisions (escalated workplace projects) --------------------
+  const search = useSearch();
+  // Project decisions lead: they are the escalations that change a project's fate.
+  const [topTab, setTopTab] = useState<TopTab>("projects");
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectDialog, setProjectDialog] = useState<{ id: string; kind: ProjectDecision } | null>(null);
+
+  // Deep links: ?tab=queue opens the triage queue; ?tab=projects&project=<id>
+  // opens a project decision.
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const project = params.get("project");
+    if (params.get("tab") === "queue" && !project) setTopTab("queue");
+    if (params.get("tab") === "projects" || project) setTopTab("projects");
+    if (project) setProjectId(project);
+  }, [search]);
+
+  const awaitingFahr = useMemo(() => submissions.filter((s) => s.state === "escalated"), [submissions]);
+
+  /** Projects FAHR decided this session, newest first — so the result stays on screen. */
+  const decidedProjects = useMemo(() => {
+    const latestBySubmission = new Map<string, ApprovalRecord>();
+    for (const a of approvals) {
+      if (a.role === "fahr" && (a.decision === "approved_live" || a.decision === "returned_to_entity")) {
+        latestBySubmission.set(a.submissionId, a);
+      }
+    }
+    return [...latestBySubmission.values()]
+      .reverse()
+      .map((decision) => ({ decision, submission: getSubmission(decision.submissionId) }))
+      .filter(
+        (row): row is { decision: ApprovalRecord; submission: Submission } =>
+          !!row.submission && row.submission.state !== "escalated",
+      );
+  }, [approvals, getSubmission]);
+
+  const selectedProject = projectId ? getSubmission(projectId) ?? null : null;
+  const dialogProject = projectDialog ? getSubmission(projectDialog.id) : undefined;
+
+  const learnerName = (s: Submission) => getPerson(s.personId)?.name ?? "Federal employee";
+  const managerName = (s: Submission) => {
+    const learner = getPerson(s.personId);
+    return (
+      (learner?.managerId ? getPerson(learner.managerId)?.name : undefined) ??
+      (s.reviewer && s.reviewer !== "Department manager" ? s.reviewer : undefined) ??
+      "the line manager"
+    );
+  };
+
+  const runProjectDecision = (id: string, kind: ProjectDecision, note: string) => {
+    const submission = getSubmission(id);
+    setProjectDialog(null);
+    if (!submission) return;
+    const ministry = MINISTRY_BY_ID[submission.ministryId];
+    const entityAdmin = ministry?.entityAdmin ?? "the entity admin";
+    if (kind === "approve_live") {
+      fahrApprove(id, { by: FAHR_ACTOR, note: note || undefined });
+      toast({
+        title: "Approved for federal rollout",
+        description: `"${submission.title}" is live — ${learnerName(submission)}, ${managerName(submission)}, ${entityAdmin} (${ministry?.shortName ?? "entity"}) and leadership notified.`,
+      });
+    } else {
+      fahrReturn(id, { by: FAHR_ACTOR, note });
+      toast({
+        title: "Returned to entity",
+        description: `"${submission.title}" is back with the entity admin — ${entityAdmin} (${ministry?.shortName ?? "entity"}) has been notified.`,
+      });
+    }
+  };
 
   const [statusTab, setStatusTab] = useState<(typeof STATUS_TABS)[number]>("All");
   const [kindFilter, setKindFilter] = useState<(typeof KIND_FILTERS)[number]>("All");
@@ -248,45 +339,6 @@ export default function FAHREscalations() {
     toast({ title: "Queue exported", description: `Saved ${name}.` });
   };
 
-  const printRegister = () => {
-    printReport({
-      title: "Escalation register",
-      subtitle: "FAHR programme triage queue",
-      meta: [
-        ...filterMeta(),
-        `${filtered.length} item${filtered.length === 1 ? "" : "s"}`,
-        `Generated ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`,
-      ],
-      sections: [
-        {
-          heading: "Queue",
-          facts: [
-            { label: "Open", value: String(openCount) },
-            { label: "In progress", value: String(inProgressCount) },
-            { label: "Resolved", value: String(resolvedCount) },
-            { label: "Unassigned", value: String(unassignedCount) },
-            ...(avgAge !== null ? [{ label: "Avg age (days)", value: String(avgAge) }] : []),
-          ],
-          table: {
-            headers: ["Subject", "Kind", "Entity", "Raised by", "Raised on", "Priority", "Assignee", "Status"],
-            rows: filtered.map((e) => [
-              e.subject,
-              e.kind,
-              MINISTRY_BY_ID[e.ministryId]?.shortName ?? e.ministryId,
-              e.raisedBy,
-              e.raisedOn,
-              e.priority ?? "Standard",
-              e.assignee ?? "Unassigned",
-              e.status,
-            ]),
-          },
-        },
-      ],
-      footnote: "Front-end programme administration view — session data only.",
-    });
-    toast({ title: "Register ready", description: "Sending the escalation register to print." });
-  };
-
   return (
     <Layout role="fahr">
       <PageEnter className="space-y-6 pb-12">
@@ -298,9 +350,6 @@ export default function FAHREscalations() {
             <>
               <Button variant="outline" onClick={exportCsv} data-testid="button-export-queue">
                 <FileDown className="w-4 h-4 mr-2" /> Export CSV
-              </Button>
-              <Button variant="outline" onClick={printRegister} data-testid="button-print-register">
-                <Printer className="w-4 h-4 mr-2" /> Register
               </Button>
             </>
           }
@@ -323,129 +372,160 @@ export default function FAHREscalations() {
           ))}
         </Stagger>
 
-        {/* Queue */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Triage queue</CardTitle>
-            <CardDescription>
-              Filter by status and kind, search, then open an item to assign, prioritise and resolve it.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as (typeof STATUS_TABS)[number])}>
-                <TabsList>
-                  {STATUS_TABS.map((tab) => (
-                    <TabsTrigger key={tab} value={tab} data-testid={`tab-status-${tab.replace(/\s+/g, "-").toLowerCase()}`}>
-                      {tab}
-                      <span className="ml-1.5 text-xs text-muted-foreground">{statusCounts[tab]}</span>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-              <div className="flex flex-wrap items-center gap-2">
-                <Select value={kindFilter} onValueChange={(v) => setKindFilter(v as (typeof KIND_FILTERS)[number])}>
-                  <SelectTrigger className="w-[150px]" data-testid="select-kind">
-                    <SelectValue placeholder="Kind" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {KIND_FILTERS.map((kind) => (
-                      <SelectItem key={kind} value={kind}>
-                        {kind === "All" ? "All kinds" : kind}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search subject, entity…"
-                    className="pl-8 w-[220px]"
-                    data-testid="input-search"
-                  />
-                </div>
-              </div>
-            </div>
+        <Tabs value={topTab} onValueChange={(v) => setTopTab(v as TopTab)}>
+          <TabsList>
+            <TabsTrigger value="projects" data-testid="tab-projects">
+              Project decisions
+              {awaitingFahr.length > 0 && (
+                <Badge className="ml-2" data-testid="badge-projects-awaiting">
+                  {awaitingFahr.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="queue" data-testid="tab-queue">
+              Triage queue
+              <span className="ml-1.5 text-xs text-muted-foreground">{escalations.length}</span>
+            </TabsTrigger>
+          </TabsList>
 
-            {filtered.length === 0 ? (
-              <div className="py-12 text-center flex flex-col items-center" data-testid="empty-queue">
-                <Inbox className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium text-foreground">Nothing in this view</h3>
-                <p className="text-muted-foreground max-w-sm mt-1">
-                  No escalations match the current status, kind and search filters. Clear a filter to see more.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Kind</TableHead>
-                      <TableHead>Entity</TableHead>
-                      <TableHead>Raised by</TableHead>
-                      <TableHead>Raised on</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Assignee</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <Stagger as="tbody">
-                    <AnimatePresence initial={false}>
-                      {filtered.map((e) => {
-                        const ministry = MINISTRY_BY_ID[e.ministryId];
-                        return (
-                          <motion.tr
-                            layout
-                            key={e.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.28 }}
-                            className="border-b cursor-pointer transition-colors hover:bg-muted/50"
-                            onClick={() => setSelectedId(e.id)}
-                            data-testid={`row-escalation-${e.id}`}
-                          >
-                            <TableCell className="font-medium max-w-[260px]">
-                              <span className="line-clamp-2">{e.subject}</span>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={kindPill(e.kind)}>
-                                {e.kind}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">{ministry?.shortName ?? e.ministryId}</TableCell>
-                            <TableCell className="text-sm whitespace-nowrap">{e.raisedBy}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{e.raisedOn}</TableCell>
-                            <TableCell>
-                              {e.priority === "High" ? (
-                                <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">
-                                  High
-                                </Badge>
-                              ) : (
-                                <span className="text-sm text-muted-foreground">Standard</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-sm whitespace-nowrap">
-                              {e.assignee ?? <span className="text-destructive">Unassigned</span>}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={statusPill(e.status)}>
-                                {e.status}
-                              </Badge>
-                            </TableCell>
-                          </motion.tr>
-                        );
-                      })}
-                    </AnimatePresence>
-                  </Stagger>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <TabsContent value="projects" className="mt-4 space-y-6">
+            <ProjectDecisions
+              awaiting={awaitingFahr}
+              decided={decidedProjects}
+              approvalsFor={approvalsFor}
+              learnerName={learnerName}
+              selectedId={projectId}
+              onOpen={setProjectId}
+              onDecide={(id, kind) => setProjectDialog({ id, kind })}
+            />
+          </TabsContent>
+
+          <TabsContent value="queue" className="mt-4">
+            {/* Queue */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Triage queue</CardTitle>
+                <CardDescription>
+                  Filter by status and kind, search, then open an item to assign, prioritise and resolve it.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as (typeof STATUS_TABS)[number])}>
+                    <TabsList>
+                      {STATUS_TABS.map((tab) => (
+                        <TabsTrigger key={tab} value={tab} data-testid={`tab-status-${tab.replace(/\s+/g, "-").toLowerCase()}`}>
+                          {tab}
+                          <span className="ml-1.5 text-xs text-muted-foreground">{statusCounts[tab]}</span>
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select value={kindFilter} onValueChange={(v) => setKindFilter(v as (typeof KIND_FILTERS)[number])}>
+                      <SelectTrigger className="w-[150px]" data-testid="select-kind">
+                        <SelectValue placeholder="Kind" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {KIND_FILTERS.map((kind) => (
+                          <SelectItem key={kind} value={kind}>
+                            {kind === "All" ? "All kinds" : kind}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search subject, entity…"
+                        className="pl-8 w-[220px]"
+                        data-testid="input-search"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {filtered.length === 0 ? (
+                  <div className="py-12 text-center flex flex-col items-center" data-testid="empty-queue">
+                    <Inbox className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
+                    <h3 className="text-lg font-medium text-foreground">Nothing in this view</h3>
+                    <p className="text-muted-foreground max-w-sm mt-1">
+                      No escalations match the current status, kind and search filters. Clear a filter to see more.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Subject</TableHead>
+                          <TableHead>Kind</TableHead>
+                          <TableHead>Entity</TableHead>
+                          <TableHead>Raised by</TableHead>
+                          <TableHead>Raised on</TableHead>
+                          <TableHead>Priority</TableHead>
+                          <TableHead>Assignee</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <Stagger as="tbody">
+                        <AnimatePresence initial={false}>
+                          {filtered.map((e) => {
+                            const ministry = MINISTRY_BY_ID[e.ministryId];
+                            return (
+                              <motion.tr
+                                layout
+                                key={e.id}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.28 }}
+                                className="border-b cursor-pointer transition-colors hover:bg-muted/50"
+                                onClick={() => setSelectedId(e.id)}
+                                data-testid={`row-escalation-${e.id}`}
+                              >
+                                <TableCell className="font-medium max-w-[260px]">
+                                  <span className="line-clamp-2">{e.subject}</span>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className={kindPill(e.kind)}>
+                                    {e.kind}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="whitespace-nowrap">{ministry?.shortName ?? e.ministryId}</TableCell>
+                                <TableCell className="text-sm whitespace-nowrap">{e.raisedBy}</TableCell>
+                                <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{e.raisedOn}</TableCell>
+                                <TableCell>
+                                  {e.priority === "High" ? (
+                                    <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">
+                                      High
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-sm text-muted-foreground">Standard</span>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-sm whitespace-nowrap">
+                                  {e.assignee ?? <span className="text-destructive">Unassigned</span>}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className={statusPill(e.status)}>
+                                    {e.status}
+                                  </Badge>
+                                </TableCell>
+                              </motion.tr>
+                            );
+                          })}
+                        </AnimatePresence>
+                      </Stagger>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </PageEnter>
 
       {/* Detail sheet */}
@@ -464,10 +544,65 @@ export default function FAHREscalations() {
               onMoveInProgress={moveInProgress}
               onOpenResolve={() => setResolveId(selected.id)}
               onApproveQuota={approveQuota}
+              onProjectDecide={(id, kind) => setProjectDialog({ id, kind })}
+              onOpenProject={(id) => {
+                setSelectedId(null);
+                setTopTab("projects");
+                setProjectId(id);
+              }}
             />
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Project sheet: full journey and conversation */}
+      <Sheet open={selectedProject !== null} onOpenChange={(open) => !open && setProjectId(null)}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto" data-testid="sheet-fahr-project">
+          {selectedProject && (
+            <PanelEnter className="space-y-5">
+              <SheetHeader className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <SubmissionStateBadge submission={selectedProject} className="text-xs" />
+                  <Badge variant="outline" className="text-xs">
+                    {selectedProject.impact} impact
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {selectedProject.governanceStatus}
+                  </Badge>
+                </div>
+                <SheetTitle className="text-left">{selectedProject.title}</SheetTitle>
+                <SheetDescription className="text-left">
+                  {MINISTRY_BY_ID[selectedProject.ministryId]?.name ?? selectedProject.ministryId} ·{" "}
+                  {learnerName(selectedProject)}
+                </SheetDescription>
+              </SheetHeader>
+              <ProjectJourney submission={selectedProject} variant="full" />
+              <div data-testid="fahr-learner-brief">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Learner's brief</p>
+                <ProjectBriefView submission={selectedProject} />
+              </div>
+              {selectedProject.state === "escalated" && (
+                <ProjectDecisionButtons
+                  submissionId={selectedProject.id}
+                  onDecide={(id, kind) => setProjectDialog({ id, kind })}
+                  idSuffix="-sheet"
+                />
+              )}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Conversation</p>
+                <ProjectConversation submission={selectedProject} />
+              </div>
+            </PanelEnter>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <ApprovalsDecisionDialog
+        kind={projectDialog?.kind ?? null}
+        projectTitle={dialogProject?.title ?? ""}
+        onCancel={() => setProjectDialog(null)}
+        onConfirm={(note) => projectDialog && runProjectDecision(projectDialog.id, projectDialog.kind, note)}
+      />
 
       {/* Resolve dialog */}
       <Dialog open={resolveId !== null} onOpenChange={(open) => !open && (setResolveId(null), setResolutionNote(""))}>
@@ -516,6 +651,8 @@ type DetailProps = {
   onMoveInProgress: (escalation: Escalation) => void;
   onOpenResolve: () => void;
   onApproveQuota: (escalation: Escalation) => void;
+  onProjectDecide: (submissionId: string, kind: ProjectDecision) => void;
+  onOpenProject: (submissionId: string) => void;
 };
 
 function EscalationDetail({
@@ -529,6 +666,8 @@ function EscalationDetail({
   onMoveInProgress,
   onOpenResolve,
   onApproveQuota,
+  onProjectDecide,
+  onOpenProject,
 }: DetailProps) {
   // The entity's live figures come from the session ministries list so quota
   // approvals made this session are reflected here.
@@ -607,7 +746,24 @@ function EscalationDetail({
           <p className="text-xs text-muted-foreground mt-0.5">
             {SUBMISSION_STATE_LABEL[submission.state]} · {submission.impact} impact · {submission.governanceStatus}
           </p>
-          <p className="text-sm text-muted-foreground mt-2">{submission.description}</p>
+          <ProjectSummary submission={submission} className="mt-2" />
+          <div className="mt-3">
+            <ProjectJourney submission={submission} variant="compact" />
+          </div>
+          {submission.state === "escalated" && (
+            <div className="mt-3">
+              <ProjectDecisionButtons submissionId={submission.id} onDecide={onProjectDecide} idSuffix="-detail" />
+            </div>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="mt-2 h-auto px-0 text-xs text-primary hover:underline"
+            onClick={() => onOpenProject(submission.id)}
+            data-testid={`button-open-project-${submission.id}`}
+          >
+            Full journey and conversation <ChevronRight className="ml-1 h-3 w-3" />
+          </Button>
           {trail.length > 0 && (
             <div className="mt-3 space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground">Approval trail</p>
@@ -712,5 +868,196 @@ function EscalationDetail({
         </div>
       )}
     </PanelEnter>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Project decisions
+// ---------------------------------------------------------------------------
+
+function ProjectDecisionButtons({
+  submissionId,
+  onDecide,
+  idSuffix = "",
+}: {
+  submissionId: string;
+  onDecide: (submissionId: string, kind: ProjectDecision) => void;
+  /** Keeps test ids unique when the same project shows in a list and a sheet. */
+  idSuffix?: string;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDecide(submissionId, "approve_live");
+        }}
+        data-testid={`button-fahr-approve-${submissionId}${idSuffix}`}
+      >
+        <Rocket className="mr-1.5 h-4 w-4" /> Approve for federal rollout
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDecide(submissionId, "return_entity");
+        }}
+        data-testid={`button-fahr-return-${submissionId}${idSuffix}`}
+      >
+        <CornerUpLeft className="mr-1.5 h-4 w-4" /> Return to entity
+      </Button>
+    </div>
+  );
+}
+
+type ProjectDecisionsProps = {
+  awaiting: Submission[];
+  decided: { decision: ApprovalRecord; submission: Submission }[];
+  approvalsFor: ReturnType<typeof useFederalData>["approvalsFor"];
+  learnerName: (s: Submission) => string;
+  selectedId: string | null;
+  onOpen: (submissionId: string) => void;
+  onDecide: (submissionId: string, kind: ProjectDecision) => void;
+};
+
+function ProjectDecisions({
+  awaiting,
+  decided,
+  approvalsFor,
+  learnerName,
+  selectedId,
+  onOpen,
+  onDecide,
+}: ProjectDecisionsProps) {
+  return (
+    <>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Landmark className="h-5 w-5 text-primary" /> Awaiting a federal decision
+          </CardTitle>
+          <CardDescription>
+            Workplace projects an entity escalated to FAHR. Approve one for federal rollout and it goes live with the
+            learner's credential issued, or return it to the entity with a reason.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {awaiting.length === 0 ? (
+            <div className="py-10 text-center flex flex-col items-center" data-testid="empty-projects">
+              <CheckCircle2 className="w-10 h-10 text-muted-foreground mb-3 opacity-50" />
+              <h3 className="font-medium text-foreground">No projects waiting on FAHR</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mt-1">
+                When an entity escalates a workplace project it lands here for a federal decision.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <AnimatePresence initial={false} mode="popLayout">
+                {awaiting.map((s) => {
+                  const ministry = MINISTRY_BY_ID[s.ministryId];
+                  const escalation = [...approvalsFor(s.id)].reverse().find((a) => a.decision === "escalated");
+                  const highlighted = selectedId === s.id;
+                  return (
+                    <motion.div
+                      key={s.id}
+                      layout
+                      initial={false}
+                      exit={{ opacity: 0, x: 40, scale: 0.97, transition: { duration: 0.3 } }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      className={`cursor-pointer rounded-md border p-4 space-y-3 transition-colors hover:border-primary/40 ${
+                        highlighted ? "border-primary ring-2 ring-primary/30" : "border-border"
+                      }`}
+                      onClick={() => onOpen(s.id)}
+                      data-testid={`card-fahr-project-${s.id}`}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-primary">{s.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {ministry?.name ?? s.ministryId} · {learnerName(s)} · {s.impact} impact
+                          </p>
+                        </div>
+                        <SubmissionStateBadge submission={s} className="text-xs" />
+                      </div>
+                      <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs">
+                        <p className="font-medium text-primary">
+                          Escalated by {escalation?.by ?? ministry?.entityAdmin ?? "the entity"}
+                          {escalation?.on ? ` · ${escalation.on}` : ""}
+                        </p>
+                        <p className="mt-1.5 flex items-start gap-1.5 text-foreground/80">
+                          <Quote className="mt-0.5 h-3 w-3 shrink-0 text-primary/60" />
+                          <span className="italic" data-testid={`text-escalation-note-${s.id}`}>
+                            {escalation?.note ?? "The entity referred this project for a federal decision."}
+                          </span>
+                        </p>
+                      </div>
+                      <ProjectSummary submission={s} />
+                      <ProjectJourney submission={s} variant="compact" />
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <ProjectDecisionButtons submissionId={s.id} onDecide={onDecide} />
+                        <span className="text-xs text-primary flex items-center">
+                          Read full brief <ChevronRight className="ml-0.5 h-3 w-3" />
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {decided.length > 0 && (
+        <Card data-testid="card-fahr-decided">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-primary" /> Decided this session
+            </CardTitle>
+            <CardDescription>Projects FAHR has approved or returned, newest first.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <AnimatePresence initial={false}>
+              {decided.map(({ decision, submission }) => {
+                const live = decision.decision === "approved_live";
+                return (
+                  <motion.button
+                    type="button"
+                    key={decision.id}
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full text-left flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm hover:bg-muted/40"
+                    onClick={() => onOpen(submission.id)}
+                    data-testid={`row-fahr-decided-${submission.id}`}
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium">{submission.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {MINISTRY_BY_ID[submission.ministryId]?.shortName ?? submission.ministryId} ·{" "}
+                        {learnerName(submission)} · {decision.by}, {decision.on}
+                        {decision.note ? ` — ${decision.note}` : ""}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={
+                        live
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : "bg-accent/10 text-accent border-accent/40"
+                      }
+                    >
+                      {live ? "Live" : "Returned to entity"}
+                    </Badge>
+                  </motion.button>
+                );
+              })}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      )}
+    </>
   );
 }

@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageEnter, PanelEnter } from "@/components/motion";
-import { FileText, Download, Loader2, Calendar, Users, Eye } from "lucide-react";
-import { FEDERAL, NATIONAL_TARGET, ON_TRACK_READINESS } from "@/lib/federal";
-import { printReport } from "@/lib/exportFile";
+import { FileText, Loader2, Calendar, Users, Eye } from "lucide-react";
+import { FEDERAL, METRICS, NATIONAL_TARGET, ON_TRACK_READINESS, workingDaysPerYear } from "@/lib/federal";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
 import { AGENTS } from "@/lib/constants";
 
@@ -34,32 +33,6 @@ export default function LeadershipBriefings() {
       },
       ...prev
     ]);
-  };
-
-  const handlePrint = () => {
-    if (!activeBrief) return;
-    printReport({
-      title: `Executive Briefing: ${audience.charAt(0).toUpperCase() + audience.slice(1)}`,
-      subtitle: `Federal AI Programme Status — ${activeBrief.period.toUpperCase().replace('-', ' ')}`,
-      meta: [`Readiness: ${FEDERAL.readiness}%`, `Entities On Track: ${FEDERAL.ministriesOnTrack}`],
-      sections: [
-        {
-          heading: "Executive Summary",
-          paragraphs: [
-            `The federal workforce has achieved an aggregate AI readiness of ${FEDERAL.readiness}%, tracking toward the ${NATIONAL_TARGET.readiness}% target for ${NATIONAL_TARGET.by}.`,
-            `${FEDERAL.activeLearners.toLocaleString()} employees are actively engaged in learning pathways, representing ${FEDERAL.coverage}% of the targeted workforce.`
-          ]
-        },
-        {
-          heading: "Economic Impact",
-          facts: [
-            { label: "Value Created", value: `AED ${FEDERAL.valueCreatedAedM}M` },
-            { label: "Monthly Hours Saved", value: FEDERAL.hoursSavedPerMonth.toLocaleString() },
-            { label: "Deployed Projects", value: FEDERAL.projectsSubmitted.toLocaleString() }
-          ]
-        }
-      ]
-    });
   };
 
   return (
@@ -165,9 +138,6 @@ export default function LeadershipBriefings() {
                           Period: {activeBrief.period.toUpperCase().replace('-', ' ')} • Generated: Just now
                         </CardDescription>
                       </div>
-                      <Button variant="outline" onClick={handlePrint} className="shrink-0">
-                        <Download className="w-4 h-4 me-2" /> Export PDF
-                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-6 md:p-8 space-y-8 bg-white dark:bg-card text-foreground">
@@ -181,19 +151,22 @@ export default function LeadershipBriefings() {
                     </section>
 
                     <section className="space-y-3">
-                      <h3 className="text-lg font-bold border-b border-border pb-2">Economic Impact</h3>
+                      <h3 className="text-lg font-bold border-b border-border pb-2">Time Returned</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-2">
                         <div className="bg-muted/30 p-4 rounded-lg">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Value Created</p>
-                          <p className="text-2xl font-bold text-primary">AED {FEDERAL.valueCreatedAedM}M</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">{METRICS.hoursSaved.label}</p>
+                          <p className="text-2xl font-bold text-primary">{FEDERAL.hoursSavedPerMonth.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{METRICS.hoursSaved.caption}</p>
                         </div>
                         <div className="bg-muted/30 p-4 rounded-lg">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Hours Saved</p>
-                          <p className="text-2xl font-bold text-foreground">{FEDERAL.hoursSavedPerMonth.toLocaleString()}/mo</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Working days / year</p>
+                          <p className="text-2xl font-bold text-foreground">{workingDaysPerYear(FEDERAL.hoursSavedPerMonth).toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Hours a month × 12, at 7.5 h a working day</p>
                         </div>
                         <div className="bg-muted/30 p-4 rounded-lg">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Projects Deployed</p>
-                          <p className="text-2xl font-bold text-foreground">{FEDERAL.projectsSubmitted.toLocaleString()}</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">{METRICS.projectsLive.label}</p>
+                          <p className="text-2xl font-bold text-foreground">{FEDERAL.projectsLive.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground mt-1">of {FEDERAL.projectsSubmitted.toLocaleString()} submitted</p>
                         </div>
                       </div>
                     </section>
@@ -203,7 +176,7 @@ export default function LeadershipBriefings() {
                       <ul className="list-disc list-outside text-sm text-muted-foreground space-y-2.5 ms-4">
                         <li>Direct additional enablement resources to the <strong className="text-foreground">{FEDERAL.ministriesTotal - FEDERAL.ministriesOnTrack}</strong> entities currently below the {ON_TRACK_READINESS}% threshold.</li>
                         <li>Accelerate credential issuance to convert high assessment scores into formal capability recognition.</li>
-                        <li>Expand successful workplace projects across complementary functions to multiply estimated value.</li>
+                        <li>Expand successful workplace projects across complementary functions to multiply the hours returned.</li>
                       </ul>
                     </section>
                   </CardContent>

@@ -6,11 +6,10 @@ import userEvent from "@testing-library/user-event";
 import { renderScreen, numberFrom } from "./providers";
 import ManagerDashboard from "@/pages/ManagerDashboard";
 import MinistryPortfolio from "@/pages/MinistryPortfolio";
-import AgenticAILabProject from "@/pages/AgenticAILabProject";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { FOCUS, SUBMISSION_STATE_LABEL } from "@/lib/federal";
 
-/** The submission the demo learner has waiting on her department manager. */
+/** A seeded team project waiting on the department manager (Khalid's). */
 const AISHA_SUBMISSION = "s1";
 
 /** Reads store-derived values that no single screen renders on its own. */
@@ -98,31 +97,6 @@ describe("manager sign-off reaches the entity portal", () => {
     renderScreen(<MinistryPortfolio />, "/ministry/portfolio");
     expect(screen.getByTestId(`text-status-${AISHA_SUBMISSION}`).textContent).toContain(
       SUBMISSION_STATE_LABEL.revision_requested,
-    );
-  });
-
-  it("puts the manager's comments in front of the learner", async () => {
-    const user = userEvent.setup();
-    renderScreen(<ManagerDashboard />, "/manager");
-
-    await user.click(screen.getByTestId(`button-request-revision-${AISHA_SUBMISSION}`));
-    await user.type(screen.getByTestId("input-revision-comments"), "Add the measured baseline.");
-    await user.click(screen.getByTestId("button-send-revision"));
-
-    // The learner reads the comment on their own project, and in their notifications.
-    cleanup();
-    renderScreen(
-      <>
-        <AgenticAILabProject />
-        <Probe />
-      </>,
-      "/learner/lab/project",
-    );
-    expect(screen.getByTestId(`notice-revision-${AISHA_SUBMISSION}`).textContent).toContain(
-      "Add the measured baseline.",
-    );
-    expect(screen.getByTestId("probe-learner-notifications").textContent ?? "").toContain(
-      `n-learner-revision-${AISHA_SUBMISSION}`,
     );
   });
 

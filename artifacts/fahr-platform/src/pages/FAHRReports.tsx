@@ -20,7 +20,6 @@ import {
 } from "recharts";
 import {
   Download,
-  Printer,
   ChevronDown,
   ChevronUp,
   ChevronsUpDown,
@@ -29,7 +28,7 @@ import {
   Zap,
   Award,
   Clock,
-  Coins,
+  CheckCircle2,
   Rocket,
   FileBarChart,
 } from "lucide-react";
@@ -57,10 +56,12 @@ import {
   impactRows,
   ladderRows,
   nationalLine,
+  METRICS,
+  workingDaysPerYear,
   type ReportTypeId,
   type ReportScope,
 } from "@/lib/federal";
-import { downloadCsv, printReport } from "@/lib/exportFile";
+import { downloadCsv } from "@/lib/exportFile";
 
 const CHART_FILL = "hsl(var(--primary))";
 const CHART_FILL_ALT = "hsl(var(--secondary))";
@@ -85,7 +86,7 @@ const fmt = (n: number) => n.toLocaleString("en-US");
 
 export default function FAHRReports() {
   const { toast } = useToast();
-  const { ministries, submissions, credentials } = useFederalData();
+  const { ministries, credentials } = useFederalData();
 
   const [reportType, setReportType] = useState<ReportTypeId>("engagement");
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>(() => ministries.map((m) => m.id));
@@ -136,9 +137,7 @@ export default function FAHRReports() {
     { key: "employees", header: "Targeted workforce", kind: "number", align: "right", cell: (r) => fmt(r.employees), value: (r) => r.employees },
     { key: "activeLearners", header: "Active learners", kind: "number", align: "right", cell: (r) => fmt(r.activeLearners), value: (r) => r.activeLearners },
     { key: "coverage", header: "Coverage", kind: "percent", align: "right", cell: (r) => `${r.coverage}%`, value: (r) => r.coverage },
-    { key: "learningHours", header: "Learning hours", kind: "number", align: "right", cell: (r) => fmt(r.learningHours), value: (r) => r.learningHours },
-    { key: "pathwayCompletions", header: "Pathway completions", kind: "number", align: "right", cell: (r) => fmt(r.pathwayCompletions), value: (r) => r.pathwayCompletions },
-    { key: "readiness", header: "Readiness", kind: "percent", align: "right", cell: (r) => `${r.readiness}%`, value: (r) => r.readiness },
+    { key: "readiness", header: "AI readiness", kind: "percent", align: "right", cell: (r) => `${r.readiness}%`, value: (r) => r.readiness },
   ];
 
   const compColumns: Column<CompRow>[] = [
@@ -170,9 +169,8 @@ export default function FAHRReports() {
   const impColumns: Column<ImpRow>[] = [
     { key: "entity", header: "Entity", kind: "text", cell: (r) => r.entity, value: (r) => r.entity },
     { key: "projects", header: "Projects submitted", kind: "number", align: "right", cell: (r) => fmt(r.projects), value: (r) => r.projects },
-    { key: "deployed", header: "Deployed", kind: "number", align: "right", cell: (r) => fmt(r.deployed), value: (r) => r.deployed },
-    { key: "hoursSavedPerMonth", header: "Hours saved / month", kind: "number", align: "right", cell: (r) => fmt(r.hoursSavedPerMonth), value: (r) => r.hoursSavedPerMonth },
-    { key: "valueCreatedAedM", header: "Est. value (AED M)", kind: "number", align: "right", cell: (r) => r.valueCreatedAedM.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }), value: (r) => r.valueCreatedAedM },
+    { key: "live", header: "Projects live", kind: "number", align: "right", cell: (r) => fmt(r.live), value: (r) => r.live },
+    { key: "hoursSavedPerMonth", header: "Hours returned / month", kind: "number", align: "right", cell: (r) => fmt(r.hoursSavedPerMonth), value: (r) => r.hoursSavedPerMonth },
     { key: "projectsThisPeriod", header: "Projects this period", kind: "number", align: "right", cell: (r) => fmt(r.projectsThisPeriod), value: (r) => r.projectsThisPeriod },
   ];
 
@@ -188,9 +186,9 @@ export default function FAHRReports() {
       case "certification":
         return certificationRows(scope, credentials);
       case "impact":
-        return impactRows(scope, submissions);
+        return impactRows(scope);
     }
-  }, [reportType, scope, credentials, submissions]);
+  }, [reportType, scope, credentials]);
 
   const columns = useMemo(() => {
     switch (reportType) {
@@ -244,48 +242,76 @@ export default function FAHRReports() {
   }, [columns, rawRows]);
 
   // ---- KPI row per report -------------------------------------------------
-  const kpis = useMemo(() => {
-    const base = [
-      { key: "entities", label: "Entities in scope", to: national.entities, suffix: `/${national.ofEntities}`, icon: Building2 },
+  type Kpi = { key: string; label: string; caption: string; to: number; suffix?: string; icon: typeof Building2 };
+  const kpis = useMemo<Kpi[]>(() => {
+    const base: Kpi[] = [
+      {
+        key: "entities",
+        label: "Entities in scope",
+        caption: `Selected in the filter, of ${national.ofEntities} on the programme`,
+        to: national.entities,
+        suffix: `/${national.ofEntities}`,
+        icon: Building2,
+      },
     ];
+    const learnersCaption = `${fmt(national.activeLearners)} of ${fmt(national.employees)} targeted, since launch`;
+    const inPeriod = periodLabel.toLowerCase();
     switch (reportType) {
       case "engagement":
         return [
           ...base,
-          { key: "learners", label: "Active learners", to: national.activeLearners, icon: Activity },
-          { key: "coverage", label: "Workforce coverage", to: national.coverage, suffix: "%", icon: Zap },
-          { key: "readiness", label: "Readiness index", to: national.readiness, suffix: "%", icon: Award },
+          { key: "learners", ...METRICS.activeLearners, to: national.activeLearners, icon: Activity },
+          { key: "coverage", ...METRICS.coverage, caption: learnersCaption, to: national.coverage, suffix: "%", icon: Zap },
+          { key: "readiness", ...METRICS.readiness, to: national.readiness, suffix: "%", icon: Award },
         ];
       case "competency":
         return [
           ...base,
-          { key: "readiness", label: "Average capability", to: national.readiness, suffix: "%", icon: Zap },
-          { key: "learners", label: "Active learners", to: national.activeLearners, icon: Activity },
-          { key: "dev", label: "Learners in development", to: (rawRows as CompRow[]).reduce((a, r) => a + r.learnersInDevelopment, 0), icon: Award },
+          { key: "readiness", ...METRICS.readiness, caption: "Weighted by workforce across the five competencies, 0–100", to: national.readiness, suffix: "%", icon: Zap },
+          { key: "learners", ...METRICS.activeLearners, caption: learnersCaption, to: national.activeLearners, icon: Activity },
+          {
+            key: "dev",
+            label: "Learners in development",
+            caption: `Summed across competencies, ${inPeriod}; one learner can count more than once`,
+            to: (rawRows as CompRow[]).reduce((a, r) => a + r.learnersInDevelopment, 0),
+            icon: Award,
+          },
         ];
       case "assessment":
         return [
           ...base,
-          { key: "completed", label: "Assessments completed", to: (rawRows as AssessRow[]).reduce((a, r) => a + r.assessmentsCompleted, 0), icon: Activity },
-          { key: "baseline", label: "Average baseline", to: national.readiness, suffix: "%", icon: Zap },
-          { key: "practitioner", label: "At Practitioner or above", to: (rawRows as AssessRow[]).reduce((a, r) => a + r.atPractitionerOrAbove, 0), icon: Award },
+          { key: "completed", label: "Assessments completed", caption: `Baseline assessments taken, ${inPeriod}`, to: (rawRows as AssessRow[]).reduce((a, r) => a + r.assessmentsCompleted, 0), icon: Activity },
+          { key: "baseline", label: "Average baseline", caption: "Mean baseline score across the entities in scope, 0–100", to: national.readiness, suffix: "%", icon: Zap },
+          { key: "practitioner", label: "At Practitioner or above", caption: `Of the assessments completed, ${inPeriod}`, to: (rawRows as AssessRow[]).reduce((a, r) => a + r.atPractitionerOrAbove, 0), icon: Award },
         ];
       case "certification":
         return [
           ...base,
-          { key: "credentials", label: "Credentials issued", to: national.credentials, icon: Award },
-          { key: "thisPeriod", label: "Issued this period", to: (rawRows as CertRow[]).reduce((a, r) => a + r.issuedThisPeriod, 0), icon: Activity },
-          { key: "onRegister", label: "On register", to: (rawRows as CertRow[]).reduce((a, r) => a + r.onRegister, 0), icon: Building2 },
+          { key: "credentials", ...METRICS.credentials, to: national.credentials, icon: Award },
+          { key: "thisPeriod", label: "Issued this period", caption: `Credentials issued, ${inPeriod}`, to: (rawRows as CertRow[]).reduce((a, r) => a + r.issuedThisPeriod, 0), icon: Activity },
+          { key: "onRegister", label: "On register", caption: "Rows in the national credential registry today", to: (rawRows as CertRow[]).reduce((a, r) => a + r.onRegister, 0), icon: Building2 },
         ];
       case "impact":
         return [
           ...base,
-          { key: "projects", label: "Projects submitted", to: national.projects, icon: Rocket },
-          { key: "hours", label: "Hours saved / month", to: national.hoursSavedPerMonth, icon: Clock },
-          { key: "value", label: "Est. value (AED M)", to: national.valueCreatedAedM, decimals: 1, prefix: "AED ", suffix: "M", icon: Coins },
+          {
+            key: "projects",
+            ...METRICS.projectsSubmitted,
+            caption: `Since launch; ${fmt((rawRows as ImpRow[]).reduce((a, r) => a + r.projectsThisPeriod, 0))} in ${inPeriod}`,
+            to: national.projects,
+            icon: Rocket,
+          },
+          { key: "live", ...METRICS.projectsLive, to: national.projectsLive, icon: CheckCircle2 },
+          {
+            key: "hours",
+            ...METRICS.hoursSaved,
+            caption: `From live projects, about ${fmt(workingDaysPerYear(national.hoursSavedPerMonth))} working days a year`,
+            to: national.hoursSavedPerMonth,
+            icon: Clock,
+          },
         ];
     }
-  }, [reportType, national, rawRows]);
+  }, [reportType, national, rawRows, periodLabel]);
 
   // ---- Chart data per report ----------------------------------------------
   const ladder = useMemo(() => ladderRows(scopedMinistries), [scopedMinistries]);
@@ -311,44 +337,6 @@ export default function FAHRReports() {
     toast({ title: "CSV exported", description: `${filename} downloaded with ${sortedRows.length} entity rows.` });
   };
 
-  const exportPrint = () => {
-    if (!hasScope) return;
-    const numericColumns = columns.map((c, i) => (c.align === "right" ? i : -1)).filter((i) => i >= 0);
-    const tableRows = (sortedRows as unknown[]).map((row) => columns.map((c) => c.cell(row)));
-    tableRows.push(
-      columns.map((c, i) => {
-        if (i === 0) return "Total";
-        if (c.kind === "number") return fmt(numericTotals[c.key]);
-        return "";
-      }),
-    );
-    printReport({
-      title: `Programme ${reportMeta.label.toLowerCase()} report`,
-      subtitle: reportMeta.description,
-      meta: [`Period: ${periodLabel}`, entityLabel, `Reference: ${reportMeta.reference}`, `Generated: ${new Date().toISOString().slice(0, 10)}`],
-      sections: [
-        {
-          heading: "National summary",
-          facts: [
-            { label: "Entities in scope", value: `${national.entities} of ${national.ofEntities}` },
-            { label: "Active learners", value: fmt(national.activeLearners) },
-            { label: "Workforce coverage", value: `${national.coverage}%` },
-            { label: "Readiness index", value: `${national.readiness}%` },
-            { label: "Credentials issued", value: fmt(national.credentials) },
-            { label: "Est. value (AED M)", value: national.valueCreatedAedM.toFixed(1) },
-          ],
-        },
-        {
-          heading: `${reportMeta.label} — by entity`,
-          paragraphs: [`Measures: ${reportMeta.measures.join(" · ")}.`],
-          table: { headers: columns.map((c) => c.header), rows: tableRows, numericColumns },
-        },
-      ],
-      footnote: REPORT_NOTES[reportType],
-    });
-    toast({ title: "Print pack opened", description: "The print dialogue carries the current filters." });
-  };
-
   const SortIcon = ({ colKey }: { colKey: string }) => {
     if (!sort || sort.key !== colKey) return <ChevronsUpDown className="w-3.5 h-3.5 opacity-40" />;
     return sort.direction === "asc" ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />;
@@ -365,9 +353,6 @@ export default function FAHRReports() {
             <>
               <Button variant="outline" onClick={exportCsv} disabled={!hasScope} data-testid="button-export-csv">
                 <Download className="w-4 h-4 mr-2" /> Export CSV
-              </Button>
-              <Button onClick={exportPrint} disabled={!hasScope} data-testid="button-print-report">
-                <Printer className="w-4 h-4 mr-2" /> Print / PDF
               </Button>
             </>
           }
@@ -470,9 +455,7 @@ export default function FAHRReports() {
                 </SelectContent>
               </Select>
 
-              <div className="ml-auto text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{reportMeta.reference}</span> · {reportMeta.measures.join(" · ")}
-              </div>
+              <div className="ml-auto text-sm text-muted-foreground">{reportMeta.measures.join(" · ")}</div>
             </div>
           </CardContent>
         </Card>
@@ -514,14 +497,10 @@ export default function FAHRReports() {
                     <CardContent className="p-4 flex flex-col items-center text-center">
                       <kpi.icon className="w-6 h-6 mb-2 text-primary" />
                       <p className="text-2xl font-bold" data-testid={`kpi-${kpi.key}`}>
-                        <CountUp
-                          to={kpi.to}
-                          decimals={"decimals" in kpi ? (kpi as { decimals?: number }).decimals : 0}
-                          prefix={"prefix" in kpi ? (kpi as { prefix?: string }).prefix : undefined}
-                          suffix={"suffix" in kpi ? (kpi as { suffix?: string }).suffix : undefined}
-                        />
+                        <CountUp to={kpi.to} suffix={kpi.suffix} />
                       </p>
                       <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                      <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{kpi.caption}</p>
                     </CardContent>
                   </Card>
                 </StaggerItem>
@@ -534,7 +513,7 @@ export default function FAHRReports() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Coverage by entity</CardTitle>
-                    <CardDescription>Share of the targeted workforce that is learning</CardDescription>
+                    <CardDescription>Active learners as a share of each entity's targeted workforce, since launch</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px]">
                     <ChartReveal className="h-full" direction="wipe">
@@ -676,8 +655,8 @@ export default function FAHRReports() {
                 <>
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Hours saved per month by entity</CardTitle>
-                      <CardDescription>Estimated monthly hours returned</CardDescription>
+                      <CardTitle className="text-lg">Hours returned per month, by entity</CardTitle>
+                      <CardDescription>What each entity's live projects save every month</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
                       <ChartReveal className="h-full" direction="wipe">
@@ -686,7 +665,7 @@ export default function FAHRReports() {
                             <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                             <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} />
                             <YAxis dataKey="name" type="category" width={90} fontSize={11} tickLine={false} axisLine={false} />
-                            <Tooltip cursor={{ fill: "transparent" }} formatter={(v: number) => [fmt(v), "Hours / month"]} />
+                            <Tooltip cursor={{ fill: "transparent" }} formatter={(v: number) => [fmt(v), "Hours returned / month"]} />
                             <Bar dataKey="value" fill={CHART_FILL} radius={[0, 4, 4, 0]} barSize={16} />
                           </BarChart>
                         </ResponsiveContainer>
@@ -695,18 +674,19 @@ export default function FAHRReports() {
                   </Card>
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Estimated value created by entity</CardTitle>
-                      <CardDescription>AED millions per year</CardDescription>
+                      <CardTitle className="text-lg">Projects submitted and live, by entity</CardTitle>
+                      <CardDescription>Since launch; live means endorsed or approved and in service</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
                       <ChartReveal className="h-full" direction="rise">
                         <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={(rawRows as ImpRow[]).map((r) => ({ name: r.short, value: r.valueCreatedAedM }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                          <BarChart data={(rawRows as ImpRow[]).map((r) => ({ name: r.short, submitted: r.projects, live: r.live }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} interval={0} angle={-20} textAnchor="end" height={50} />
                             <YAxis fontSize={11} tickLine={false} axisLine={false} />
-                            <Tooltip cursor={{ fill: "transparent" }} formatter={(v: number) => [`AED ${v}M`, "Value"]} />
-                            <Bar dataKey="value" fill={CHART_FILL_ALT} radius={[4, 4, 0, 0]} barSize={20} />
+                            <Tooltip cursor={{ fill: "transparent" }} />
+                            <Bar dataKey="submitted" name="Submitted" fill={CHART_FILL} radius={[4, 4, 0, 0]} barSize={12} />
+                            <Bar dataKey="live" name="Live" fill={CHART_FILL_ALT} radius={[4, 4, 0, 0]} barSize={12} />
                           </BarChart>
                         </ResponsiveContainer>
                       </ChartReveal>

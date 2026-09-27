@@ -11,8 +11,8 @@ import TeamMembers from "@/pages/TeamMembers";
 import { DEPARTMENT_BY_ID, FOCUS, MINISTRY_BY_ID, PEOPLE } from "@/lib/federal";
 import { COMPETENCIES } from "@/lib/learningData";
 
-/** The submission the demo learner has waiting on her department manager. */
-const AISHA_SUBMISSION = "s1";
+/** A seeded submission waiting on the department manager (Khalid Al Hashimi's). */
+const PENDING_SUBMISSION = "s1";
 
 const directReports = PEOPLE.filter((p) => p.managerId === FOCUS.managerId);
 const ministry = MINISTRY_BY_ID[FOCUS.ministryId];
@@ -103,7 +103,7 @@ describe("a manager sign-off moves the team's impact and recognition", () => {
     cleanup();
   });
 
-  it("adds the validated project's hours and credential to the team totals", async () => {
+  it("adds the validated project's hours to the team totals, without issuing a credential yet", async () => {
     const user = userEvent.setup();
     renderScreen(<ManagerDashboard />, "/manager");
 
@@ -111,13 +111,15 @@ describe("a manager sign-off moves the team's impact and recognition", () => {
     const credentialsBefore = numberFrom(screen.getByTestId("text-teaser-credentials").textContent);
     const projectsBefore = numberFrom(screen.getByTestId("text-teaser-projects").textContent);
 
-    await user.click(screen.getByTestId(`button-sign-off-${AISHA_SUBMISSION}`));
+    await user.click(screen.getByTestId(`button-sign-off-${PENDING_SUBMISSION}`));
 
     expect(numberFrom(screen.getByTestId("text-teaser-hours").textContent)).toBeGreaterThan(
       hoursBefore,
     );
+    // The credential is issued when the project goes live (entity endorsement
+    // or FAHR approval), not at the manager's sign-off.
     expect(numberFrom(screen.getByTestId("text-teaser-credentials").textContent)).toBe(
-      credentialsBefore + 1,
+      credentialsBefore,
     );
     expect(numberFrom(screen.getByTestId("text-teaser-projects").textContent)).toBe(
       projectsBefore + 1,

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Layout } from "@/components/Layout";
@@ -9,11 +9,22 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   ArrowLeft,
   ArrowRight,
   Check,
   CheckCircle2,
   Lock,
+  MessageSquare,
   Rocket,
   Send,
   ShieldCheck,
@@ -22,6 +33,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
+import { useDigitalTwin } from "@/lib/DigitalTwinContext";
+import { projectBriefFromTask } from "@/lib/digitalTwin";
 import { buildRecommendations } from "@/lib/recommendations";
 import {
   HUMAN_CHECKPOINTS,
@@ -46,22 +59,71 @@ import { ImpactEstimator } from "@/components/project/ImpactEstimator";
 import { GovernanceCheck } from "@/components/project/GovernanceCheck";
 import { ReadinessMeter } from "@/components/project/ReadinessMeter";
 import { ManagerRevisionNotice } from "@/components/project/ManagerRevisionNotice";
+import { ProjectJourney } from "@/components/project/ProjectJourney";
+import { ProjectConversation } from "@/components/project/ProjectConversation";
+import { useFederalData } from "@/lib/FederalDataContext";
 
 export default function AgenticAILabProject() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const reduceMotion = useReducedMotion();
   const { result, answers } = useLearnerProgress();
-  const { draft, seedDraft, updateDraft, submission, submit, reopen } = useWorkplaceProject();
+  const { draft, seedDraft, updateDraft, project, editing, submit, reopen } = useWorkplaceProject();
+  const { focus, getPerson } = useFederalData();
+  const manager = getPerson(focus.managerId);
 
   const [stage, setStage] = useState<StageId>("challenge");
+  const [reply, setReply] = useState("");
   const [governanceRun, setGovernanceRun] = useState(false);
+  const { profile: twin } = useDigitalTwin();
+  // A twin task waiting on the learner to confirm it may replace their own words.
+  const [pendingTask, setPendingTask] = useState<string | null>(null);
+  // Briefly rings the title and challenge after a twin task fills them in.
+  const [filledFromTwin, setFilledFromTwin] = useState(false);
+  const challengeFieldsRef = useRef<HTMLDivElement>(null);
 
-  // The project the learner builds is the one their own assessment asked for.
+  // The assessment names the capability gap this project closes.
   const plan = useMemo(() => (result ? buildRecommendations(result, answers) : null), [result, answers]);
+  // An untouched draft is always the demo's weekly-report project.
   useEffect(() => {
-    seedDraft(defaultDraft(plan?.project ?? null));
-  }, [plan, seedDraft]);
+    seedDraft(defaultDraft());
+  }, [seedDraft]);
+
+  // The twin task the current title and challenge were written from, if any.
+  const selectedTwinTask = useMemo(
+    () =>
+      twin.tasks.find((task) => {
+        const brief = projectBriefFromTask(twin, task);
+        return brief.title === draft.title && brief.challenge === draft.challenge;
+      }),
+    [twin, draft.title, draft.challenge],
+  );
+
+  const applyTwinTask = (task: string) => {
+    updateDraft(projectBriefFromTask(twin, task));
+    setStage("challenge");
+    setPendingTask(null);
+    setFilledFromTwin(true);
+    window.setTimeout(() => setFilledFromTwin(false), 1600);
+    window.requestAnimationFrame(() =>
+      challengeFieldsRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" }),
+    );
+    toast({ title: "Project written from your twin", description: `Title and challenge now describe "${task}".` });
+  };
+
+  // Seeded or twin-written text is replaced straight away; the learner's own
+  // words are only replaced once they confirm.
+  const handleUseTwinTask = (task: string) => {
+    const seededTitle = defaultDraft().title;
+    const twinWritten = twin.tasks.some((other) => {
+      const brief = projectBriefFromTask(twin, other);
+      return brief.title === draft.title && brief.challenge === draft.challenge;
+    });
+    const ownWords =
+      !twinWritten && (draft.challenge.trim().length > 0 || (draft.title.trim() !== "" && draft.title !== seededTitle));
+    if (ownWords) setPendingTask(task);
+    else applyTwinTask(task);
+  };
 
   const policies = useMemo(() => evaluatePolicies(draft), [draft]);
   const impact = useMemo(() => estimateImpact(draft), [draft]);
@@ -77,22 +139,30 @@ export default function AgenticAILabProject() {
 
   const index = stageIndex(stage);
   const current = STAGES[index];
-  const locked = submission !== null;
+  const locked = project !== undefined && !editing;
+  const managerName = manager?.name ?? "your line manager";
 
   const handleSubmit = () => {
-    submit(impact, policies);
+    submit(impact, policies, reply);
+    setReply("");
     toast({
-      title: "Project submitted",
-      description: `"${draft.title}" is with the Ministry Innovation Lead and the evaluation engine.`,
+      title: editing ? "Project resubmitted" : "Project submitted",
+      description: `"${draft.title}" is with ${managerName} for sign-off. They have been notified.`,
     });
   };
 
+  const handleRevise = () => {
+    reopen();
+    setStage("challenge");
+  };
+
   // ---------------------------------------------------------------- submitted
-  if (submission) {
+  if (project && !editing) {
+    const returned = project.state === "revision_requested";
     return (
       <Layout role="learner">
         <div className="mx-auto w-full max-w-3xl space-y-6 pb-12">
-          <ManagerRevisionNotice />
+          <ManagerRevisionNotice onRevise={handleRevise} />
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -107,17 +177,21 @@ export default function AgenticAILabProject() {
             >
               <CheckCircle2 className="h-8 w-8" />
             </motion.span>
-            <h2 className="text-2xl font-bold text-foreground">Your project is submitted</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              {returned ? "Your project needs a revision" : project.state === "deployed" || project.state === "endorsed" ? "Your project is live" : "Your project is submitted"}
+            </h2>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              "{submission.draft.title}" has gone to the Ministry Innovation Lead for human review and to the evaluation engine for scoring
-              against the four federal dimensions.
+              "{project.title}" moves from your line manager to your entity and, where it needs a federal decision, to FAHR. Every
+              decision and comment lands in your messages.
             </p>
 
-            <div className="mt-7 grid gap-3 text-start sm:grid-cols-3">
+            <ProjectJourney submission={project} className="mt-7 text-start" />
+
+            <div className="mt-4 grid gap-3 text-start sm:grid-cols-3">
               {[
-                { label: "Estimated return", value: `${submission.impact.hoursPerMonth} h / month` },
-                { label: "Governance", value: `${submission.policies.length} policies cleared` },
-                { label: "Submitted", value: new Date(submission.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" }) },
+                { label: "Estimated return", value: `${project.hoursSavedPerMonth} h / month` },
+                { label: "Governance", value: project.governanceStatus },
+                { label: "Submitted", value: project.submittedOn },
               ].map((item, i) => (
                 <motion.div
                   key={item.label}
@@ -133,14 +207,19 @@ export default function AgenticAILabProject() {
             </div>
 
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button className="gap-2" onClick={() => setLocation("/learner/evaluation")} data-testid="button-view-evaluation">
-                See the evaluation <ArrowRight className="h-4 w-4" />
+              <Button className="gap-2" onClick={() => setLocation(`/learner/messages?project=${project.id}`)} data-testid="button-open-messages">
+                <MessageSquare className="h-4 w-4" /> Open messages
               </Button>
-              <Button variant="outline" onClick={reopen} data-testid="button-reopen-draft">
-                Reopen my draft
+              <Button variant="outline" className="gap-2" onClick={() => setLocation("/learner/evaluation")} data-testid="button-view-evaluation">
+                See the evaluation <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </motion.div>
+
+          <section className="rounded-2xl border border-border bg-card p-5">
+            <p className="mb-4 text-sm font-semibold text-foreground">Review conversation</p>
+            <ProjectConversation submission={project} />
+          </section>
         </div>
       </Layout>
     );
@@ -156,7 +235,7 @@ export default function AgenticAILabProject() {
           description="Put your Digital Twin to work on one real piece of your job, then submit it for evaluation and certification."
           actions={
             <Badge variant="outline" className="border-primary/25 bg-primary/5 px-3 py-1 text-sm text-primary">
-              Draft · {readiness.percent}% ready
+              {editing ? "Revising" : "Draft"} · {readiness.percent}% ready
             </Badge>
           }
         />
@@ -165,18 +244,28 @@ export default function AgenticAILabProject() {
         <ManagerRevisionNotice />
 
         {/* Where the twin built in Stage 1 becomes this project's subject. */}
-        <TwinHandoff
-          disabled={locked}
-          onUseTask={(task) => {
-            updateDraft({
-              title: draft.title || task,
-              challenge:
-                draft.challenge ||
-                `${task} is recurring work in my department. My digital twin already handles part of it, and this project puts that to work properly.`,
-            });
-            setStage("challenge");
-          }}
-        />
+        <TwinHandoff disabled={locked} selectedTask={selectedTwinTask} onUseTask={handleUseTwinTask} />
+
+        <AlertDialog open={pendingTask !== null} onOpenChange={(open) => !open && setPendingTask(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Replace your title and challenge?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You have written your own project title or challenge. Rewriting them from &ldquo;{pendingTask}&rdquo;
+                will replace what is there now.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-keep-own-words">Keep mine</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => pendingTask && applyTwinTask(pendingTask)}
+                data-testid="button-replace-with-twin"
+              >
+                Replace
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <StageStepper current={stage} complete={completeStages} onSelect={setStage} />
 
@@ -201,7 +290,12 @@ export default function AgenticAILabProject() {
 
                 {stage === "challenge" && (
                   <div className="space-y-5">
-                    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                    <div
+                      ref={challengeFieldsRef}
+                      className={`rounded-xl border bg-card p-5 space-y-4 transition-all duration-500 ${
+                        filledFromTwin ? "border-primary ring-4 ring-primary/15" : "border-border"
+                      }`}
+                    >
                       <div className="space-y-2">
                         <label htmlFor="project-title" className="text-sm font-semibold text-foreground">
                           Project title
@@ -214,10 +308,17 @@ export default function AgenticAILabProject() {
                           className="text-base font-medium"
                           data-testid="input-project-title"
                         />
-                        {plan && (
-                          <p className="text-xs text-muted-foreground">
-                            Suggested by your assessment as the project that closes {plan.project.competency.short}.
+                        {selectedTwinTask ? (
+                          <p className="flex items-center gap-1.5 text-xs text-primary">
+                            <Sparkles className="h-3 w-3 shrink-0" />
+                            Written from your twin&rsquo;s task &ldquo;{selectedTwinTask}&rdquo;. Edit it freely.
                           </p>
+                        ) : (
+                          plan && (
+                            <p className="text-xs text-muted-foreground">
+                              Builds {plan.project.competency.short}, the gap your assessment found.
+                            </p>
+                          )
                         )}
                       </div>
                       <div className="space-y-2">
@@ -457,9 +558,24 @@ export default function AgenticAILabProject() {
                           )}
                         </p>
                         <Button className="gap-2" onClick={handleSubmit} disabled={!readiness.submittable} data-testid="button-submit-project">
-                          <Send className="h-4 w-4" /> Submit for evaluation
+                          <Send className="h-4 w-4" /> {editing ? `Resubmit to ${managerName}` : "Submit for evaluation"}
                         </Button>
                       </div>
+                      {editing && (
+                        <div className="mt-4 space-y-1.5">
+                          <label htmlFor="resubmit-reply" className="text-xs font-semibold text-foreground">
+                            Reply to {managerName} <span className="font-normal text-muted-foreground">(optional)</span>
+                          </label>
+                          <Textarea
+                            id="resubmit-reply"
+                            value={reply}
+                            onChange={(e) => setReply(e.target.value)}
+                            placeholder="Say what you changed, so the review picks up where it left off."
+                            rows={2}
+                            data-testid="input-resubmit-reply"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -503,8 +619,8 @@ export default function AgenticAILabProject() {
                 <Rocket className="h-3.5 w-3.5 text-primary" /> What happens next
               </p>
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                Submitting sends your brief to the Ministry Innovation Lead for human review and to the evaluation engine, which scores it on
-                practical application, innovation, feasibility and governance. Clearing it issues your credential.
+                Submitting sends your brief to your line manager for sign-off, then to your entity for endorsement. Projects with federal
+                reach are escalated to FAHR for the final decision. Going live issues your credential.
               </p>
             </div>
           </aside>

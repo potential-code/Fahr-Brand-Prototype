@@ -14,6 +14,7 @@ export function ReportKpi({
   icon: Icon,
   tone = "text-primary",
   testId,
+  caption,
 }: {
   label: string;
   value: number;
@@ -23,6 +24,8 @@ export function ReportKpi({
   icon?: LucideIcon;
   tone?: string;
   testId?: string;
+  /** One line on what the figure counts and over what period. */
+  caption?: string;
 }) {
   return (
     <StatCard className="h-full" data-testid={testId}>
@@ -34,6 +37,7 @@ export function ReportKpi({
         <p className="text-2xl font-bold tracking-tight">
           <CountUp to={value} suffix={suffix} prefix={prefix} decimals={decimals} />
         </p>
+        {caption && <p className="text-[11px] leading-snug text-muted-foreground">{caption}</p>}
       </CardContent>
     </StatCard>
   );

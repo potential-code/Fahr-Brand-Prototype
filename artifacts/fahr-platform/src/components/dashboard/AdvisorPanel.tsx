@@ -185,8 +185,8 @@ const SCRIPT: ChatStep[] = [
       ar: "استخدم الفريق الذكاء الاصطناعي لتقسيم الجمهور وتحليل أداء القنوات يومياً، وإعادة توجيه الإنفاق نحو الرسائل التي تحقق إجراءً فعلياً.",
     },
     impact: {
-      en: "+38% screening appointments | 40% faster campaign turnaround",
-      ar: "+38% مواعيد فحص | تنفيذ الحملة أسرع بنسبة 40%",
+      en: "Measured by screening appointments booked, not by impressions",
+      ar: "يُقاس بمواعيد الفحص المحجوزة، لا بمرات الظهور",
     },
   },
   {
@@ -208,8 +208,8 @@ const SCRIPT: ChatStep[] = [
     kind: "block",
     tag: { en: "PRACTICE", ar: "تطبيق" },
     title: {
-      en: "Generate a campaign brief with AI",
-      ar: "إنشاء موجز حملة باستخدام الذكاء الاصطناعي",
+      en: "Draft a weekly performance report with AI",
+      ar: "صياغة تقرير أداء أسبوعي باستخدام الذكاء الاصطناعي",
     },
     icon: "simulate",
     status: "active",
@@ -228,16 +228,16 @@ const SCRIPT: ChatStep[] = [
     kind: "block",
     tag: { en: "OUTCOME", ar: "نتيجة" },
     title: {
-      en: "Ship a Campaign Brief Generator as your Workplace Project",
-      ar: "إطلاق مولّد موجز الحملات كمشروعك التطبيقي",
+      en: "Ship a weekly performance report assistant as your Workplace Project",
+      ar: "إطلاق مساعد تقرير الأداء الأسبوعي كمشروعك التطبيقي",
     },
     icon: "outcome",
     status: "next",
   },
   {
     kind: "agent",
-    en: "Complete these blocks and apply them at work. I estimate this pathway can save your team about 42 hours per month.",
-    ar: "أكملي هذه الوحدات وطبّقيها في العمل. أقدّر أن هذا المسار يمكن أن يوفر لفريقك حوالي 42 ساعة شهرياً.",
+    en: "Complete these blocks and apply them at work. Your Workplace Project is where we will measure the hours it saves your team.",
+    ar: "أكملي هذه الوحدات وطبّقيها في العمل. مشروعك التطبيقي هو المكان الذي سنقيس فيه الساعات التي يوفرها لفريقك.",
   },
 ];
 

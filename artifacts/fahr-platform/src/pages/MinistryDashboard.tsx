@@ -30,6 +30,7 @@ import { AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { useEntityAdmin } from "@/lib/EntityAdminContext";
 import {
+  METRICS,
   MINISTRY_BY_ID,
   TWIN_ADOPTION,
   competencyLabel,
@@ -77,13 +78,26 @@ export default function MinistryDashboard() {
     (a) => a.status === "Invited" || a.consent === "Pending" || a.profileCompletion < 50,
   );
 
-  const kpis = [
-    { label: "Total Employees", value: ministry.employees, icon: Users, color: "text-primary" },
-    { label: "Active Learners", value: ministry.activeLearners, icon: Search, color: "text-secondary" },
-    { label: "AI Readiness Index", value: ministry.readiness, suffix: "%", icon: Zap, color: "text-accent" },
-    { label: "AI Digital Twins", value: ministry.twins, icon: Bot, color: "text-[hsl(var(--chart-4))]" },
-    { label: "Projects Submitted", value: ministry.projectsSubmitted, icon: Rocket, color: "text-[hsl(var(--chart-5))]" },
-    { label: "Credentials Issued", value: totalCredentials, icon: Award, color: "text-[hsl(var(--chart-3))]" },
+  const kpis: {
+    label: string;
+    caption: string;
+    value: number;
+    suffix?: string;
+    icon: typeof Users;
+    color: string;
+  }[] = [
+    { label: METRICS.employees.label, caption: "Employees in scope at this entity", value: ministry.employees, icon: Users, color: "text-primary" },
+    { label: METRICS.activeLearners.label, caption: METRICS.activeLearners.caption, value: ministry.activeLearners, icon: Search, color: "text-secondary" },
+    { label: METRICS.readiness.label, caption: METRICS.readiness.caption, value: ministry.readiness, suffix: "%", icon: Zap, color: "text-accent" },
+    { label: METRICS.twins.label, caption: METRICS.twins.caption, value: ministry.twins, icon: Bot, color: "text-[hsl(var(--chart-4))]" },
+    {
+      label: METRICS.projectsSubmitted.label,
+      caption: `${METRICS.projectsSubmitted.caption} · ${ministry.projectsLive} live`,
+      value: ministry.projectsSubmitted,
+      icon: Rocket,
+      color: "text-[hsl(var(--chart-5))]",
+    },
+    { label: METRICS.credentials.label, caption: "Issued for live workplace projects", value: totalCredentials, icon: Award, color: "text-[hsl(var(--chart-3))]" },
   ];
 
   const readinessChartData = departmentData.map((d) => ({ name: d.name.split(" ")[0], score: d.readiness }));
@@ -302,6 +316,7 @@ export default function MinistryDashboard() {
                     <CountUp to={kpi.value} suffix={kpi.suffix} />
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/70">{kpi.caption}</p>
                 </CardContent>
               </StatCard>
             </StaggerItem>

@@ -5,36 +5,38 @@ import { Layout } from "@/components/Layout";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
 import { ProfileHero, ProfileHeroEmpty } from "@/components/profile/ProfileHero";
 import { CompetencyMap } from "@/components/profile/CompetencyMap";
 import { GrowthChart } from "@/components/profile/GrowthChart";
-import { AssessmentHistory, CapabilityLadderTrack } from "@/components/profile/HistoryAndLadder";
+import { CapabilityLadderTrack } from "@/components/profile/HistoryAndLadder";
 import { AdvisorSignalsPanel, AdvisorSignalsPreview } from "@/components/profile/AdvisorSignalsPanel";
-import { AchievementsPanel } from "@/components/profile/AchievementsPanel";
+import { AchievementsPanel, type ProjectCertificateStatus } from "@/components/profile/AchievementsPanel";
 import { NextCapabilities } from "@/components/profile/NextCapabilities";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
+import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
+import { isLive } from "@/lib/federal/journey";
+import { competencyBadges, earnedBadgeCount } from "@/lib/recognitionRecord";
 import { AGENTS, CAPABILITY_LEVELS, LEARNER_PROFILE } from "@/lib/constants";
 import {
   buildProfileAnalysis,
   summariseParticipation,
   type AdvisorSignal,
 } from "@/lib/profileAnalysis";
-import { ArrowRight, Check, ClipboardList, Sparkles } from "lucide-react";
+import { ArrowRight, Check, ClipboardList } from "lucide-react";
 
 /** Four headline numbers pulled straight off the analysis. */
 function ProfileStats({
   overall,
   competencyCount,
   lessonsCompleted,
-  credentialsEarned,
+  badgesEarned,
 }: {
   overall: number;
   competencyCount: number;
   lessonsCompleted: number;
-  credentialsEarned: number;
+  badgesEarned: number;
 }) {
   // Impact points deliberately live only in the achievements panel, so the
   // page never states the same number twice.
@@ -42,7 +44,7 @@ function ProfileStats({
     { id: "readiness", label: "AI readiness", value: overall, suffix: "%" },
     { id: "competencies", label: "Competencies tracked", value: competencyCount },
     { id: "lessons", label: "Lessons completed", value: lessonsCompleted },
-    { id: "credentials", label: "Credentials earned", value: credentialsEarned },
+    { id: "badges", label: "Badges earned", value: badgesEarned },
   ];
 
   // Returns bare cards: the surrounding ScrollReveal owns the grid so it can
@@ -136,6 +138,13 @@ export default function CapabilityProfile() {
     [result, participation, courseProgress],
   );
 
+  // The certificate follows the shared project, exactly as Recognition does:
+  // it exists only once the project is live.
+  const { project } = useWorkplaceProject();
+  const projectStatus: ProjectCertificateStatus = !project
+    ? { state: "none" }
+    : { state: isLive(project.state) ? "live" : "in-review", title: project.title };
+
   // ---- Not yet assessed --------------------------------------------------
   if (!analysis) {
     const knownSignals: AdvisorSignal[] = [
@@ -189,33 +198,8 @@ export default function CapabilityProfile() {
             overall={analysis.overall}
             competencyCount={analysis.standings.length}
             lessonsCompleted={participation.lessonsCompleted}
-            credentialsEarned={analysis.credentials.filter((c) => c.state === "earned").length}
+            badgesEarned={earnedBadgeCount(result)}
           />
-        </ScrollReveal>
-
-        {/* Headline read on the profile, above the detail */}
-        <ScrollReveal>
-          <Card className="border-card-border bg-gradient-to-r from-primary/[0.06] to-transparent">
-            <CardContent className="flex flex-wrap items-center gap-x-6 gap-y-3 p-5">
-              <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-                <Sparkles className="h-3.5 w-3.5" /> Headline read
-              </span>
-              {/* min-w forces the sentence onto its own line rather than into a
-                  narrow column between the label and the badge at tablet width. */}
-              <p className="min-w-[20rem] flex-1 text-sm leading-relaxed text-foreground/85">
-                Strongest in{" "}
-                <span className="font-semibold text-foreground">
-                  {analysis.strongest.competency.label}
-                </span>{" "}
-                at {analysis.strongest.score}%. Widest gap in{" "}
-                <span className="font-semibold text-foreground">{analysis.weakest.competency.label}</span> at{" "}
-                {analysis.weakest.score}%.
-              </p>
-              <Badge variant="outline" className="shrink-0 rounded-full border-primary/40 text-primary">
-                Updated {analysis.completedOn}
-              </Badge>
-            </CardContent>
-          </Card>
         </ScrollReveal>
 
         <ScrollReveal className="grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]" stagger={0.12}>
@@ -228,9 +212,14 @@ export default function CapabilityProfile() {
           <CapabilityLadderTrack level={analysis.level} progressToNext={analysis.progressToNext} />
         </ScrollReveal>
 
-        <ScrollReveal className="grid items-start gap-6 lg:grid-cols-[1fr_1.2fr]" stagger={0.12}>
-          <AssessmentHistory records={analysis.assessments} />
-          <AchievementsPanel credentials={analysis.credentials} participation={participation} />
+        <ScrollReveal>
+          <AchievementsPanel
+            levelLabel={analysis.level.label}
+            levelAwardedOn={analysis.completedOn}
+            project={projectStatus}
+            badges={competencyBadges(result)}
+            participation={participation}
+          />
         </ScrollReveal>
 
         <ScrollReveal>

@@ -51,7 +51,7 @@ import {
   type AnnouncementKind,
   type AnnouncementAudience,
 } from "@/lib/federal";
-import { downloadCsv, printReport, stampedFilename } from "@/lib/exportFile";
+import { downloadCsv, stampedFilename } from "@/lib/exportFile";
 
 const CHANNELS: { id: AnnouncementChannel; icon: typeof Mail }[] = [
   { id: "In-app", icon: Monitor },
@@ -133,7 +133,7 @@ export default function FAHRCommunications() {
               withOpens.length) *
               100,
           );
-    return { sent: sent.length, recipientsReached, avgOpenRate, scheduled };
+    return { sent: sent.length, recipientsReached, avgOpenRate, scheduled, withOpens: withOpens.length };
   }, [announcements]);
 
   const filtered = useMemo(
@@ -223,44 +223,23 @@ export default function FAHRCommunications() {
     toast({ title: "CSV downloaded", description: name });
   };
 
-  const handlePrint = () => {
-    printReport({
-      title: "Federal communications log",
-      subtitle: "National announcements and campaigns to entities, administrators and learners",
-      meta: [
-        `${filtered.length} of ${announcements.length} communications`,
-        kindFilter === "all" ? "All kinds" : kindFilter,
-        statusFilter === "all" ? "All statuses" : statusFilter,
-      ],
-      sections: [
-        {
-          heading: "This period",
-          facts: [
-            { label: "Sent", value: String(kpis.sent) },
-            { label: "Recipients reached", value: kpis.recipientsReached.toLocaleString() },
-            { label: "Average open rate", value: `${kpis.avgOpenRate}%` },
-            { label: "Scheduled", value: String(kpis.scheduled) },
-          ],
-        },
-        {
-          heading: "Communications",
-          table: {
-            headers: exportHeaders,
-            rows: exportRows,
-            numericColumns: [4, 7, 8],
-          },
-        },
-      ],
-      footnote: `Generated ${stampedFilename("communications", "pdf").replace(/^.*-(\d{4}-\d{2}-\d{2})\.pdf$/, "$1")} · FAHR AI Learning Platform.`,
-    });
-    toast({ title: "Print pack ready", description: "Federal communications log sent to print." });
-  };
-
   const kpiCards = [
-    { label: "Sent this period", value: kpis.sent, icon: Send, suffix: "" },
-    { label: "Recipients reached", value: kpis.recipientsReached, icon: Users, suffix: "" },
-    { label: "Average open rate", value: kpis.avgOpenRate, icon: MailOpen, suffix: "%" },
-    { label: "Scheduled", value: kpis.scheduled, icon: CalendarClock, suffix: "" },
+    { label: "Sent", caption: "Announcements and campaigns sent since launch", value: kpis.sent, icon: Send, suffix: "" },
+    {
+      label: "Recipients reached",
+      caption: "Summed across sent items; one person can be counted more than once",
+      value: kpis.recipientsReached,
+      icon: Users,
+      suffix: "",
+    },
+    {
+      label: "Average open rate",
+      caption: `Mean of ${kpis.withOpens} sent item${kpis.withOpens === 1 ? "" : "s"} with open tracking`,
+      value: kpis.avgOpenRate,
+      icon: MailOpen,
+      suffix: "%",
+    },
+    { label: "Scheduled", caption: "Queued to send, not yet delivered", value: kpis.scheduled, icon: CalendarClock, suffix: "" },
   ];
 
   return (
@@ -274,9 +253,6 @@ export default function FAHRCommunications() {
             <>
               <Button variant="outline" onClick={handleExportCsv} data-testid="button-export-csv">
                 Export CSV
-              </Button>
-              <Button variant="secondary" onClick={handlePrint} data-testid="button-print-log">
-                Print log
               </Button>
             </>
           }
@@ -293,6 +269,7 @@ export default function FAHRCommunications() {
                     <CountUp to={kpi.value} suffix={kpi.suffix} />
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                  <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{kpi.caption}</p>
                 </CardContent>
               </StatCard>
             </StaggerItem>

@@ -20,6 +20,8 @@ export type Kpi = {
   testId: string;
   /** Optional caption under the number. */
   hint?: string;
+  /** Shown in place of the number when there is nothing to count yet (e.g. "—"). */
+  placeholder?: string;
 };
 
 /** A staggered row of animated KPI cards, one per screen. */
@@ -39,12 +41,14 @@ export function KpiRow({ kpis, className }: { kpis: Kpi[]; className?: string })
                 <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
               </div>
               <p className="text-3xl font-bold tracking-tight" data-testid={kpi.testId}>
-                <CountUp
-                  to={kpi.value}
-                  prefix={kpi.prefix}
-                  suffix={kpi.suffix}
-                  decimals={kpi.decimals}
-                />
+                {kpi.placeholder ?? (
+                  <CountUp
+                    to={kpi.value}
+                    prefix={kpi.prefix}
+                    suffix={kpi.suffix}
+                    decimals={kpi.decimals}
+                  />
+                )}
               </p>
               {kpi.hint && <p className="text-xs text-muted-foreground">{kpi.hint}</p>}
             </CardContent>

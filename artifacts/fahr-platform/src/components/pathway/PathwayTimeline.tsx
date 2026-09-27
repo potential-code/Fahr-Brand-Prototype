@@ -82,10 +82,10 @@ export function PathwayTimeline({ entries, onOpen }: PathwayTimelineProps) {
         const image = stepImage(item.courseId);
         const done = status === "completed";
         const nodeClasses = done
-          ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+          ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25"
           : locked
             ? "border-border bg-muted text-muted-foreground"
-            : "border-primary/25 bg-card text-primary shadow-sm shadow-black/[0.03]";
+            : "border-primary/30 bg-card text-primary shadow-[var(--shadow)]";
 
         return (
           <motion.li
@@ -133,10 +133,10 @@ export function PathwayTimeline({ entries, onOpen }: PathwayTimelineProps) {
               <article
                 className={`group relative min-w-0 flex-1 overflow-hidden rounded-2xl border transition-all duration-300 ${
                   locked
-                    ? "border-card-border bg-muted/30"
+                    ? "border-card-border/70 bg-muted/30"
                     : item.adaptive
-                      ? "border-primary/40 bg-primary/[0.04] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5"
-                      : "border-card-border bg-card hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-black/5"
+                      ? "border-primary/45 bg-card bg-gradient-to-br from-primary/[0.06] to-transparent shadow-[var(--shadow)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)]"
+                      : "border-foreground/[0.12] bg-card shadow-[var(--shadow)] hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[var(--shadow-lg)]"
                 }`}
               >
                 <div className="flex flex-col sm:flex-row">

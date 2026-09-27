@@ -21,6 +21,7 @@ import {
   LogOut,
   Megaphone,
   Menu,
+  MessageSquare,
   Plug,
   Rocket,
   Search,
@@ -126,6 +127,7 @@ export function Layout({
           { href: "/learner/mission", label: t("nav.mission"), icon: Target },
           { href: "/learner/lab/twin", label: t("nav.lab"), icon: FlaskConical },
           { href: "/learner/lab/project", label: "Workplace Project", icon: Rocket },
+          { href: "/learner/messages", label: "Messages", icon: MessageSquare },
           { href: "/learner/evaluation", label: t("nav.evaluation"), icon: BadgeCheck },
           { href: "/learner/recognition", label: t("nav.recognition"), icon: Award },
           { href: "/learner/events", label: t("nav.events"), icon: CalendarDays },
@@ -136,6 +138,7 @@ export function Layout({
           { href: "/manager", label: "Team Dashboard", icon: LayoutDashboard, exact: true },
           { href: "/manager/reports", label: "Team Reports", icon: BarChart3 },
           { href: "/manager/team", label: "Team Members", icon: Users },
+          { href: "/manager/messages", label: "Messages", icon: MessageSquare },
           { href: "/manager/validations", label: "Team Projects", icon: ClipboardCheck },
           { href: "/manager/recognition", label: "Recognition & Impact", icon: Award },
         ];
@@ -205,6 +208,15 @@ export function Layout({
     }
     previousUnread.current = unreadCount;
   }, [unreadCount, reduceMotion, bellControls]);
+
+  // Unread project messages, shown on the Messages nav item so a decision on
+  // the learner's project is visible from any screen, not only the bell.
+  const navBadges: Record<string, number> = {
+    "/learner/messages":
+      role === "learner"
+        ? notifications.filter((n) => n.href.startsWith("/learner/messages") && !isNotificationRead(n.id)).length
+        : 0,
+  };
 
   const openNotification = (id: string, href: string) => {
     markNotificationRead(id);
@@ -324,6 +336,16 @@ export function Layout({
               </motion.span>
               <span>{link.label}</span>
             </span>
+            {(navBadges[link.href] ?? 0) > 0 && (
+              <span
+                className={`relative z-10 ms-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
+                  isActive ? "bg-primary-foreground text-primary" : "bg-accent text-white"
+                }`}
+                data-testid={`nav-badge-${link.href}`}
+              >
+                {navBadges[link.href]}
+              </span>
+            )}
           </motion.button>
         );
       })}

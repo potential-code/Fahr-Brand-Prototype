@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PlugZap, AlertTriangle, Database, FileDown, Printer } from "lucide-react";
+import { PlugZap, AlertTriangle, Database, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import type { Integration, IntegrationCategory } from "@/lib/federal";
 import { CountUp, PageEnter, Stagger, StaggerItem } from "@/components/motion";
-import { downloadCsv, printReport } from "@/lib/exportFile";
+import { downloadCsv } from "@/lib/exportFile";
 
 /** Category order and copy for the connection card groups. */
 const CATEGORY_ORDER: IntegrationCategory[] = [
@@ -49,13 +49,32 @@ export default function FAHRIntegrations() {
   const notConnectedCount = integrations.filter((i) => i.status === "Not connected").length;
   // Records synced today: sum the record counts of connections whose last sync
   // reads "Today" or "Live", since those are the ones that moved data today.
-  const recordsToday = integrations
-    .filter((i) => i.status !== "Not connected" && (i.lastSync.startsWith("Today") || i.lastSync === "Live"))
-    .reduce((sum, i) => sum + (i.records ?? 0), 0);
+  const syncedToday = integrations.filter(
+    (i) => i.status !== "Not connected" && (i.lastSync.startsWith("Today") || i.lastSync === "Live"),
+  );
+  const recordsToday = syncedToday.reduce((sum, i) => sum + (i.records ?? 0), 0);
 
   const kpis = [
-    { label: "Connections live", value: liveCount, icon: PlugZap, tone: "text-green-600", testid: "kpi-live" },
-    { label: "Records synced today", value: recordsToday, icon: Database, tone: "text-primary", testid: "kpi-records-today" },
+    {
+      label: "Connections live",
+      caption: `${liveCount} of ${integrations.length} connections healthy right now`,
+      value: liveCount,
+      icon: PlugZap,
+      tone: "text-green-600",
+      testid: "kpi-live",
+    },
+    {
+      label: "Records synced today",
+      caption:
+        syncedToday
+          .filter((i) => i.records)
+          .map((i) => `${(i.records ?? 0).toLocaleString()} from ${i.name}`)
+          .join(" + ") || "No connection has synced today",
+      value: recordsToday,
+      icon: Database,
+      tone: "text-primary",
+      testid: "kpi-records-today",
+    },
   ];
 
   const grouped = useMemo(
@@ -81,7 +100,6 @@ export default function FAHRIntegrations() {
         "Last sync",
         "Records",
         "Owner",
-        "Reference",
         "Purpose",
       ],
       rows: integrations.map((i) => [
@@ -93,49 +111,10 @@ export default function FAHRIntegrations() {
         i.lastSync,
         i.records ?? "",
         i.owner,
-        i.reference,
         i.purpose,
       ]),
     });
     toast({ title: "Estate exported", description: `Saved ${name}.` });
-  };
-
-  const printEstate = () => {
-    printReport({
-      title: "Integration estate report",
-      subtitle: "FAHR AI Learning Platform — connection administration",
-      meta: [
-        `${liveCount} live · ${degradedCount} degraded · ${notConnectedCount} not connected`,
-        `Generated ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`,
-      ],
-      sections: [
-        {
-          heading: "Connection estate",
-          facts: [
-            { label: "Live", value: String(liveCount) },
-            { label: "Degraded", value: String(degradedCount) },
-            { label: "Not connected", value: String(notConnectedCount) },
-            { label: "Records synced today", value: recordsToday.toLocaleString() },
-          ],
-          table: {
-            headers: ["Name", "Vendor", "Category", "Status", "Direction", "Last sync", "Records", "Owner"],
-            numericColumns: [6],
-            rows: integrations.map((i) => [
-              i.name,
-              i.vendor,
-              i.category,
-              i.status,
-              i.direction,
-              i.lastSync,
-              i.records ? i.records.toLocaleString() : "—",
-              i.owner,
-            ]),
-          },
-        },
-      ],
-      footnote: "Front-end administration view — no third-party systems are contacted and no secrets appear in this report.",
-    });
-    toast({ title: "Report ready", description: "Sending the integration estate report to print." });
   };
 
   return (
@@ -149,9 +128,6 @@ export default function FAHRIntegrations() {
             <>
               <Button variant="outline" onClick={exportEstateCsv} data-testid="button-export-estate">
                 <FileDown className="w-4 h-4 mr-2" /> Export CSV
-              </Button>
-              <Button variant="outline" onClick={printEstate} data-testid="button-print-estate">
-                <Printer className="w-4 h-4 mr-2" /> Estate report
               </Button>
             </>
           }
@@ -168,6 +144,7 @@ export default function FAHRIntegrations() {
                     <CountUp to={kpi.value} />
                   </p>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                  <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{kpi.caption}</p>
                 </CardContent>
               </StatCard>
             </StaggerItem>
@@ -235,8 +212,6 @@ export default function FAHRIntegrations() {
                             </span>
                           ))}
                         </div>
-
-                        <p className="text-[11px] text-muted-foreground">{integration.reference}</p>
 
                         {integration.statusNote && (
                           <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">

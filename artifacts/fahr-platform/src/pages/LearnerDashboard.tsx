@@ -6,6 +6,8 @@ import { AdvisorPanel } from "@/components/dashboard/AdvisorPanel";
 import { JourneyIllustration } from "@/components/dashboard/JourneyIllustration";
 import { LearnerStatsStrip } from "@/components/dashboard/LearnerStatsStrip";
 import { QuickLinksGrid } from "@/components/dashboard/QuickLinksGrid";
+import { WorkplaceProjectCard } from "@/components/dashboard/WorkplaceProjectCard";
+import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target } from "lucide-react";
@@ -133,9 +135,11 @@ function WelcomeBanner() {
 
 export default function LearnerDashboard() {
   const reduceMotion = useReducedMotion();
+  const { project } = useWorkplaceProject();
 
   const sections = [
     <WelcomeBanner key="banner" />,
+    ...(project ? [<WorkplaceProjectCard key="project" />] : []),
     <BaselineAssessmentCard key="assessment" />,
     <JourneyIllustration key="journey" />,
     <AdvisorPanel key="advisor" />,

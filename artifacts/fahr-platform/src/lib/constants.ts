@@ -26,6 +26,16 @@ export const LEARNER_PROFILE = {
   avatar: "brand/aisha-avatar.png",
 } as const;
 
+/**
+ * The one workplace project the demo tells, end to end: the recurring task the
+ * learner teaches their twin, and the project that puts the twin to work on it.
+ */
+export const DEMO_PROJECT = {
+  task: "Preparing weekly performance reports",
+  taskAr: "إعداد تقارير الأداء الأسبوعية",
+  title: "AI-assisted weekly performance report",
+} as const;
+
 /** Impact points shown for the demo learner across dashboard, profile and recognition. */
 export const IMPACT_POINTS = 13200;
 

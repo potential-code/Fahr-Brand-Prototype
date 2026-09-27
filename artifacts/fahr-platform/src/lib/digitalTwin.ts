@@ -11,6 +11,7 @@
 // far more intelligent than a generic one.
 
 import { screenForPii, type PiiKind } from "@/lib/piiScreen";
+import { DEMO_PROJECT, LEARNER_PROFILE } from "@/lib/constants";
 
 export type LabelPair = { en: string; ar: string };
 
@@ -175,10 +176,13 @@ export const INTERVIEW: InterviewStep[] = [
       ar: "يحدد دورك الأطر المؤسسية التي أقارنك بها.",
     },
     placeholder: {
-      en: "e.g. I run public health awareness campaigns for the Ministry",
-      ar: "مثال: أدير حملات التوعية الصحية في الوزارة",
+      en: "e.g. I run campaign reporting for the Communications and Public Awareness department",
+      ar: "مثال: أتولى تقارير الحملات في إدارة الاتصال والتوعية المجتمعية",
     },
+    // The first suggestion in every question tells the demo's one story: the
+    // learner's real role, and the weekly performance report as their task.
     suggestions: [
+      { en: LEARNER_PROFILE.role, ar: LEARNER_PROFILE.roleAr },
       {
         en: "Public health communications specialist",
         ar: "أخصائي اتصال في الصحة العامة",
@@ -199,14 +203,14 @@ export const INTERVIEW: InterviewStep[] = [
       ar: "العمل المتكرر هو ما يجعل التوأم مجديًا. كل مهمة تصبح شيئًا يمكنني تولّيه.",
     },
     placeholder: {
-      en: "e.g. Drafting campaign briefs every Sunday",
-      ar: "مثال: صياغة موجزات الحملات كل يوم أحد",
+      en: "e.g. Preparing the weekly performance report every Monday",
+      ar: "مثال: إعداد تقرير الأداء الأسبوعي كل يوم اثنين",
     },
     suggestions: [
+      { en: DEMO_PROJECT.task, ar: DEMO_PROJECT.taskAr },
       { en: "Drafting campaign briefs", ar: "صياغة موجزات الحملات" },
       { en: "Writing social media copy", ar: "كتابة محتوى وسائل التواصل" },
       { en: "Summarising audience sentiment reports", ar: "تلخيص تقارير انطباعات الجمهور" },
-      { en: "Preparing weekly performance reports", ar: "إعداد تقارير الأداء الأسبوعية" },
       { en: "Answering resident enquiries", ar: "الرد على استفسارات المتعاملين" },
     ],
     multi: true,
@@ -226,6 +230,7 @@ export const INTERVIEW: InterviewStep[] = [
       ar: "مثال: موجز أسبوع التحصين الوطني ٢٠٢٥",
     },
     suggestions: [
+      { en: "Past weekly performance reports", ar: "تقارير الأداء الأسبوعية السابقة" },
       { en: "National Immunisation Week brief", ar: "موجز أسبوع التحصين الوطني" },
       { en: "Ramadan wellbeing campaign deck", ar: "عرض حملة الصحة في رمضان" },
       { en: "Quarterly campaign performance report", ar: "تقرير أداء الحملات الربعي" },
@@ -247,6 +252,7 @@ export const INTERVIEW: InterviewStep[] = [
       ar: "مثال: موثوق ومطمئن، بلغة عربية وإنجليزية واضحة، دون مصطلحات معقدة",
     },
     suggestions: [
+      { en: "Clear, factual and leadership-ready", ar: "واضح وموضوعي وجاهز للعرض على القيادة" },
       {
         en: "Authoritative but reassuring, no jargon",
         ar: "موثوق ومطمئن، دون مصطلحات معقدة",
@@ -271,9 +277,9 @@ export const INTERVIEW: InterviewStep[] = [
       ar: "مثال: سياسات الوزارة الصحية ٢٠٢٦",
     },
     suggestions: [
+      { en: "Ministry campaign analytics dashboard", ar: "لوحة تحليلات الحملات في الوزارة" },
       { en: "FAHR official tone guide", ar: "دليل النبرة الرسمي للهيئة" },
       { en: "Ministry health policies 2026", ar: "سياسات الوزارة الصحية ٢٠٢٦" },
-      { en: "Past campaign performance data", ar: "بيانات أداء الحملات السابقة" },
       { en: "Federal responsible-AI checklist", ar: "قائمة الذكاء الاصطناعي المسؤول الاتحادية" },
     ],
     multi: true,
@@ -509,7 +515,9 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
   const tone = profile.tone || (isAr ? "أسلوبك المعتاد" : "your usual register");
 
   let text: string;
-  if (primary) {
+  if (primary && isDemoTask(primary)) {
+    text = demoTaskReply(profile, question, tone, isAr);
+  } else if (primary) {
     text = isAr
       ? `أعددت هذا كـ«${primary}»، بالنبرة التي وصفتها: ${tone}.\n\nمسودة جاهزة للمراجعة، مبنية على صيغتك المعتادة ومحاذاة مع ${profile.knowledge[0] ?? "مصادرك المعتمدة"}.`
       : `I have drafted this as "${primary}", in the voice you described: ${tone}.\n\nReady for your review, built on your usual format and checked against ${profile.knowledge[0] ?? "your approved sources"}.`;
@@ -535,7 +543,36 @@ export function answer(profile: TwinProfile, question: string, isAr: boolean): T
   };
 }
 
+function isDemoTask(task: string): boolean {
+  return task === DEMO_PROJECT.task || task === DEMO_PROJECT.taskAr;
+}
+
+/**
+ * The twin on the demo's own task. Asked how it would approach the weekly
+ * report it lays out the steps; asked for the report it drafts one, so the
+ * client sees real work rather than a promise of it.
+ */
+function demoTaskReply(profile: TwinProfile, question: string, tone: string, isAr: boolean): string {
+  const source = profile.knowledge[0] ?? (isAr ? "مصادرك المعتمدة" : "your approved sources");
+  const format = profile.briefs[0] ?? (isAr ? "صيغتك المعتادة" : "your usual format");
+  const approach = /approach|how\b|كيف/i.test(question);
+
+  if (isAr) {
+    return approach
+      ? `هكذا سأتولى تقرير الأداء الأسبوعي، بالنبرة التي وصفتها: ${tone}.\n\n١. أسحب أرقام الأسبوع من ${source}.\n٢. أقارنها بالأسبوع السابق وأنبّه إلى أي رقم تغيّر بأكثر من ٢٠٪.\n٣. أصوغ الملخص على نمط ${format}.\n٤. أسلّمه لك لتتحقق من الأرقام وتعتمده قبل إرساله إلى مدير الإدارة.`
+      : `مسودة تقرير الأداء لهذا الأسبوع، بالنبرة التي وصفتها: ${tone}.\n\nالعنوان الرئيسي: ارتفع وصول الحملات ١٢٪ عن الأسبوع الماضي، بفضل منشورات تطعيمات العودة إلى المدارس.\n• استقر التفاعل عند ٤٫١٪.\n• انخفضت استفسارات مركز الاتصال عن التطعيم ٨٪ بعد تحديث الأسئلة الشائعة.\n• رقم للتحقق: ارتفعت زيارات الموقع ٣١٪.\n\nجاهزة لمراجعتك، ومطابقة مع ${source}.`;
+  }
+
+  return approach
+    ? `Here is how I would take on the weekly performance report, in the voice you described: ${tone}.\n\n1. Pull the week's figures from the ${source}.\n2. Compare them with last week and flag anything that moved by more than 20%.\n3. Draft the summary in the format of your ${format.charAt(0).toLowerCase() + format.slice(1)}.\n4. Hand it to you to check the figures and sign off before it goes to the department head.`
+    : `This week's performance report, drafted in the voice you described: ${tone}.\n\nHeadline: campaign reach is up 12% on last week, driven by the back-to-school vaccination posts.\n• Engagement held steady at 4.1%.\n• Call-centre enquiries about vaccination fell 8% after the FAQ update.\n• One figure to check: website visits jumped 31%.\n\nReady for your review, checked against the ${source}.`;
+}
+
+/** The behaviour a suggested question exists to demonstrate. */
+export type SuggestionKind = "grounded" | "out-of-scope" | "personal-data" | "draft";
+
 export type SuggestedQuestion = {
+  kind: SuggestionKind;
   /** What the chip reads. */
   label: string;
   /** What is actually sent when it is clicked. Usually the same as `label`. */
@@ -550,6 +587,9 @@ export type SuggestedQuestion = {
  * the chips stay true if the interview answers change; both fall back to a
  * generic prompt when the learner has not described any recurring tasks yet.
  */
+/** A made-up but well-formed UAE mobile for the personal-data chip. */
+export const DEMO_MOBILE = "+971 50 418 2736";
+
 export function suggestedQuestions(profile: TwinProfile, isAr: boolean): SuggestedQuestion[] {
   const task = (i: number) => profile.tasks[i];
   // Chip 4 prefers the learner's second task so it reads differently from
@@ -562,6 +602,7 @@ export function suggestedQuestions(profile: TwinProfile, isAr: boolean): Suggest
   return [
     // 1 — grounded: something the learner taught it, so the answer cites a source.
     {
+      kind: "grounded",
       label: task(0)
         ? isAr
           ? `كيف أتعامل مع: ${task(0)}؟`
@@ -579,6 +620,7 @@ export function suggestedQuestions(profile: TwinProfile, isAr: boolean): Suggest
     },
     // 2 — outside approved knowledge: the honest refusal.
     {
+      kind: "out-of-scope",
       label: isAr
         ? "ما توقعات الميزانية الاتحادية للعام القادم؟"
         : "What is next year's federal budget forecast?",
@@ -587,30 +629,97 @@ export function suggestedQuestions(profile: TwinProfile, isAr: boolean): Suggest
         : "What is next year's federal budget forecast?",
     },
     // 3 — personal data: safe label, loaded prompt, so the block is one click.
+    // The prompt carries the demo learner's own name and a realistic UAE mobile
+    // so the screen visibly catches something believable.
     {
+      kind: "personal-data",
       label: isAr ? "جرّب رسالة تحتوي بيانات شخصية" : "Try a message containing personal data",
       prompt: isAr
-        ? "اسمي عائشة المنصوري ورقم هاتفي 0501234567 — اكتب ردًا باسمي."
-        : "My name is Aisha Al Mansoori, my mobile is 0501234567 — draft a reply from me.",
+        ? `اسمي ${LEARNER_PROFILE.nameAr} ورقم هاتفي ${DEMO_MOBILE} — اكتب ردًا على المتعامل باسمي.`
+        : `My name is ${LEARNER_PROFILE.name}, my mobile is ${DEMO_MOBILE} — draft a reply to the customer from me.`,
     },
     // 4 — real work: the twin being useful.
     {
+      kind: "draft",
       label: chip4Task
         ? isAr
-          ? `اكتب موجزًا قصيرًا عن: ${chip4Task}`
-          : `Draft a short brief for: ${chip4Task}`
+          ? `اكتب نسخة هذا الأسبوع من: ${chip4Task}`
+          : `Draft this week's version of: ${chip4Task}`
         : isAr
           ? "اكتب تحديثًا من سطرين لمدير إدارتي"
           : "Draft a two-line update for my department manager",
       prompt: chip4Task
         ? isAr
-          ? `اكتب موجزًا قصيرًا عن: ${chip4Task}`
-          : `Draft a short brief for: ${chip4Task}`
+          ? `اكتب نسخة هذا الأسبوع من: ${chip4Task}`
+          : `Draft this week's version of: ${chip4Task}`
         : isAr
           ? "اكتب تحديثًا من سطرين لمدير إدارتي"
           : "Draft a two-line update for my department manager",
     },
   ];
+}
+
+// ---------------------------------------------------------------------------
+// Hand-off to the Workplace Project
+// ---------------------------------------------------------------------------
+
+function lowerFirst(value: string): string {
+  return value ? value.charAt(0).toLowerCase() + value.slice(1) : value;
+}
+
+/** "a Marketing Specialist", "an engagement officer". */
+function withArticle(role: string): string {
+  return `${/^[aeiou]/i.test(role) ? "an" : "a"} ${role}`;
+}
+
+/** A document the learner named, as it reads mid-sentence: "my past weekly…", "the National…". */
+function documentPhrase(name: string): string {
+  return /^past\s/i.test(name) ? `my ${lowerFirst(name)}` : `the ${name}`;
+}
+
+/**
+ * The project title and challenge for one of the twin's recurring tasks, in
+ * the learner's own words from the interview — so picking a task on the
+ * project screen visibly turns the twin into the project.
+ */
+export function projectBriefFromTask(profile: TwinProfile, task: string): { title: string; challenge: string } {
+  // A title-case job title ("Marketing Specialist") keeps its capitals; a
+  // sentence-case one ("Campaign and content lead") reads lower mid-sentence.
+  const given = profile.role || LEARNER_PROFILE.role;
+  const role = /^(\p{Lu}\p{Ll}*\s?)+$/u.test(given) ? given : lowerFirst(given);
+  const brief = profile.briefs[0];
+  const source = profile.knowledge[0];
+
+  // What the twin already does with it, from what the learner taught it.
+  const twinDoes = [
+    "My digital twin already drafts it",
+    brief ? ` from ${documentPhrase(brief)}` : "",
+    source ? `, checked against the ${source}` : "",
+    profile.tone ? `, in the tone I set (${lowerFirst(profile.tone)})` : "",
+    ".",
+  ].join("");
+
+  if (isDemoTask(task)) {
+    return {
+      title: DEMO_PROJECT.title,
+      challenge: [
+        `As ${withArticle(role)} in ${LEARNER_PROFILE.department}, I prepare the weekly performance report every Monday.`,
+        "It takes me about six hours: pulling reach, engagement and enquiry figures from four separate dashboards, reconciling them in a spreadsheet and writing the summary for the department head.",
+        "The figures rarely match between sources, the report lands on Tuesday afternoon instead of Monday morning, and there is no time left to explain what actually changed.",
+        twinDoes,
+        "This project puts it to work properly: the twin drafts, I check the figures and sign off, and the time saved is measured.",
+      ].join(" "),
+    };
+  }
+
+  return {
+    title: `${task} with my AI Digital Twin`,
+    challenge: [
+      `As ${withArticle(role)} in ${LEARNER_PROFILE.department}, ${lowerFirst(task)} is recurring work that takes several hours every week, done by hand.`,
+      twinDoes,
+      "This project puts it to work properly: the twin drafts, I review and sign off, and the time saved is measured.",
+    ].join(" "),
+  };
 }
 
 // ---------------------------------------------------------------------------

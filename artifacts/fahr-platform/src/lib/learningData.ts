@@ -469,7 +469,7 @@ export const COURSES: Course[] = [
     },
     finalAssessment: {
       title: "Final assessment",
-      intro: "Three questions to confirm you can apply the fundamentals. Passing unlocks your course certificate.",
+      intro: "Three questions to confirm you can apply the fundamentals. Passing completes the course.",
       questions: [
         {
           id: "f1",
@@ -714,7 +714,7 @@ export const COURSES: Course[] = [
     },
     finalAssessment: {
       title: "Final assessment",
-      intro: "Three questions to confirm your instruction design. Passing unlocks your course certificate.",
+      intro: "Three questions to confirm your instruction design. Passing completes the course.",
       questions: [
         {
           id: "f1",
@@ -924,7 +924,7 @@ export const COURSES: Course[] = [
     },
     finalAssessment: {
       title: "Final assessment",
-      intro: "Three questions to confirm you can apply the guardrails. Passing unlocks your course certificate.",
+      intro: "Three questions to confirm you can apply the guardrails. Passing completes the course.",
       questions: [
         {
           id: "f1",

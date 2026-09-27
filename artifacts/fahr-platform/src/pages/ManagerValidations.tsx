@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearch } from "wouter";
 import { Layout } from "@/components/Layout";
 import { PageHeader } from "@/components/PageHeader";
 import { PageEnter, Stagger, StaggerItem } from "@/components/motion";
@@ -9,19 +10,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { filterSubmissions } from "@/lib/federal";
-import { ClipboardCheck, RotateCcw, AlertCircle, BrainCircuit, CheckCircle2 } from "lucide-react";
+import { ClipboardCheck, RotateCcw, AlertCircle, BrainCircuit, CheckCircle2, MessagesSquare } from "lucide-react";
 import { ManagerActionDialogs, type ManagerActionType } from "@/components/manager/ManagerActionDialogs";
 import { AIAnalysisInline } from "@/components/ai/AIAnalysis";
 import { AGENTS } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import { SubmissionStateBadge } from "@/components/project/SubmissionStateBadge";
+import { ProjectJourney } from "@/components/project/ProjectJourney";
+import { ProjectConversation } from "@/components/project/ProjectConversation";
+import { ProjectBriefView, ProjectSummary } from "@/components/project/ProjectBrief";
+import { ReturnContext } from "@/components/manager/ReturnContext";
 
 export default function ManagerValidations() {
-  const { focus, teamOf, submissions, getPerson, signOff, requestRevision, issueCredential } = useFederalData();
+  const { focus, teamOf, submissions, getPerson, signOff, requestRevision } = useFederalData();
   const { toast } = useToast();
   
   const team = teamOf(focus.managerId);
-  const teamIds = new Set(team.map((p) => p.id));
+  const teamIds = useMemo(() => new Set(team.map((p) => p.id)), [team]);
   
   const teamSubmissions = useMemo(
     () => submissions.filter((s) => teamIds.has(s.personId)),
@@ -40,25 +46,31 @@ export default function ManagerValidations() {
   const [showRevisionInput, setShowRevisionInput] = useState(false);
   const [actionDialog, setActionDialog] = useState<{action: ManagerActionType, subject: any} | null>(null);
 
+  // Deep link from a notification: /manager/validations?project=<id> opens that
+  // project's review sheet, provided it belongs to this manager's team.
+  const search = useSearch();
+  const linkedProjectId = new URLSearchParams(search).get("project");
+  useEffect(() => {
+    if (linkedProjectId && teamSubmissions.some((s) => s.id === linkedProjectId)) {
+      setSelectedSubmissionId(linkedProjectId);
+    }
+    // Only react to the link changing, not to every store update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedProjectId]);
+
   const selectedSubmission = submissions.find(s => s.id === selectedSubmissionId);
   const submissionOwner = selectedSubmission ? getPerson(selectedSubmission.personId) : null;
 
   const handleSignOff = () => {
     if (!selectedSubmission || !submissionOwner) return;
     
-    signOff(selectedSubmission.id, { by: "Department Manager" });
-    issueCredential({
-      personId: submissionOwner.id,
-      personName: submissionOwner.name,
-      title: "Workplace Project Validated: " + selectedSubmission.title,
-      levelId: "practitioner",
-      submissionId: selectedSubmission.id,
-      by: "Department Manager"
-    });
-    
+    // Sign-off hands the project to the entity admin; the credential is issued
+    // by the store when the project goes live.
+    signOff(selectedSubmission.id, { by: getPerson(focus.managerId)?.name ?? "Department Manager" });
+
     toast({
-      title: "Project Signed Off",
-      description: `"${selectedSubmission.title}" has been endorsed and a credential issued.`
+      title: "Project signed off",
+      description: `"${selectedSubmission.title}" is now with the entity admin for endorsement. ${submissionOwner.name} has been notified.`
     });
     setSelectedSubmissionId(null);
   };
@@ -66,11 +78,11 @@ export default function ManagerValidations() {
   const handleRevision = () => {
     if (!selectedSubmission || !submissionOwner || !revisionNote) return;
     
-    requestRevision(selectedSubmission.id, { by: "Department Manager", note: revisionNote });
-    
+    requestRevision(selectedSubmission.id, { by: getPerson(focus.managerId)?.name ?? "Department Manager", note: revisionNote });
+
     toast({
       title: "Sent to learner",
-      description: `"${selectedSubmission.title}" has gone back to ${submissionOwner.name} with your comments.`
+      description: `"${selectedSubmission.title}" has gone back to ${submissionOwner.name} with your comments. They have been notified and will see it in their Messages.`
     });
     setRevisionNote("");
     setShowRevisionInput(false);
@@ -113,16 +125,21 @@ export default function ManagerValidations() {
                   return (
                     <StaggerItem key={s.id} as="div">
                       <Card className="hover-elevate cursor-pointer border-border transition-colors" onClick={() => setSelectedSubmissionId(s.id)}>
-                        <CardContent className="p-5 flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge variant="outline" className="bg-primary/10 text-primary border-none">High Priority</Badge>
-                              <span className="text-xs text-muted-foreground">Submitted {s.submittedOn}</span>
+                        <CardContent className="p-5 space-y-3">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <SubmissionStateBadge submission={s} />
+                                <span className="text-xs text-muted-foreground">Submitted {s.submittedOn}</span>
+                              </div>
+                              <h3 className="text-base font-semibold text-foreground">{s.title}</h3>
+                              <p className="text-sm text-muted-foreground mt-1">From: {owner?.name}</p>
                             </div>
-                            <h3 className="text-base font-semibold text-foreground">{s.title}</h3>
-                            <p className="text-sm text-muted-foreground mt-1">From: {owner?.name}</p>
+                            <Button variant="ghost" className="shrink-0"><ClipboardCheck className="w-4 h-4 me-2" /> Review</Button>
                           </div>
-                          <Button variant="ghost" className="shrink-0"><ClipboardCheck className="w-4 h-4 me-2" /> Review</Button>
+                          <ProjectSummary submission={s} />
+                          <ReturnContext submission={s} />
+                          <ProjectJourney submission={s} variant="compact" />
                         </CardContent>
                       </Card>
                     </StaggerItem>
@@ -182,21 +199,12 @@ export default function ManagerValidations() {
               </SheetHeader>
 
               <div className="space-y-6 mt-6">
-                <Card>
-                  <CardHeader className="bg-muted/30 pb-3 border-b border-border">
-                    <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Learner's Submission</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-sm mb-1">Description</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{selectedSubmission.description}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm mb-1">Metrics & Impact</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{selectedSubmission.metrics}</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ProjectJourney submission={selectedSubmission} variant="full" />
+
+                <div data-testid="manager-learner-brief">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Learner's brief</p>
+                  <ProjectBriefView submission={selectedSubmission} />
+                </div>
 
                 <Card className="border-primary/20 bg-primary/5">
                   <CardHeader className="bg-primary/10 pb-3 border-b border-primary/20 flex flex-row items-center gap-2">
@@ -213,7 +221,7 @@ export default function ManagerValidations() {
                       <div className="space-y-4">
                         <p className="text-sm text-foreground leading-relaxed">
                           This project demonstrates strong practical application of <strong>{selectedSubmission.competencyIds.join(", ")}</strong> competencies. 
-                          The estimated value of {selectedSubmission.estimatedValueAed.toLocaleString()} AED and {selectedSubmission.hoursSavedPerMonth} hours saved per month is realistic based on similar federal implementations.
+                          The estimate of {selectedSubmission.hoursSavedPerMonth} hours returned per month is realistic based on similar federal implementations.
                         </p>
                         <div className="flex flex-wrap gap-2 pt-2">
                           <Badge variant="outline" className="bg-background text-primary border-primary/30">Governance: {selectedSubmission.governanceStatus}</Badge>
@@ -225,42 +233,51 @@ export default function ManagerValidations() {
                 </Card>
               </div>
 
-              <div className="pt-6 border-t border-border flex flex-col gap-3">
-                {showRevisionInput ? (
-                  <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
-                    <label htmlFor="revision-note" className="text-sm font-medium text-foreground">
-                      Comments for {submissionOwner?.name ?? "the learner"}
-                    </label>
-                    <Textarea
-                      id="revision-note"
-                      data-testid="input-revision-comments"
-                      rows={5}
-                      placeholder="What needs to change before this can be signed off — the evidence, the measured impact, the governance step…"
-                      value={revisionNote}
-                      onChange={(e) => setRevisionNote(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Sent to {submissionOwner?.name ?? "the learner"} in full, with a notification, and shown on their
-                      workplace project.
-                    </p>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => setShowRevisionInput(false)}>Cancel</Button>
-                      <Button size="sm" data-testid="button-send-revision" onClick={handleRevision} disabled={!revisionNote.trim()}>
-                        Send to learner
+              <section className="space-y-3" aria-labelledby="review-conversation-heading">
+                <h3 id="review-conversation-heading" className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  <MessagesSquare className="w-4 h-4" /> Review conversation
+                </h3>
+                <ProjectConversation submission={selectedSubmission} />
+              </section>
+
+              {selectedSubmission.state === "awaiting_manager" && (
+                <div className="pt-6 border-t border-border flex flex-col gap-3">
+                  {showRevisionInput ? (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+                      <label htmlFor="revision-note" className="text-sm font-medium text-foreground">
+                        Comments for {submissionOwner?.name ?? "the learner"}
+                      </label>
+                      <Textarea
+                        id="revision-note"
+                        data-testid="input-revision-comments"
+                        rows={5}
+                        placeholder="What needs to change before this can be signed off — the evidence, the measured impact, the governance step…"
+                        value={revisionNote}
+                        onChange={(e) => setRevisionNote(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Sent to {submissionOwner?.name ?? "the learner"} in full, with a notification, and shown on their
+                        workplace project.
+                      </p>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => setShowRevisionInput(false)}>Cancel</Button>
+                        <Button size="sm" data-testid="button-send-revision" onClick={handleRevision} disabled={!revisionNote.trim()}>
+                          Send to learner
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center w-full gap-4">
+                      <Button variant="outline" className="flex-1" data-testid="button-request-revision" onClick={() => setShowRevisionInput(true)}>
+                        <RotateCcw className="w-4 h-4 me-2" /> Request revision
+                      </Button>
+                      <Button className="flex-1" onClick={handleSignOff}>
+                        <ClipboardCheck className="w-4 h-4 me-2" /> Sign Off & Validate
                       </Button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-center w-full gap-4">
-                    <Button variant="outline" className="flex-1" data-testid="button-request-revision" onClick={() => setShowRevisionInput(true)}>
-                      <RotateCcw className="w-4 h-4 me-2" /> Request revision
-                    </Button>
-                    <Button className="flex-1" onClick={handleSignOff}>
-                      <ClipboardCheck className="w-4 h-4 me-2" /> Sign Off & Validate
-                    </Button>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </SheetContent>

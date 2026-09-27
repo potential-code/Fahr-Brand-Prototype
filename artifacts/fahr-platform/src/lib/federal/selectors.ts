@@ -92,7 +92,7 @@ export type FederalTotals = {
   readiness: number;
   twins: number;
   projectsSubmitted: number;
-  valueCreatedAedM: number;
+  projectsLive: number;
   hoursSavedPerMonth: number;
   credentialsIssued: number;
   ministriesTotal: number;
@@ -101,6 +101,30 @@ export type FederalTotals = {
   /** Share of targeted federal employees who are active learners. */
   coverage: number;
 };
+
+/** A working day, in hours — the unit the impact register reports time in. */
+export const WORKING_DAY_HOURS = 7.5;
+
+/** Hours returned a month, expressed as working days returned a year. */
+export const workingDaysPerYear = (hoursPerMonth: number): number =>
+  Math.round((hoursPerMonth * 12) / WORKING_DAY_HOURS);
+
+/**
+ * One name and one caption for every headline figure, so the same number is
+ * never called three different things on three different screens.
+ */
+export const METRICS = {
+  readiness: { label: "AI readiness", caption: "Average assessed capability score" },
+  coverage: { label: "Workforce coverage", caption: "Active learners as a share of the targeted workforce" },
+  activeLearners: { label: "Active learners", caption: "Enrolled and active since launch" },
+  employees: { label: "Targeted workforce", caption: "Federal employees in scope" },
+  twins: { label: "Digital twins", caption: "Built by learners since launch" },
+  projectsSubmitted: { label: "Projects submitted", caption: "Workplace projects since launch" },
+  projectsLive: { label: "Projects live", caption: "Endorsed or approved and in service" },
+  hoursSaved: { label: "Hours returned / month", caption: "From live workplace projects" },
+  credentials: { label: "Credentials issued", caption: "Workplace-project credentials since launch" },
+  onTrack: { label: "Entities on track", caption: "At or above 65 AI readiness" },
+} as const;
 
 /** An entity is "on track" at or above this readiness index. */
 export const ON_TRACK_READINESS = 65;
@@ -114,7 +138,7 @@ export const FEDERAL: FederalTotals = (() => {
     readiness: Math.round(sum(MINISTRIES.map((m) => m.readiness * m.employees)) / employees),
     twins: sum(MINISTRIES.map((m) => m.twins)),
     projectsSubmitted: sum(MINISTRIES.map((m) => m.projectsSubmitted)),
-    valueCreatedAedM: Math.round(sum(MINISTRIES.map((m) => m.valueCreatedAedM)) * 10) / 10,
+    projectsLive: sum(MINISTRIES.map((m) => m.projectsLive)),
     hoursSavedPerMonth: sum(MINISTRIES.map((m) => m.hoursSavedPerMonth)),
     credentialsIssued: sum(MINISTRIES.map((m) => m.credentialsIssued)),
     ministriesTotal: MINISTRIES.length,
@@ -296,7 +320,7 @@ export const SUBMISSION_STATE_LABEL: Record<SubmissionState, string> = {
   awaiting_entity: "Awaiting entity endorsement",
   endorsed: "Endorsed",
   escalated: "Escalated to FAHR",
-  deployed: "Deployed",
+  deployed: "Live",
 };
 
 export function filterSubmissions(

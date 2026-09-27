@@ -34,7 +34,7 @@ import {
 import { useFahrConsole } from "@/lib/FahrConsoleContext";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { CoachDock } from "@/components/coach/CoachDock";
-import { StepQuiz } from "@/components/learning/StepQuiz";
+import { QuizReview, StepQuiz } from "@/components/learning/StepQuiz";
 import { VideoEmbed } from "@/components/learning/VideoEmbed";
 import { RemediationBanner } from "@/components/learning/RemediationBanner";
 import { AGENTS } from "@/lib/constants";
@@ -50,6 +50,11 @@ const LESSON_ICON = {
 
 /** Final assessment pass mark: 2 of 3 questions correct. */
 const FINAL_PASS_MARK = 2;
+
+/** Correct answers in a saved attempt, or null when there is none. */
+function scoreOf(answers: number[] | undefined, questions: { correctIndex: number }[]): number | null {
+  return answers ? answers.filter((a, i) => a === questions[i]?.correctIndex).length : null;
+}
 
 type ActiveItem = { kind: "pretest" } | { kind: "lesson"; id: string } | { kind: "final" };
 
@@ -149,6 +154,7 @@ export default function CoursePlayer() {
     toggleLessonComplete,
     setPretestDone,
     setFinalDone,
+    saveQuizAnswers,
   } = useLearnerProgress();
 
   // The course as FAHR has edited it — text and video changes made in the
@@ -219,6 +225,8 @@ export default function CoursePlayer() {
   }
 
   const percent = getCoursePercent(course.id);
+  const pretestScore = scoreOf(progress.pretestAnswers, course.pretest.questions);
+  const finalScore = scoreOf(progress.finalAnswers, course.finalAssessment.questions);
   const lessonsDone = progress.completedLessonIds.length;
   const allLessonsDone = lessonsDone === lessons.length;
   const finalOpen = allLessonsDone && (!remediationFor || revisionDone(course.id));
@@ -378,7 +386,9 @@ export default function CoursePlayer() {
                   {outlineItem(
                     "pretest",
                     course.pretest.title,
-                    "Knowledge check · 4 questions",
+                    pretestScore !== null
+                      ? `Scored ${pretestScore} of ${course.pretest.questions.length}`
+                      : `Knowledge check · ${course.pretest.questions.length} questions`,
                     <ClipboardCheck className="h-2.5 w-2.5 text-muted-foreground" />,
                     active.kind === "pretest",
                     progress.pretestDone,
@@ -436,7 +446,11 @@ export default function CoursePlayer() {
                   {outlineItem(
                     "final",
                     course.finalAssessment.title,
-                    finalOpen ? "3 questions · unlocks certificate" : "Complete all lessons to unlock",
+                    progress.finalDone && finalScore !== null
+                      ? `Passed · ${finalScore} of ${course.finalAssessment.questions.length}`
+                      : finalOpen
+                        ? `${course.finalAssessment.questions.length} questions · completes the course`
+                        : "Complete all lessons to unlock",
                     <Award className="h-2.5 w-2.5 text-muted-foreground" />,
                     active.kind === "final",
                     progress.finalDone,
@@ -476,16 +490,21 @@ export default function CoursePlayer() {
                       <div className="mt-7">
                         <StepQuiz
                           questions={course.pretest.questions}
+                          savedAnswers={progress.pretestAnswers}
+                          onAttempt={(_correct, _total, answers) => saveQuizAnswers(course.id, "pretest", answers)}
                           passMark={0}
-                          submitLabel="Start the lessons"
+                          submitLabel={progress.pretestDone ? "Back to the lessons" : "Start the lessons"}
                           passNote="Your answers set the depth of each lesson that follows."
                           onPass={(correct) => {
-                            setPretestDone(course.id);
-                            toast({
-                              title: "Course adapted to you",
-                              description: `You scored ${correct} of ${course.pretest.questions.length}. Lessons you already know have been shortened.`,
-                            });
-                            setActive({ kind: "lesson", id: lessons[0].id });
+                            if (!progress.pretestDone) {
+                              setPretestDone(course.id);
+                              toast({
+                                title: "Course adapted to you",
+                                description: `You scored ${correct} of ${course.pretest.questions.length}. Lessons you already know have been shortened.`,
+                              });
+                            }
+                            const next = lessons.find((l) => !progress.completedLessonIds.includes(l.id)) ?? lessons[0];
+                            setActive({ kind: "lesson", id: next.id });
                           }}
                         />
                       </div>
@@ -558,16 +577,48 @@ export default function CoursePlayer() {
                             Course complete
                           </h2>
                           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-                            Your verifiable credential for {course.title} has been issued and added to your
-                            capability profile.
+                            {course.title} is complete and your progress is on your capability profile. Your
+                            competency badges move with your assessment scores, and your certificate comes from
+                            your workplace project going live.
                           </p>
+                          {finalScore !== null && progress.finalAnswers && (
+                            <div
+                              className="mx-auto mt-6 max-w-xl rounded-xl border border-card-border bg-muted/40 p-5 text-start"
+                              data-testid="final-result"
+                            >
+                              <div className="flex flex-wrap items-end justify-between gap-3">
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Final assessment</p>
+                                  <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">
+                                    {finalScore}{" "}
+                                    <span className="text-base font-semibold text-muted-foreground">
+                                      of {course.finalAssessment.questions.length} correct
+                                    </span>
+                                  </p>
+                                </div>
+                                {pretestScore !== null && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Knowledge check at the start:{" "}
+                                    <span className="font-semibold text-foreground">
+                                      {pretestScore} of {course.pretest.questions.length}
+                                    </span>
+                                  </p>
+                                )}
+                              </div>
+                              <QuizReview
+                                questions={course.finalAssessment.questions}
+                                answers={progress.finalAnswers}
+                                className="mt-4"
+                              />
+                            </div>
+                          )}
                           <div className="mt-7 flex flex-wrap justify-center gap-2">
                             <Button
                               variant="outline"
                               onClick={() => setLocation("/learner/recognition")}
                               data-testid="button-view-credential"
                             >
-                              <Award className="h-4 w-4 mr-2" /> View credential
+                              <Award className="h-4 w-4 mr-2" /> View recognition
                             </Button>
                             <Button
                               onClick={() => setLocation("/learner/mission")}
@@ -588,6 +639,9 @@ export default function CoursePlayer() {
                           <div className="mt-7">
                             <StepQuiz
                               questions={course.finalAssessment.questions}
+                              // A passed attempt reopens on its result; a failed one starts
+                              // fresh once the revision units reopen the assessment.
+                              savedAnswers={finalScore !== null && finalScore >= FINAL_PASS_MARK ? progress.finalAnswers : undefined}
                               passMark={FINAL_PASS_MARK}
                               submitLabel="Claim your credential"
                               passNote="Strong result. Your credential is ready to claim."
@@ -595,7 +649,8 @@ export default function CoursePlayer() {
                               // same commit, which re-locks this tab before StepQuiz's own
                               // result screen can paint. The locked-for-remediation panel above
                               // carries the score and next step instead.
-                              onAttempt={(correct) => {
+                              onAttempt={(correct, _total, answers) => {
+                                saveQuizAnswers(course.id, "final", answers);
                                 if (correct >= FINAL_PASS_MARK) return;
                                 openRemediation(course.id, course.competencyId, correct);
                               }}

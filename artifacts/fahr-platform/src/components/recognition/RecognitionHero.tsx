@@ -10,6 +10,7 @@ import {
   RECOGNITION_SURFACE_CLASS,
   RecognitionTexture,
 } from "@/components/recognition/RecognitionSurface";
+import { PointsLegend } from "@/components/recognition/PointsLegend";
 import { ArrowUpRight, BadgeCheck, Building2, ShieldCheck, Star, TrendingUp } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL;
@@ -129,7 +130,10 @@ export function RecognitionHero({ record }: { record: RecognitionRecord }) {
                 className={`rounded-xl p-3.5 ${RECOGNITION_PANEL_CLASS}`}
                 data-testid={`hero-stat-${stat.id}`}
               >
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">{stat.label}</p>
+                <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/50">
+                  {stat.label}
+                  {stat.id === "points" && <PointsLegend tone="dark" className="-my-1" />}
+                </p>
                 <p className="mt-1 text-xl font-bold tabular-nums text-white">
                   <CountUp to={stat.value} prefix={stat.prefix} />
                 </p>
@@ -137,7 +141,7 @@ export function RecognitionHero({ record }: { record: RecognitionRecord }) {
             ))}
             <p className="col-span-2 inline-flex items-center gap-1.5 text-[11px] text-white/45">
               <Star className="h-3 w-3 shrink-0 fill-current text-primary" />
-              Top {100 - rank.percentile + 1}% federally · up {rank.movement} places this quarter
+              Top {rank.topPercent}% federally · up {rank.movement} places this quarter
             </p>
             <p className="col-span-2 inline-flex items-center gap-1.5 text-[11px] text-white/45">
               <BadgeCheck className="h-3 w-3 shrink-0 text-primary" />

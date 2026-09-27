@@ -483,21 +483,8 @@ export default function AgenticAILabTwin() {
               </CardContent>
             </Card>
 
-            <Card className="flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MessageSquareQuote className="w-5 h-5 text-primary" />
-                  {isAr ? "اختبر توأمك" : "Test your twin"}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {isAr
-                    ? "يستند التوأم إلى ما علّمته إياه فقط."
-                    : "The twin stands only on what you taught it."}
-                </p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col min-h-0">
-                <TwinTestChat onAsked={() => setHasTested(true)} />
-              </CardContent>
+            <Card className="flex flex-col overflow-hidden border-primary/20 shadow-md">
+              <TwinTestChat onAsked={() => setHasTested(true)} />
             </Card>
           </div>
         )}

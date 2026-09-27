@@ -14,14 +14,12 @@ import {
   Users,
   Bot,
   Zap,
-  Lightbulb,
   Rocket,
   Activity,
   ChevronRight,
   User,
   Award,
   Download,
-  Printer,
   Briefcase,
   CheckCircle2,
 } from "lucide-react";
@@ -30,10 +28,11 @@ import { CAPABILITY_LEVELS, AGENTS } from "@/lib/constants";
 import { useFederalData } from "@/lib/FederalDataContext";
 import { CountUp, ChartReveal, MOTION, PageEnter, Stagger, StaggerItem } from "@/components/motion";
 import { AIAnalysisPanel } from "@/components/ai/AIAnalysis";
-import { downloadCsv, printReport, stampedFilename, type CsvRow } from "@/lib/exportFile";
+import { downloadCsv, stampedFilename, type CsvRow } from "@/lib/exportFile";
 import {
   DEPARTMENT_BY_ID,
   LEVEL_BY_ID,
+  METRICS,
   MINISTRY_BY_ID,
   SUBMISSION_STATE_LABEL,
   competencyLabel,
@@ -80,20 +79,23 @@ export default function FAHRDashboard() {
   const national = useMemo(() => nationalLine(ministries), [ministries]);
   const twins = useMemo(() => ministries.reduce((sum, m) => sum + m.twins, 0), [ministries]);
 
+  /** Headline tiles; the order is load-bearing for the federal roll-up test. */
   const kpis = useMemo(
     () => [
-      { label: "Federal employees targeted", value: national.employees, icon: Users },
-      { label: "Active learners", value: national.activeLearners, icon: Activity },
-      { label: "Federal readiness", value: national.readiness, suffix: "%", icon: Zap },
-      { label: "AI digital twins", value: twins, icon: Bot },
-      { label: "Projects submitted", value: national.projects, icon: Rocket },
+      { ...METRICS.employees, value: national.employees, icon: Users },
       {
-        label: "Est. value created",
-        value: national.valueCreatedAedM,
-        prefix: "AED ",
-        suffix: "M",
-        decimals: 1,
-        icon: Lightbulb,
+        ...METRICS.activeLearners,
+        caption: `${national.coverage}% of ${national.employees.toLocaleString()} targeted, since launch`,
+        value: national.activeLearners,
+        icon: Activity,
+      },
+      { ...METRICS.readiness, value: national.readiness, suffix: "%", icon: Zap },
+      { ...METRICS.twins, value: twins, icon: Bot },
+      {
+        ...METRICS.projectsSubmitted,
+        caption: `Since launch; ${national.projectsLive.toLocaleString()} live`,
+        value: national.projects,
+        icon: Rocket,
       },
     ],
     [national, twins],
@@ -120,16 +122,15 @@ export default function FAHRDashboard() {
   const federalChartData = leadEntities.map((m) => ({ id: m.id, name: m.shortName, score: m.readiness }));
   const ministryChartData = departments.map((d) => ({ id: d.id, name: d.name.split(" ")[0], score: d.readiness }));
 
-  /** Value contribution, so the bars reconcile with the federal headline. */
-  const valueBreakdown = useMemo(() => {
-    const top = [...ministries].sort((a, b) => b.valueCreatedAedM - a.valueCreatedAedM).slice(0, 3);
-    const other =
-      Math.round((national.valueCreatedAedM - top.reduce((a, m) => a + m.valueCreatedAedM, 0)) * 10) / 10;
+  /** Hours returned by entity, so the bars reconcile with the federal headline. */
+  const hoursBreakdown = useMemo(() => {
+    const top = [...ministries].sort((a, b) => b.hoursSavedPerMonth - a.hoursSavedPerMonth).slice(0, 3);
+    const other = national.hoursSavedPerMonth - top.reduce((a, m) => a + m.hoursSavedPerMonth, 0);
     return [
-      ...top.map((m) => ({ label: m.shortName, value: m.valueCreatedAedM })),
+      ...top.map((m) => ({ label: m.shortName, value: m.hoursSavedPerMonth })),
       { label: "All other entities", value: other },
     ];
-  }, [ministries, national.valueCreatedAedM]);
+  }, [ministries, national.hoursSavedPerMonth]);
 
   const gaps = useMemo(() => nationalGaps(), []);
   const strongest = useMemo(
@@ -183,8 +184,8 @@ export default function FAHRDashboard() {
           { label: "Active learners", value: selectedMinistry.activeLearners.toLocaleString() },
           { label: "Priority gap", value: competencyLabel(selectedMinistry.topGapCompetencyId) },
           {
-            label: "Token quota",
-            value: `${selectedMinistry.tokensUsedM}M of ${selectedMinistry.tokenQuotaM}M used`,
+            label: "AI allowance used",
+            value: `${Math.round((selectedMinistry.tokensUsedM / selectedMinistry.tokenQuotaM) * 100)}% (${selectedMinistry.tokensUsedM}M of ${selectedMinistry.tokenQuotaM}M tokens)`,
           },
         ],
       };
@@ -211,13 +212,12 @@ export default function FAHRDashboard() {
     if (drillLevel === "individual" && selectedIndividual) {
       return {
         title: `${selectedIndividual.name} — workplace projects`,
-        headers: ["Project", "State", "Impact", "Hours saved / month", "Est. value (AED)", "Submitted"],
+        headers: ["Project", "State", "Impact", "Hours returned / month", "Submitted"],
         rows: projectsFor(selectedIndividual.id).map((s) => [
           s.title,
           SUBMISSION_STATE_LABEL[s.state],
           s.impact,
           s.hoursSavedPerMonth,
-          s.estimatedValueAed,
           s.submittedOn,
         ]),
         facts: [
@@ -239,8 +239,9 @@ export default function FAHRDashboard() {
         "Readiness %",
         "Active learners",
         "Digital twins",
-        "Projects",
-        "Est. value (AED M)",
+        "Projects submitted",
+        "Projects live",
+        "Hours returned / month",
         "Priority gap",
       ],
       rows: ministries.map((m) => [
@@ -249,7 +250,8 @@ export default function FAHRDashboard() {
         m.activeLearners,
         m.twins,
         m.projectsSubmitted,
-        m.valueCreatedAedM,
+        m.projectsLive,
+        m.hoursSavedPerMonth,
         competencyLabel(m.topGapCompetencyId),
       ]),
       facts: [
@@ -257,7 +259,8 @@ export default function FAHRDashboard() {
         { label: "Workforce targeted", value: national.employees.toLocaleString() },
         { label: "Active learners", value: national.activeLearners.toLocaleString() },
         { label: "Federal readiness", value: `${national.readiness}%` },
-        { label: "Est. value created", value: `AED ${national.valueCreatedAedM}M` },
+        { label: "Projects live", value: national.projectsLive.toLocaleString() },
+        { label: METRICS.hoursSaved.label, value: national.hoursSavedPerMonth.toLocaleString() },
       ],
     };
   };
@@ -267,27 +270,6 @@ export default function FAHRDashboard() {
     const filename = stampedFilename(`fahr-${drillLevel}-view`, "csv");
     downloadCsv({ filename, headers: view.headers, rows: view.rows });
     toast({ title: "Export downloaded", description: `${view.title} — ${filename}` });
-  };
-
-  const handlePrintView = () => {
-    const view = viewExport();
-    printReport({
-      title: "FAHR AI Learning Platform",
-      subtitle: view.title,
-      meta: [
-        `View: ${drillLevel === "federal" ? "Federal" : drillLevel.charAt(0).toUpperCase() + drillLevel.slice(1)}`,
-        `Entities on the programme: ${national.entities}`,
-      ],
-      sections: [
-        { heading: "Headline figures", facts: view.facts },
-        {
-          heading: view.title,
-          table: { headers: view.headers, rows: view.rows },
-        },
-      ],
-      footnote:
-        "Figures are summed from the entity records held on the platform and reconcile with the entity and manager views.",
-    });
   };
 
   // ------------------------------------------------------------------
@@ -338,21 +320,17 @@ export default function FAHRDashboard() {
             </div>
           </AIAnalysisPanel>
 
-          <Stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <Stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {kpis.map((kpi, i) => (
               <StaggerItem key={kpi.label}>
                 <StatCard className="h-full transition-shadow hover:shadow-md">
                   <CardContent className="p-4 flex flex-col items-center text-center">
                     <kpi.icon className="w-6 h-6 mb-2 text-primary" />
                     <p className="text-2xl font-bold" data-testid={`kpi-fahr-${i}`}>
-                      <CountUp
-                        to={kpi.value}
-                        decimals={kpi.decimals ?? 0}
-                        prefix={kpi.prefix}
-                        suffix={kpi.suffix}
-                      />
+                      <CountUp to={kpi.value} suffix={"suffix" in kpi ? kpi.suffix : undefined} />
                     </p>
-                    <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                    <p className="text-xs font-medium text-foreground">{kpi.label}</p>
+                    <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{kpi.caption}</p>
                   </CardContent>
                 </StatCard>
               </StaggerItem>
@@ -402,19 +380,22 @@ export default function FAHRDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Est. value created by entity (AED millions)</CardTitle>
-                <CardDescription>Contributions to the AED {national.valueCreatedAedM}M federal total</CardDescription>
+                <CardTitle className="text-lg">Hours returned per month, by entity</CardTitle>
+                <CardDescription>
+                  Contributions to the {national.hoursSavedPerMonth.toLocaleString()} hours a month returned by{" "}
+                  {national.projectsLive.toLocaleString()} live projects
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <ChartReveal className="h-[300px]" direction="rise">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={valueBreakdown} margin={{ top: 24, right: 12, left: -12, bottom: 8 }}>
+                    <BarChart data={hoursBreakdown} margin={{ top: 24, right: 12, left: -12, bottom: 8 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="label" fontSize={11} axisLine={false} tickLine={false} interval={0} />
                       <YAxis fontSize={11} axisLine={false} tickLine={false} />
-                      <Tooltip cursor={{ fill: "transparent" }} formatter={(value) => [`AED ${value}M`, "Value"]} />
+                      <Tooltip cursor={{ fill: "transparent" }} formatter={(value) => [`${Number(value).toLocaleString()} hours`, "Per month"]} />
                       <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={44}>
-                        {valueBreakdown.map((bar, i) => (
+                        {hoursBreakdown.map((bar, i) => (
                           <Cell
                             key={bar.label}
                             fill={
@@ -439,7 +420,9 @@ export default function FAHRDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Entity comparison</CardTitle>
-              <CardDescription>Click any row to drill down. Figures are the live entity records.</CardDescription>
+              <CardDescription>
+                Click any row to drill down. Counts are since launch; hours are per month from live projects.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -451,7 +434,8 @@ export default function FAHRDashboard() {
                       <TableHead className="text-right">Learners</TableHead>
                       <TableHead className="text-right">Digital twins</TableHead>
                       <TableHead className="text-right">Projects</TableHead>
-                      <TableHead className="text-right">Est. value</TableHead>
+                      <TableHead className="text-right">Live</TableHead>
+                      <TableHead className="text-right">Hours / month</TableHead>
                       <TableHead>Priority gap</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -484,11 +468,14 @@ export default function FAHRDashboard() {
                         <TableCell className="text-right" onClick={() => handleMinistryClick(min.id)}>
                           {min.projectsSubmitted.toLocaleString()}
                         </TableCell>
+                        <TableCell className="text-right" onClick={() => handleMinistryClick(min.id)}>
+                          {min.projectsLive.toLocaleString()}
+                        </TableCell>
                         <TableCell
                           className="text-right text-primary font-medium"
                           onClick={() => handleMinistryClick(min.id)}
                         >
-                          AED {min.valueCreatedAedM}M
+                          {min.hoursSavedPerMonth.toLocaleString()}
                         </TableCell>
                         <TableCell onClick={() => handleMinistryClick(min.id)}>
                           <Badge variant="outline">{competencyLabel(min.topGapCompetencyId)}</Badge>
@@ -510,18 +497,27 @@ export default function FAHRDashboard() {
         <div className="space-y-6">
           <Stagger className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "Readiness", value: selectedMinistry.readiness, suffix: "%" },
-              { label: "Active learners", value: selectedMinistry.activeLearners },
-              { label: "Projects submitted", value: selectedMinistry.projectsSubmitted },
-              { label: "Credentials issued", value: selectedMinistry.credentialsIssued },
+              { ...METRICS.readiness, value: selectedMinistry.readiness, suffix: "%" },
+              {
+                ...METRICS.activeLearners,
+                caption: `${Math.round((selectedMinistry.activeLearners / selectedMinistry.employees) * 100)}% of ${selectedMinistry.employees.toLocaleString()} targeted, since launch`,
+                value: selectedMinistry.activeLearners,
+              },
+              {
+                ...METRICS.projectsSubmitted,
+                caption: `Since launch; ${selectedMinistry.projectsLive} live, ${selectedMinistry.hoursSavedPerMonth.toLocaleString()} hours returned / month`,
+                value: selectedMinistry.projectsSubmitted,
+              },
+              { ...METRICS.credentials, value: selectedMinistry.credentialsIssued },
             ].map((kpi) => (
               <StaggerItem key={kpi.label}>
                 <StatCard className="h-full">
                   <CardContent className="p-4">
                     <p className="text-xs text-muted-foreground">{kpi.label}</p>
                     <p className="text-2xl font-bold">
-                      <CountUp to={kpi.value} suffix={kpi.suffix} />
+                      <CountUp to={kpi.value} suffix={"suffix" in kpi ? kpi.suffix : undefined} />
                     </p>
+                    <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{kpi.caption}</p>
                   </CardContent>
                 </StatCard>
               </StaggerItem>
@@ -558,13 +554,12 @@ export default function FAHRDashboard() {
                 </ChartReveal>
                 <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">AI token quota this period</span>
-                    <span className="font-medium">
-                      {selectedMinistry.tokensUsedM}M of {selectedMinistry.tokenQuotaM}M
-                    </span>
+                    <span className="text-muted-foreground">AI allowance used this period</span>
+                    <span className="font-medium">{quotaUse}%</span>
                   </div>
                   <Progress value={quotaUse} className="h-2" />
                   <p className="text-xs text-muted-foreground">
+                    {selectedMinistry.tokensUsedM}M of {selectedMinistry.tokenQuotaM}M tokens.{" "}
                     Entity administrator: {selectedMinistry.entityAdmin}. Quota is allocated from{" "}
                     <Link href="/fahr/entities" className="text-primary underline-offset-4 hover:underline">
                       entity administration
@@ -867,14 +862,10 @@ export default function FAHRDashboard() {
                             </div>
                           </div>
                           <p className="mt-2 text-sm text-muted-foreground">{project.description}</p>
-                          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4 text-sm">
+                          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 text-sm">
                             <div>
-                              <p className="text-xs text-muted-foreground">Hours saved / month</p>
+                              <p className="text-xs text-muted-foreground">Hours returned / month</p>
                               <p className="font-semibold">{project.hoursSavedPerMonth}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Est. value</p>
-                              <p className="font-semibold">AED {project.estimatedValueAed.toLocaleString()}</p>
                             </div>
                             <div>
                               <p className="text-xs text-muted-foreground">Governance</p>
@@ -927,9 +918,6 @@ export default function FAHRDashboard() {
             <>
               <Button variant="outline" className="gap-2" onClick={handleExportCsv} data-testid="button-export-view">
                 <Download className="w-4 h-4" /> Export current view
-              </Button>
-              <Button variant="secondary" className="gap-2" onClick={handlePrintView} data-testid="button-print-view">
-                <Printer className="w-4 h-4" /> Print pack
               </Button>
             </>
           }

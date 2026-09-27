@@ -58,7 +58,9 @@ export default function LeadershipMinistries() {
           <CardHeader>
             <CardTitle className="text-xl">Entity Comparison</CardTitle>
             <CardDescription>
-              Click any entity row to jump directly to its detailed profile in the FAHR Programme portal.
+              Readiness is the average assessed capability (0–100); coverage is active learners as a share of the
+              targeted workforce; hours a month come from live workplace projects since launch. Click any entity row to
+              jump to its profile in the FAHR Programme portal.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -73,11 +75,11 @@ export default function LeadershipMinistries() {
                     <TableHead className="text-end cursor-pointer hover:bg-muted/50 transition-colors select-none" onClick={() => toggleSort('coverage')}>
                       <div className="flex items-center justify-end">Coverage <SortIcon col="coverage" /></div>
                     </TableHead>
-                    <TableHead className="text-end cursor-pointer hover:bg-muted/50 transition-colors select-none" onClick={() => toggleSort('valueCreatedAedM')}>
-                      <div className="flex items-center justify-end">Value (AED M) <SortIcon col="valueCreatedAedM" /></div>
+                    <TableHead className="text-end cursor-pointer hover:bg-muted/50 transition-colors select-none" onClick={() => toggleSort('hoursSavedPerMonth')}>
+                      <div className="flex items-center justify-end">Hours / month <SortIcon col="hoursSavedPerMonth" /></div>
                     </TableHead>
-                    <TableHead className="text-end cursor-pointer hover:bg-muted/50 transition-colors select-none" onClick={() => toggleSort('projectsSubmitted')}>
-                      <div className="flex items-center justify-end">Projects <SortIcon col="projectsSubmitted" /></div>
+                    <TableHead className="text-end cursor-pointer hover:bg-muted/50 transition-colors select-none" onClick={() => toggleSort('projectsLive')}>
+                      <div className="flex items-center justify-end">Projects live <SortIcon col="projectsLive" /></div>
                     </TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
@@ -105,8 +107,11 @@ export default function LeadershipMinistries() {
                         </TableCell>
                         <TableCell className="text-end font-bold" onClick={() => setLocation(`/fahr?ministry=${m.id}`)}>{m.readiness}%</TableCell>
                         <TableCell className="text-end" onClick={() => setLocation(`/fahr?ministry=${m.id}`)}>{coverage}%</TableCell>
-                        <TableCell className="text-end font-medium" onClick={() => setLocation(`/fahr?ministry=${m.id}`)}>AED {m.valueCreatedAedM.toFixed(1)}</TableCell>
-                        <TableCell className="text-end" onClick={() => setLocation(`/fahr?ministry=${m.id}`)}>{m.projectsSubmitted}</TableCell>
+                        <TableCell className="text-end font-medium" onClick={() => setLocation(`/fahr?ministry=${m.id}`)}>{m.hoursSavedPerMonth.toLocaleString()}</TableCell>
+                        <TableCell className="text-end" onClick={() => setLocation(`/fahr?ministry=${m.id}`)}>
+                          {m.projectsLive}
+                          <span className="text-xs text-muted-foreground"> of {m.projectsSubmitted}</span>
+                        </TableCell>
                         <TableCell onClick={() => setLocation(`/fahr?ministry=${m.id}`)}>
                           {onTrack ? (
                             <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">

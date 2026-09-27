@@ -7,29 +7,35 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CountUp } from "@/components/CountUp";
 import { ScoreCard } from "@/components/evaluation/ScoreCard";
-import { ReviewThread } from "@/components/evaluation/ReviewThread";
-import { ArrowRight, ArrowUpRight, Award, Sparkles, Star } from "lucide-react";
+import { ProjectJourney } from "@/components/project/ProjectJourney";
+import { ArrowRight, ArrowUpRight, Award, MessageSquare, Sparkles, Star, UserCheck } from "lucide-react";
 import { CAPABILITY_LEVELS } from "@/lib/constants";
 import { useLearnerProgress } from "@/lib/LearnerProgressContext";
 import { useWorkplaceProject } from "@/lib/WorkplaceProjectContext";
 import { useDigitalTwin } from "@/lib/DigitalTwinContext";
-import { buildRecommendations } from "@/lib/recommendations";
-import { demoSubmission, evaluateSubmission, reviewThread } from "@/lib/workplaceProject";
+import { demoSubmission, evaluateSubmission } from "@/lib/workplaceProject";
+import { isLive, projectThread } from "@/lib/federal/journey";
+import { useFederalData } from "@/lib/FederalDataContext";
+import { PointsLegend } from "@/components/recognition/PointsLegend";
 
 export default function AgenticAIEvaluation() {
   const [, setLocation] = useLocation();
   const reduceMotion = useReducedMotion();
-  const { result, answers } = useLearnerProgress();
-  const { submission } = useWorkplaceProject();
+  const { result } = useLearnerProgress();
+  const { submission, project } = useWorkplaceProject();
   const { profile: twin } = useDigitalTwin();
 
-  const plan = useMemo(() => (result ? buildRecommendations(result, answers) : null), [result, answers]);
 
   // Evaluates what the learner submitted this session; falls back to a worked
   // example so the screen is never empty when reached straight from the sidebar.
-  const evaluated = useMemo(() => submission ?? demoSubmission(plan?.project ?? null), [submission, plan]);
+  const own = project ? submission : null;
+  const evaluated = useMemo(() => own ?? demoSubmission(), [own]);
+  // The evaluation shows in full the moment the project is submitted; until the
+  // human chain has approved it, it is labelled provisional rather than hidden.
+  const live = !project || isLive(project.state);
   const evaluation = useMemo(() => evaluateSubmission(evaluated, twin), [evaluated, twin]);
-  const thread = useMemo(() => reviewThread(evaluated, evaluation), [evaluated, evaluation]);
+  const { approvals } = useFederalData();
+  const latest = project ? projectThread(project, approvals).at(-1) : undefined;
 
   const currentIndex = useMemo(() => {
     const fromResult = CAPABILITY_LEVELS.findIndex((l) => l.id === result?.levelId);
@@ -46,26 +52,58 @@ export default function AgenticAIEvaluation() {
           title="Project Evaluation"
           description="Where your workplace project is scored by the Assessment Agent and reviewed by a human."
           actions={
-            <Badge variant="outline" className="border-primary/25 bg-primary/5 px-3 py-1 text-sm text-primary">
+            <Badge
+              variant="outline"
+              className="border-primary/25 bg-primary/5 px-3 py-1 text-sm text-primary"
+              data-testid="badge-evaluation-status"
+            >
               Evaluation complete
             </Badge>
           }
         />
 
-        {submission && (
-          <motion.p
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-2 rounded-lg border border-accent/25 bg-accent/[0.05] px-4 py-2.5 text-xs text-foreground"
-          >
-            <Sparkles className="h-3.5 w-3.5 shrink-0 text-accent" />
-            This is the project you just submitted. Every score below is derived from what you wrote.
-          </motion.p>
-        )}
+        <motion.p
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center gap-2 rounded-lg border border-accent/25 bg-accent/[0.05] px-4 py-2.5 text-xs text-foreground"
+          data-testid="text-evaluation-source"
+        >
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-accent" />
+          {!project
+            ? "This is a worked example. Submit your own workplace project and it is scored here."
+            : live
+              ? "This is the project you submitted, approved and now live."
+              : "This is the project you submitted. The result is final once your line manager and entity approve it."}
+        </motion.p>
 
         <ScoreCard dimensions={evaluation.dimensions} overall={evaluation.overall} verdict={evaluation.verdict} />
 
-        <ReviewThread messages={thread} />
+        {project && (
+          <section className="rounded-xl border border-border bg-card p-5" data-testid="card-human-review">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <UserCheck className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Human review</p>
+                  <p className="text-xs text-muted-foreground" data-testid="text-latest-decision">
+                    {latest ? `${latest.by}: ${latest.note ? `“${latest.note}”` : latest.title.toLowerCase()}` : "Waiting for your line manager"}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setLocation(`/learner/messages?project=${project.id}`)}
+              >
+                <MessageSquare className="h-3.5 w-3.5" /> Open in messages
+              </Button>
+            </div>
+            <ProjectJourney submission={project} />
+          </section>
+        )}
 
         {/* Level up */}
         <motion.div
@@ -123,7 +161,10 @@ export default function AgenticAIEvaluation() {
               <p className="mt-1.5 text-2xl font-bold text-foreground tabular-nums">
                 <CountUp to={evaluation.points} prefix="+" />
               </p>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">impact points</p>
+              <p className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+                impact points
+                <PointsLegend className="-my-1" />
+              </p>
             </div>
           </div>
         </motion.div>
@@ -132,7 +173,9 @@ export default function AgenticAIEvaluation() {
         <div className="rounded-xl border border-border bg-card p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">Your credential is ready</p>
+              <p className="text-sm font-semibold text-foreground">
+                {live ? "Your credential is ready" : "Your credential is ready — provisional until approved"}
+              </p>
               <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 This evaluation has issued a verifiable {toLevel.label} credential to your capability record and a
                 project certificate on Recognition, and added {evaluated.impact.hoursPerMonth} hours a month of
