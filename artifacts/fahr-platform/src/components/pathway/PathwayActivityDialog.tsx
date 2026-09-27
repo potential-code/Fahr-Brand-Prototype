@@ -35,8 +35,8 @@ type PathwayActivityDialogProps = {
 
 type Turn = { from: "coach" | "learner"; text: string };
 
-/** Why the pathway assigned this item — present on every activity, by contract. */
-function CoachNote({ note }: { note: string }) {
+/** Why the pathway assigned this item, in the name of the agent that assigned it. */
+function CoachNote({ note, agent }: { note: string; agent: string }) {
   return (
     <div
       className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/[0.04] p-4"
@@ -47,7 +47,7 @@ function CoachNote({ note }: { note: string }) {
       </span>
       <div className="min-w-0">
         <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
-          Why your {AGENTS.learning} assigned this
+          Why your {agent} assigned this
         </p>
         <p className="mt-1 text-sm leading-relaxed text-foreground">{note}</p>
       </div>
@@ -325,7 +325,7 @@ export function PathwayActivityDialog({ item, onClose, onComplete, isComplete }:
 
           {/* Body */}
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6">
-            <CoachNote note={item.coachNote} />
+            <CoachNote note={item.coachNote} agent={item.agent} />
 
             {/* Reading body, or the guaranteed outline when an item has none. */}
             {item.body && item.body.length > 0 ? (
