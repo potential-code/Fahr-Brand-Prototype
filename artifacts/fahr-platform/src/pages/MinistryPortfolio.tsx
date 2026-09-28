@@ -103,13 +103,13 @@ export default function MinistryPortfolio() {
     };
   }, [projects, ministry]);
 
-  /** The learner and their line manager, named for the "who was notified" toasts. */
+  /** The learner and their department manager, named for the "who was notified" toasts. */
   const notifiedNames = (submission: Submission) => {
     const learner = getPerson(submission.personId);
     const manager =
       (learner?.managerId ? getPerson(learner.managerId)?.name : undefined) ??
       (submission.reviewer && submission.reviewer !== "Department manager" ? submission.reviewer : undefined) ??
-      "their line manager";
+      "their department manager";
     return { learner: learner?.name ?? "the learner", manager };
   };
 
@@ -136,7 +136,7 @@ export default function MinistryPortfolio() {
     } else {
       returnToManager(submissionId, { by: ENTITY_ADMIN, note });
       toast({
-        title: "Returned to line manager",
+        title: "Returned to department manager",
         description: `"${submission.title}" is back with ${manager}. ${manager} and ${learner} have been notified.`,
       });
     }
@@ -209,7 +209,7 @@ export default function MinistryPortfolio() {
               key: "awaiting",
               value: kpis.awaiting,
               label: "Awaiting a decision",
-              caption: "With a line manager or this entity now",
+              caption: "With a department manager or this entity now",
               tone: "text-amber-600",
             },
             {
@@ -432,12 +432,12 @@ export default function MinistryPortfolio() {
                   )}
                   {selectedProject.state === "awaiting_manager" && (
                     <p className="text-sm text-muted-foreground">
-                      Waiting on the line manager's sign-off before this entity can endorse it.
+                      Waiting on the department manager's sign-off before this entity can endorse it.
                     </p>
                   )}
                   {selectedProject.state === "revision_requested" && (
                     <p className="text-sm text-muted-foreground">
-                      Returned for revision — with the line manager and learner until it is resubmitted.
+                      Returned for revision — with the department manager and learner until it is resubmitted.
                     </p>
                   )}
                   {selectedProject.state === "escalated" && (

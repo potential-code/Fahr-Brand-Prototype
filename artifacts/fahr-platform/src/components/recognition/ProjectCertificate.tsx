@@ -121,7 +121,7 @@ function CertificateFace({
             </div>
             <div>
               <p className="text-[9px] font-semibold leading-tight text-foreground sm:text-sm">
-                {provisional ? "Line manager and entity" : reviewer}
+                {provisional ? "Department manager and entity" : reviewer}
               </p>
               <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">
                 {provisional ? "Awaiting approval by" : "Reviewed and approved by"}

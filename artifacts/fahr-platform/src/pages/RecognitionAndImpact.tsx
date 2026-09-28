@@ -87,7 +87,7 @@ export default function RecognitionAndImpact() {
           >
             <p className="flex items-center gap-2 text-sm text-foreground">
               <Clock className="h-4 w-4 shrink-0 text-accent" />
-              Provisional certificate. It becomes final once your line manager and entity approve &ldquo;{project.title}&rdquo;.
+              Provisional certificate. It becomes final once your department manager and entity approve &ldquo;{project.title}&rdquo;.
             </p>
             <Button
               variant="outline"

@@ -32,7 +32,7 @@ export type Journey = {
 
 const STEP_LABEL: Record<JourneyStepId, string> = {
   submitted: "Submitted",
-  manager: "Line manager",
+  manager: "Department manager",
   entity: "Entity",
   fahr: "FAHR",
   live: "Live",
@@ -57,7 +57,7 @@ export const DECISION_LABEL: Record<ApprovalDecision, string> = {
 
 export const ROLE_LABEL: Record<ApprovalRecord["role"], string> = {
   learner: "Learner",
-  manager: "Line manager",
+  manager: "Department manager",
   ministry: "Entity admin",
   fahr: "FAHR",
 };
@@ -91,13 +91,13 @@ export function journeyFor(
       if (isEntityReturn(latest)) status.entity = "returned";
       owner = submission.reviewer && submission.reviewer !== "Department manager"
         ? submission.reviewer
-        : names.manager ?? "Line manager";
+        : names.manager ?? "Department manager";
       headline =
         latest?.decision === "resubmitted"
-          ? "Resubmitted — back with the line manager"
+          ? "Resubmitted — back with the department manager"
           : isEntityReturn(latest)
-            ? "Returned by the entity — back with the line manager"
-            : "Waiting for line manager sign-off";
+            ? "Returned by the entity — back with the department manager"
+            : "Waiting for department manager sign-off";
       break;
     case "revision_requested":
       status.submitted = "current";

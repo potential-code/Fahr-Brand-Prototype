@@ -55,7 +55,7 @@ const CONFIG: Record<
     title: "Approve for federal rollout",
     verb: "Approve",
     description:
-      "The project goes live across the federal programme and the learner's credential is issued. The learner, line manager, entity and leadership are notified. A note is optional.",
+      "The project goes live across the federal programme and the learner's credential is issued. The learner, department manager, entity and leadership are notified. A note is optional.",
     noteRequired: false,
     placeholder: "Optional note — conditions on the rollout, or what made the case.",
     icon: Rocket,

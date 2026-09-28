@@ -73,7 +73,7 @@ export default function AgenticAIEvaluation() {
             ? "This is a worked example. Submit your own workplace project and it is scored here."
             : live
               ? "This is the project you submitted, approved and now live."
-              : "This is the project you submitted. The result is final once your line manager and entity approve it."}
+              : "This is the project you submitted. The result is final once your department manager and entity approve it."}
         </motion.p>
 
         <ScoreCard dimensions={evaluation.dimensions} overall={evaluation.overall} verdict={evaluation.verdict} />
@@ -88,7 +88,7 @@ export default function AgenticAIEvaluation() {
                 <div>
                   <p className="text-sm font-semibold text-foreground">Human review</p>
                   <p className="text-xs text-muted-foreground" data-testid="text-latest-decision">
-                    {latest ? `${latest.by}: ${latest.note ? `“${latest.note}”` : latest.title.toLowerCase()}` : "Waiting for your line manager"}
+                    {latest ? `${latest.by}: ${latest.note ? `“${latest.note}”` : latest.title.toLowerCase()}` : "Waiting for your department manager"}
                   </p>
                 </div>
               </div>

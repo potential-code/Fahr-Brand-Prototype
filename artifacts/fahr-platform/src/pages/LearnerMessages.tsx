@@ -30,7 +30,7 @@ const initials = (name: string) =>
     .toUpperCase();
 
 /**
- * The learner's inbox. Messages their line manager sends them arrive as one
+ * The learner's inbox. Messages their department manager sends them arrive as one
  * conversation; every decision on their workplace project — the line
  * manager's, the entity's, FAHR's — arrives as another, with the one thing it
  * asks of them made obvious.
@@ -47,7 +47,7 @@ export default function LearnerMessages() {
     () => submissions.filter((s) => s.personId === focus.learnerId),
     [submissions, focus.learnerId],
   );
-  // Both sides of the learner's conversation with their line manager.
+  // Both sides of the learner's conversation with their department manager.
   const withManager = useMemo(
     () =>
       directMessages.filter(
@@ -95,7 +95,7 @@ export default function LearnerMessages() {
         <PageHeader
           bordered
           title="Messages"
-          description="Messages from your line manager, and every decision on your workplace project from your entity and FAHR, in one place."
+          description="Messages from your department manager, and every decision on your workplace project from your entity and FAHR, in one place."
         />
 
         <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
@@ -103,7 +103,7 @@ export default function LearnerMessages() {
           <aside className="space-y-4">
             <div className="rounded-xl border border-border bg-card">
               <p className="flex items-center gap-2 border-b border-border px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <UserRound className="h-3.5 w-3.5" /> Your line manager
+                <UserRound className="h-3.5 w-3.5" /> Your department manager
               </p>
               <button
                 type="button"
@@ -113,7 +113,7 @@ export default function LearnerMessages() {
                 aria-current={showManager ? "true" : undefined}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-foreground">{manager?.name ?? "Your line manager"}</p>
+                  <p className="text-sm font-semibold text-foreground">{manager?.name ?? "Your department manager"}</p>
                   {managerUnread > 0 && (
                     <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-white">
                       {managerUnread}
@@ -204,7 +204,7 @@ export default function LearnerMessages() {
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">Action required</p>
                     <p className="mt-0.5 text-sm font-semibold text-foreground">Update your project and resubmit it</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Your line manager's comments are below. Resubmitting sends it straight back to their sign-off queue.
+                      Your department manager's comments are below. Resubmitting sends it straight back to their sign-off queue.
                     </p>
                   </div>
                   <Button className="shrink-0 gap-2" onClick={revise} data-testid="button-messages-revise">
@@ -241,7 +241,7 @@ export default function LearnerMessages() {
               </span>
               <h2 className="mt-4 text-base font-semibold text-foreground">Nothing to review yet</h2>
               <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                When you submit your workplace project, every decision and comment from your line manager, your entity and FAHR arrives
+                When you submit your workplace project, every decision and comment from your department manager, your entity and FAHR arrives
                 here.
               </p>
               <Button className="mt-5 gap-2" onClick={() => setLocation("/learner/lab/project")}>
@@ -255,7 +255,7 @@ export default function LearnerMessages() {
   );
 }
 
-/** The learner's conversation with their line manager, both ways. */
+/** The learner's conversation with their department manager, both ways. */
 function ManagerConversation({
   learnerId,
   managerId,
@@ -266,7 +266,7 @@ function ManagerConversation({
   manager: Person | undefined;
 }) {
   const reduceMotion = useReducedMotion();
-  const name = manager?.name ?? "Your line manager";
+  const name = manager?.name ?? "Your department manager";
 
   return (
     <motion.section
@@ -281,7 +281,7 @@ function ManagerConversation({
           {initials(name)}
         </span>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Your line manager</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Your department manager</p>
           <h2 className="text-lg font-bold text-foreground">{name}</h2>
           {manager?.role && <p className="text-xs text-muted-foreground">{manager.role}</p>}
         </div>

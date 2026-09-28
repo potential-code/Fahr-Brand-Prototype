@@ -3,7 +3,7 @@ import { GraduationCap, UserCog, Building2, Landmark, Rocket, ChevronRight } fro
 
 const STEPS = [
   { icon: GraduationCap, label: "Learner", note: "submits the project" },
-  { icon: UserCog, label: "Line manager", note: "signs off or returns" },
+  { icon: UserCog, label: "Department manager", note: "signs off or returns" },
   { icon: Building2, label: "Entity", note: "endorses, returns or escalates", accent: true },
   { icon: Landmark, label: "FAHR", note: "approves or returns escalations" },
   { icon: Rocket, label: "Live", note: "in service, credential issued" },

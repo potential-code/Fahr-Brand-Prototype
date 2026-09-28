@@ -59,7 +59,7 @@ const STEP_CAPTION: Record<JourneyStep["status"], string> = {
 };
 
 /**
- * Where a workplace project is in Submitted → Line manager → Entity → FAHR →
+ * Where a workplace project is in Submitted → Department manager → Entity → FAHR →
  * Live. The same tracker renders on every dashboard, so the project always
  * reads the same whoever is looking at it.
  */

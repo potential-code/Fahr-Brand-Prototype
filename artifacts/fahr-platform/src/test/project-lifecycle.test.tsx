@@ -106,7 +106,7 @@ describe("a workplace project travels learner → manager → entity → FAHR �
     await user.click(screen.getByText("submit"));
     expect(text("state")).toBe("awaiting_manager");
 
-    // The line manager sees it in the sign-off queue and sends it back.
+    // The department manager sees it in the sign-off queue and sends it back.
     as(<ManagerDashboard />, "/manager");
     expect(text("n-manager")).toContain(`n-mgr-approval-${PROJECT}`);
     await user.click(screen.getByTestId(`button-request-revision-${PROJECT}`));
@@ -146,7 +146,7 @@ describe("a workplace project travels learner → manager → entity → FAHR �
     expect(screen.getByTestId("certificate-provisional-watermark")).toBeTruthy();
     as(<AgenticAIEvaluation />, "/learner/evaluation");
     expect(text("badge-evaluation-status")).toBe("Evaluation complete");
-    expect(text("text-evaluation-source")).toContain("final once your line manager and entity approve");
+    expect(text("text-evaluation-source")).toContain("final once your department manager and entity approve");
     expect(screen.getByTestId("card-level-up")).toBeTruthy();
 
     // FAHR approves from its project decisions queue: live everywhere at once.
@@ -213,7 +213,7 @@ describe("a workplace project travels learner → manager → entity → FAHR �
     as(<ManagerDashboard />, "/manager");
     await user.click(screen.getByText("submit"));
 
-    // The line manager reads the full brief in the review sheet.
+    // The department manager reads the full brief in the review sheet.
     as(<ManagerValidations />, `/manager/validations?project=${PROJECT}`);
     const brief = screen.getByTestId(`brief-${PROJECT}`);
     expect(brief.textContent).toContain(BRIEF.brief.challenge);

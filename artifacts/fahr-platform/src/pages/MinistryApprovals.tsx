@@ -157,7 +157,7 @@ export default function MinistryApprovals() {
     const managerName =
       (learner?.managerId ? getPerson(learner.managerId)?.name : undefined) ??
       (submission?.reviewer && submission.reviewer !== "Department manager" ? submission.reviewer : undefined) ??
-      "their line manager";
+      "their department manager";
     if (kind === "endorse") {
       endorse(id, { by: ENTITY_ADMIN, note: note || undefined });
       setSessionCounts((c) => ({ ...c, endorsed: c.endorsed + 1 }));
@@ -169,7 +169,7 @@ export default function MinistryApprovals() {
       returnToManager(id, { by: ENTITY_ADMIN, note });
       setSessionCounts((c) => ({ ...c, returned: c.returned + 1 }));
       toast({
-        title: "Returned to line manager",
+        title: "Returned to department manager",
         description: `"${title}" is back with ${managerName}. ${managerName} and ${learnerName} have been notified.`,
       });
     } else if (kind === "escalate") {
@@ -230,7 +230,7 @@ export default function MinistryApprovals() {
       value: awaiting.length,
       icon: Inbox,
       color: "text-primary",
-      caption: "Signed off by a line manager, now with this entity",
+      caption: "Signed off by a department manager, now with this entity",
     },
     {
       label: "Endorsed this session",
@@ -244,7 +244,7 @@ export default function MinistryApprovals() {
       value: sessionCounts.returned,
       icon: Undo2,
       color: "text-amber-600",
-      caption: "Sent back to the line manager",
+      caption: "Sent back to the department manager",
     },
     {
       label: "Escalated this session",
@@ -269,7 +269,7 @@ export default function MinistryApprovals() {
           tone="primary"
           icon={<ClipboardCheck className="h-7 w-7 text-primary" />}
           title="Entity Approvals"
-          description="Projects that cleared line manager sign-off arrive here for an entity decision. Endorse, return or escalate to FAHR — every decision is recorded in the project's conversation."
+          description="Projects that cleared department manager sign-off arrive here for an entity decision. Endorse, return or escalate to FAHR — every decision is recorded in the project's conversation."
           actions={
             <Button variant="outline" onClick={exportQueueAndTrail} data-testid="button-export-approvals">
               <Download className="mr-2 h-4 w-4" /> Export queue &amp; trail

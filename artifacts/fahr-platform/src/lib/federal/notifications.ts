@@ -101,7 +101,7 @@ function learnerCopy(decision: ApprovalRecord, title: string): { title: string; 
         ? { title: `Action required: revise "${title}"`, body: `${decision.by} asked for changes.${said}` }
         : null;
     case "signed_off":
-      return { title: "Your line manager signed off your project", body: `${decision.by} sent "${title}" to the entity for endorsement.` };
+      return { title: "Your department manager signed off your project", body: `${decision.by} sent "${title}" to the entity for endorsement.` };
     case "escalated":
       return { title: "Your project was escalated to FAHR", body: `The entity referred "${title}" for a federal decision.${said}` };
     case "returned_to_entity":
@@ -144,7 +144,7 @@ function learnerNotifications(input: NotificationInput): FederalNotification[] {
   // Oldest first, each pushed to the front, so the newest message leads.
   for (const message of input.directMessages) {
     if (message.toId !== FOCUS.learnerId) continue;
-    const from = input.people.find((p) => p.id === message.fromId)?.name ?? "Your line manager";
+    const from = input.people.find((p) => p.id === message.fromId)?.name ?? "Your department manager";
     out.unshift({
       id: `n-learner-${message.id}`,
       title: `New message from ${from}`,

@@ -140,7 +140,7 @@ export default function AgenticAILabProject() {
   const index = stageIndex(stage);
   const current = STAGES[index];
   const locked = project !== undefined && !editing;
-  const managerName = manager?.name ?? "your line manager";
+  const managerName = manager?.name ?? "your department manager";
 
   const handleSubmit = () => {
     submit(impact, policies, reply);
@@ -181,7 +181,7 @@ export default function AgenticAILabProject() {
               {returned ? "Your project needs a revision" : project.state === "deployed" || project.state === "endorsed" ? "Your project is live" : "Your project is submitted"}
             </h2>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              "{project.title}" moves from your line manager to your entity and, where it needs a federal decision, to FAHR. Every
+              "{project.title}" moves from your department manager to your entity and, where it needs a federal decision, to FAHR. Every
               decision and comment lands in your messages.
             </p>
 
@@ -619,7 +619,7 @@ export default function AgenticAILabProject() {
                 <Rocket className="h-3.5 w-3.5 text-primary" /> What happens next
               </p>
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                Submitting sends your brief to your line manager for sign-off, then to your entity for endorsement. Projects with federal
+                Submitting sends your brief to your department manager for sign-off, then to your entity for endorsement. Projects with federal
                 reach are escalated to FAHR for the final decision. Going live issues your credential.
               </p>
             </div>

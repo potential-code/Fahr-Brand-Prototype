@@ -49,7 +49,7 @@ export function DirectConversation({
     if (list) list.scrollTop = list.scrollHeight;
   }, [messages.length]);
 
-  const nameOf = (id: string) => getPerson(id)?.name ?? (id === focus.learnerId ? LEARNER_PROFILE.name : "Your line manager");
+  const nameOf = (id: string) => getPerson(id)?.name ?? (id === focus.learnerId ? LEARNER_PROFILE.name : "Your department manager");
 
   const send = () => {
     if (!draft.trim()) return;

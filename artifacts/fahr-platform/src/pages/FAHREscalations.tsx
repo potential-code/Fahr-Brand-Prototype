@@ -151,7 +151,7 @@ export default function FAHREscalations() {
     return (
       (learner?.managerId ? getPerson(learner.managerId)?.name : undefined) ??
       (s.reviewer && s.reviewer !== "Department manager" ? s.reviewer : undefined) ??
-      "the line manager"
+      "the department manager"
     );
   };
 
